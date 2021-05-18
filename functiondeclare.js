@@ -1,0 +1,2 @@
+function PreviousImage() { };
+function NextImage() { };
