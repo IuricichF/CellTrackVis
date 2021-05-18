@@ -11,13 +11,13 @@ const img = svg.append('image')
 PreviousImage = () => {
     if (imgIndex > 0) {
         img.attr('href', '/A_01fld07_brightfield/' + (--imgIndex) + '.png')
-        d3.select('h2').text(imgIndex);
+        d3.select('h2').text(imgIndex + 1);
     }
 }
 NextImage = () => {
     if (imgIndex < 288) {
         img.attr('href', '/A_01fld07_brightfield/' + (++imgIndex) + '.png');
-        d3.select('h2').text(imgIndex);
+        d3.select('h2').text(imgIndex + 1);
     }
 }
 
