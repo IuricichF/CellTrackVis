@@ -2,15 +2,23 @@
 <html lang='en'>
 <head>
     <script src='https://d3js.org/d3.v6.min.js'></script>
-    <script src='functiondeclare.js'></script>
     <meta charset="utf-8">
     <title>Cell Tracking Visualization</title>
+    <style>
+        .ImageDisplay {
+            border: 5px outset red;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h1>Images</h1>
-    <h2>1</h2>
-    <script src='rendImages.js'></script>
-    <button type="button" onclick="PreviousImage()">Previous Image</button>
-    <button type="button" onclick="NextImage()">Next Image</button>
+    <div class="ImageDisplay">
+        <h1>Images</h1>
+        <script src='rendImages.js'></script>
+        <p>
+            <button type="button" onclick="PreviousImage()">Previous Image</button>
+            <button type="button" onclick="NextImage()">Next Image</button>
+        </p>
+    </div>
 </body>
 </html>
