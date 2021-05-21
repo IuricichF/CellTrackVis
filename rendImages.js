@@ -19,7 +19,7 @@ const imgGroup = svg.append('g')
     .attr('transform', 'translate(' + IMAGE_WIDTH / 2 + ', 0)');
 // rend image
 const img = imgGroup.append('image')
-    .attr('href', '/A_01fld07_brightfield/' + imgIndex + '.png')
+    .attr('href', '/DataVis/A_01fld07_brightfield/' + imgIndex + '.png')
     .attr('width', IMAGE_WIDTH)
     .attr('height', IMAGE_HEIGHT);
 // scroll bar group
@@ -44,7 +44,7 @@ scrollBarGroup.append('rect')
 function updateImage(newIndex) {
     if (newIndex != imgIndex) {
         imgIndex = newIndex;
-        img.attr('href', '/A_01fld07_brightfield/' + imgIndex + '.png');
+        img.attr('href', '/DataVis/A_01fld07_brightfield/' + imgIndex + '.png');
         updateTracks();
         indexDisplay.text('Images Index: ' + (imgIndex + 1));
     }
