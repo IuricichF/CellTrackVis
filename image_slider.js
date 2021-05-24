@@ -40,9 +40,9 @@ document.getElementsByClassName("divContainer")[0].addEventListener("mouseup", e
     isMoving = false;
 });
 const sliderInfo = sliderContainer.getBoundingClientRect();
-const objInfo = draggableObj.getBoundingClientRect();
+var objInfo = draggableObj.getBoundingClientRect();
 const SLIDER_LENGTH = sliderInfo.right - sliderInfo.left;
-const DRAG_OBJECT_LENGTH = objInfo.right - objInfo.left;
+var DRAG_OBJECT_LENGTH = objInfo.right - objInfo.left;
 const LOWER_LIMIT = sliderInfo.left + DRAG_OBJECT_LENGTH / 2;
 const UPPER_LIMIT = sliderInfo.right - DRAG_OBJECT_LENGTH / 2;
 const INNER_SLIDER_LENGTH = UPPER_LIMIT - LOWER_LIMIT;
@@ -67,16 +67,19 @@ function move(x) {
         draggableObj.setAttribute("transform", "translate(" + objPos + ", 0)");
         updateImage(Math.trunc(scalePosToPercent(x) * NUM_IMAGE));
     }
+    objInfo = draggableObj.getBoundingClientRect();
+    DRAG_OBJECT_LENGTH = objInfo.right - objInfo.left;
 }
 
 window.addEventListener("keydown", e => {
     if (e.keyCode == '37') {
         // left arrow
-        console.log(x + INNER_SLIDER_LENGTH / NUM_IMAGE);
-        move(x - INNER_SLIDER_LENGTH / NUM_IMAGE);
+        move(objInfo.x + DRAG_OBJECT_LENGTH / 2 - INNER_SLIDER_LENGTH / NUM_IMAGE);
     }
     else if (e.keyCode == '39') {
         // right arrow
-        move(x + INNER_SLIDER_LENGTH / NUM_IMAGE);
+        move(objInfo.x + DRAG_OBJECT_LENGTH / 2 + INNER_SLIDER_LENGTH / NUM_IMAGE);
     }
+    objInfo = draggableObj.getBoundingClientRect();
+    DRAG_OBJECT_LENGTH = objInfo.right - objInfo.left;
 });
