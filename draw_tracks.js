@@ -14,7 +14,7 @@ const scaleY = d3.scaleLinear()
 function drawTracks() {
     var trackPaths = [];
     // get track data
-    d3.csv("/DataVis/A_01fld07_brightfield/a_01fld07_05-09-2021-12-48-25.csv").then(trackData => {
+    d3.csv("/DataVis/src/a_01fld07_05-09-2021-12-48-25.csv").then(trackData => {
         // scale imgIndex to frame
         const scaleImageIndex = d3.scaleLinear()
             .domain([0, NUM_IMAGE - 1])
