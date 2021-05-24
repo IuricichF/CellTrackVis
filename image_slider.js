@@ -3,7 +3,7 @@ const sliderGroup = imgGroup.append("g")
     .attr("transform", "translate(0, " + IMAGE_HEIGHT * 1.01 + ")")
 // slider container
 sliderGroup.append("rect")
-    .attr("id", "scrollBarContainer")
+    .attr("id", "sliderContainer")
     .attr("stroke", "black")
     .attr("fill", "#a19f99")
     .attr("width", IMAGE_WIDTH)
@@ -19,7 +19,7 @@ sliderGroup.append("rect")
 let isMoving = false;
 let x = 0;
 const draggableObj = document.getElementById("draggableObj");
-const sliderContainer = document.getElementById("scrollBarContainer");
+const sliderContainer = document.getElementById("sliderContainer");
 sliderContainer.addEventListener("mousedown", e => {
     x = e.x;
     isMoving = true;
