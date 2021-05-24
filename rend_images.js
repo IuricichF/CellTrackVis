@@ -19,13 +19,13 @@ const imgGroup = svg.append("g")
     .attr("transform", "translate(" + IMAGE_WIDTH / 2 + ", 0)");
 // rend image
 const img = imgGroup.append("image")
-    .attr('href', '/DataVis/A_01fld07_brightfield/' + imgIndex + '.png')
+    .attr('href', '/DataVis/src/' + imgIndex + '.png')
     .attr("width", IMAGE_WIDTH)
     .attr("height", IMAGE_HEIGHT);
 // function
 function updateImage(newIndex) {
     imgIndex = newIndex;
-    img.attr('href', '/DataVis/A_01fld07_brightfield/' + imgIndex + '.png');
+    img.attr('href', '/DataVis/src/' + imgIndex + '.png');
     drawTracks();
     indexDisplay.text("Images Index: " + (imgIndex + 1));
 }
