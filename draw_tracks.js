@@ -44,11 +44,13 @@ function drawTracks() {
                 }
             });
 
+        svg.selectAll("circle").remove();
+        svg.selectAll("path").remove();
         // build start points
         svg.selectAll("circle")
             .data(trackPaths)
-            .attr("cx", d => { if (d[0] != undefined) return +d[0][0] })
-            .attr("cy", d => { if (d[0] != undefined) return +d[0][1] })
+            //.attr("cx", d => { if (d[0] != undefined) return +d[0][0] })
+            //.attr("cy", d => { if (d[0] != undefined) return +d[0][1] })
             .enter()
             .append("circle")
             .attr("cx", d => { if (d[0] != undefined) return +d[0][0] })
@@ -58,7 +60,7 @@ function drawTracks() {
         // build paths
         svg.selectAll("path")
             .data(trackPaths)
-            .attr("d", d => d3.line()(d))
+            //.attr("d", d => d3.line()(d))
             .enter()
             .append("path")
             .attr("d", d => d3.line()(d))
