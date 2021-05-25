@@ -14,7 +14,7 @@ const scaleY = d3.scaleLinear()
 function drawTracks() {
     var trackPaths = [];
     // get track data
-    d3.csv("/DataVis/src/a_01fld07_05-09-2021-12-48-25.csv").then(trackData => {
+    d3.csv("/src/a_01fld07_05-09-2021-12-48-25.csv").then(trackData => {
         // scale imgIndex to frame
         const scaleImageIndex = d3.scaleLinear()
             .domain([0, NUM_IMAGE - 1])
@@ -23,23 +23,24 @@ function drawTracks() {
         // get trackData of frame from 0 to current 
         const trackDataToCurr = trackData.filter(d => d.FRAME <= imgIndexScaled);
         // get the number of tracks
-        const maxTracks = Math.max(...trackDataToCurr.map(d => d.TRACK_ID)) + 1;
+        const maxTracks = Math.max(...trackDataToCurr.map(d => d.track_id_unique_pred)) + 1;
         for (let i = trackPaths.length; i < maxTracks; i++) trackPaths[i] = [];
         // get tracks info into trackPaths
         trackDataToCurr.filter(d => d.FRAME < imgIndexScaled)
             .forEach(d => {
-                trackPaths[d.TRACK_ID].push([scaleX(d.pos_x), scaleY(d.pos_y)]);
-                trackPaths[d.TRACK_ID].push([scaleX(+d.pos_x + +d.dt1_n0_dx), scaleY(+d.pos_y + +d.dt1_n0_dy)]);
-                trackPaths[d.TRACK_ID].push([scaleX(+d.pos_x + +d.dt2_n0_dx), scaleY(+d.pos_y + +d.dt2_n0_dy)]);
+                trackPaths[d.track_id_unique_pred].push([scaleX(d.pos_x), scaleY(d.pos_y)]);
+                trackPaths[d.track_id_unique_pred].push([scaleX(+d.pos_x + +d.dt1_n0_dx), scaleY(+d.pos_y + +d.dt1_n0_dy)]);
+                trackPaths[d.track_id_unique_pred].push([scaleX(+d.pos_x + +d.dt2_n0_dx), scaleY(+d.pos_y + +d.dt2_n0_dy)]);
             });
         trackDataToCurr.filter(d => d.FRAME == imgIndexScaled)
             .forEach(d => {
-                trackPaths[d.TRACK_ID].push([scaleX(d.pos_x), scaleY(d.pos_y)]);
-                if (scaleImageIndex.invert(imgIndexScaled) + 1 == imgIndex) {
-                    trackPaths[d.TRACK_ID].push([scaleX(+d.pos_x + +d.dt1_n0_dx), scaleY(+d.pos_y + +d.dt1_n0_dy)]);
-                    if (scaleImageIndex.invert(imgIndexScaled) + 2 == imgIndex) {
-                        trackPaths[d.TRACK_ID].push([scaleX(+d.pos_x + +d.dt2_n0_dx), scaleY(+d.pos_y + +d.dt2_n0_dy)]);
-                    }
+                trackPaths[d.track_id_unique_pred].push([scaleX(d.pos_x), scaleY(d.pos_y)]);
+                if (scaleImageIndex.invert(imgIndexScaled) + 2 == imgIndex ||
+                    scaleImageIndex.invert(imgIndexScaled) + 3 == imgIndex) {
+                    trackPaths[d.track_id_unique_pred].push([scaleX(+d.pos_x + +d.dt1_n0_dx), scaleY(+d.pos_y + +d.dt1_n0_dy)]);
+                    trackPaths[d.track_id_unique_pred].push([scaleX(+d.pos_x + +d.dt2_n0_dx), scaleY(+d.pos_y + +d.dt2_n0_dy)]);
+                } else if (scaleImageIndex.invert(imgIndexScaled) + 1 == imgIndex) {
+                    trackPaths[d.track_id_unique_pred].push([scaleX(+d.pos_x + +d.dt1_n0_dx), scaleY(+d.pos_y + +d.dt1_n0_dy)]);
                 }
             });
 
