@@ -1,6 +1,7 @@
 // slider group
 const sliderGroup = imgGroup.append("g")
-    .attr("transform", "translate(0, " + IMAGE_HEIGHT * 1.01 + ")")
+    .attr("id", "imageSlider")
+    .attr("transform", "translate(0, " + IMAGE_HEIGHT * 1.01 + ")");
 // slider container
 sliderGroup.append("rect")
     .attr("id", "sliderContainer")
@@ -39,16 +40,17 @@ document.getElementsByClassName("divContainer")[0].addEventListener("mousemove",
 document.getElementsByClassName("divContainer")[0].addEventListener("mouseup", e => {
     isMoving = false;
 });
-const sliderInfo = sliderContainer.getBoundingClientRect();
+var sliderInfo = sliderContainer.getBoundingClientRect();
 var objInfo = draggableObj.getBoundingClientRect();
-const SLIDER_LENGTH = sliderInfo.right - sliderInfo.left;
+var SLIDER_LENGTH = sliderInfo.right - sliderInfo.left;
 var DRAG_OBJECT_LENGTH = objInfo.right - objInfo.left;
-const LOWER_LIMIT = sliderInfo.left + DRAG_OBJECT_LENGTH / 2;
-const UPPER_LIMIT = sliderInfo.right - DRAG_OBJECT_LENGTH / 2;
+var LOWER_LIMIT = sliderInfo.left + DRAG_OBJECT_LENGTH / 2;
+var UPPER_LIMIT = sliderInfo.right - DRAG_OBJECT_LENGTH / 2;
 const INNER_SLIDER_LENGTH = UPPER_LIMIT - LOWER_LIMIT;
+const TRANSFORM_UPPER_LIMIT = IMAGE_WIDTH - draggableObjWidth;
 const scaleBoundToTrans = d3.scaleLinear()
     .domain([LOWER_LIMIT, UPPER_LIMIT])
-    .range([0, IMAGE_WIDTH - draggableObjWidth]);
+    .range([0, TRANSFORM_UPPER_LIMIT]);
 const scalePosToPercent = d3.scaleLinear()
     .domain([LOWER_LIMIT, UPPER_LIMIT])
     .range([0, 1]);
@@ -57,15 +59,18 @@ function move(x) {
     if (LOWER_LIMIT >= x) {
         draggableObj.setAttribute("transform", "translate(0, 0)");
         updateImage(0);
+        indicatorMove(0);
     }
     else if (UPPER_LIMIT <= x) {
-        draggableObj.setAttribute("transform", "translate(" + (IMAGE_WIDTH - draggableObjWidth) + ", 0)");
+        draggableObj.setAttribute("transform", "translate(" + (TRANSFORM_UPPER_LIMIT) + ", 0)");
         updateImage(NUM_IMAGE - 1);
+        indicatorMove(TRANSFORM_UPPER_LIMIT);
     }
     else {
-        let objPos = scaleBoundToTrans(x);
-        draggableObj.setAttribute("transform", "translate(" + objPos + ", 0)");
+        let sliderTrans = scaleBoundToTrans(x);
+        draggableObj.setAttribute("transform", "translate(" + sliderTrans + ", 0)");
         updateImage(Math.trunc(scalePosToPercent(x) * NUM_IMAGE));
+        indicatorMove(sliderTrans);
     }
     objInfo = draggableObj.getBoundingClientRect();
     DRAG_OBJECT_LENGTH = objInfo.right - objInfo.left;
@@ -83,3 +88,5 @@ window.addEventListener("keydown", e => {
     objInfo = draggableObj.getBoundingClientRect();
     DRAG_OBJECT_LENGTH = objInfo.right - objInfo.left;
 });
+
+
