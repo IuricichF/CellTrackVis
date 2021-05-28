@@ -55,11 +55,11 @@ function drawTracks() {
             .enter()
             .append("circle")
             .attr("class", d => `${trackPaths.indexOf(d)}`)
-            .attr("cx", d => d[0]? d[0][0] : 0)
-            .attr("cy", d => d[0]? d[0][1] : 0)
-            .attr("r", TRACK_WIDTH)
-            .attr('fill', START_COLOR)
-            .attr("opacity", 0.2);
+            .attr("cx", d => d[0] ? d[0][0] : undefined)
+            .attr("cy", d => d[0] ? d[0][1] : undefined)
+            .attr("r", d => d[0] ? TRACK_WIDTH : undefined)
+            .attr('fill', d => d[0] ? START_COLOR : undefined)
+            .attr("opacity", d => d[0] ? 0.2 : undefined);
         // build paths
         trackPathsGroup.selectAll("path")
             .data(trackPaths)
