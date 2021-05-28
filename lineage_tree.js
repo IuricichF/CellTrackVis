@@ -23,7 +23,7 @@ const treePathsGroup = lineageGroup.append("g")
 // tree texts group
 const treeTextsGroup = lineageGroup.append("g")
     .attr("id", "treeText");
-d3.csv("/src/a_01fld07_05-09-2021-12-48-25.csv").then(trackData => {
+d3.csv("/DataVis/src/a_01fld07_05-09-2021-12-48-25.csv").then(trackData => {
     ////debug
     //console.log(trackData.filter(d => d.track_id_unique == 9));
     // set lineage tree back ground height
