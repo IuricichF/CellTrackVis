@@ -18,7 +18,7 @@ const trackPathsGroup = svg.append("g")
 function drawTracks() {
     var trackPaths = [];
     // get track data
-    d3.csv("/src/a_01fld07_05-09-2021-12-48-25.csv").then(trackData => {
+    d3.csv("/DataVis/src/a_01fld07_05-09-2021-12-48-25.csv").then(trackData => {
         // scale imgIndex to frame
         scaleIndexToFrame
             .domain([0, NUM_IMAGE - 1])
