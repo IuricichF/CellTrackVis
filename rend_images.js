@@ -22,13 +22,13 @@ const indexDisplay = imgGroup.append("text")
 // rend image
 const img = imgGroup.append("image")
     .attr("id", "image")
-    .attr("href", "/src/" + imgIndex + ".png")
+    .attr("href", "/DataVis/src/" + imgIndex + ".png")
     .attr("width", IMAGE_WIDTH)
     .attr("height", IMAGE_HEIGHT);
 // function
 function updateImage(newIndex) {
     imgIndex = newIndex;
-    img.attr("href", "/src/" + imgIndex + ".png");
+    img.attr("href", "/DataVis/src/" + imgIndex + ".png");
     drawTracks();
     indexDisplay.text("Images Index: " + (imgIndex + 1))
         .attr("transform", `translate(${(IMAGE_WIDTH - document.getElementsByClassName("imageIndexText")[0].getBBox().width) / 2}, ${-10})`);
