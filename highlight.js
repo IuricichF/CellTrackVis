@@ -136,3 +136,11 @@ document.getElementById("image").addEventListener("mousemove", e => {
         currTrack = [];
     }
 });
+document.getElementById("lineageBG").addEventListener("mousemove", e => {
+    if (currTrack != selectedTrack) {
+        for (let item of currTrack) {
+            if (item.attributes.opacity) item.attributes.opacity.value = 0.2;
+        }
+        currTrack = [];
+    }
+});
