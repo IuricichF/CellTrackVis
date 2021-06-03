@@ -70,6 +70,7 @@ function updateImage(newIdx) {
     imgIdx = newIdx;
     // hardcoding the image file name for now, might change in future
     IMG.attr("href", `/DataVis/src/${imgIdx}.png`);
+    IMG_SLD_TXT.text(`Image Index: ${IMG_SLD_EL.value}`);
     // draw tracks on the image
     drawTrack();
 }
@@ -143,6 +144,4 @@ function drawTrack() {
         .on("mouseover", hightlightTrk)
         .on("mouseout", unhightlightTrk)
         .on("click", selectTrk);
-
-
 }
