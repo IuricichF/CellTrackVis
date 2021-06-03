@@ -1,3 +1,4 @@
+/////////////// lineage tree ////////////////
 const LINEAGE_W = 700;
 const LINEAGE_H = 700;
 var treeH;
@@ -8,6 +9,8 @@ const SCL_IDX_TO_TREE_W = d3.scaleLinear()
 const LINEAGE_SVG = d3.select(".rend_lineage")
     .attr("width", LINEAGE_W)
     .attr("height", LINEAGE_H)
+const LINEAGE_IMG_IDX_IND_GRP = LINEAGE_SVG.append("g")
+    .attr("id", "lineageImageIndexIndicatorGroup");
 const LINEAGE_GRP = LINEAGE_SVG.append("g")
     .attr("id", "lineageGroup")
 const TREE_GRP = LINEAGE_GRP.append("g")
@@ -113,5 +116,18 @@ function drawTree() {
             .on("mouseout", unhightlightTrk)
             .on("click", goStartIdxNHighlight);
     }
-
+}
+/////////////// lineage image index indicator ////////////////
+const LINEAGE_IMG_IDX_IND_H = LINEAGE_H;
+var lineageImgIdxIndW;
+const LINEAGE_IMG_IDX_IND_OPACITY = 0.5;
+const LINEAGE_IMG_IDX_IND_FILL = "black";
+const LINEAGE_IMG_IDX_IND = LINEAGE_IMG_IDX_IND_GRP.append("rect")
+    .attr("height", LINEAGE_IMG_IDX_IND_H)
+    .attr('fill', LINEAGE_IMG_IDX_IND_FILL)
+    .attr("opacity", LINEAGE_IMG_IDX_IND_OPACITY)
+const SCL_IMG_IDX_TO_LINEAGE_W = d3.scaleLinear();
+function movelineageImgIdxInd() {
+    LINEAGE_IMG_IDX_IND
+        .attr("transform", `translate(${SCL_IMG_IDX_TO_LINEAGE_W(imgIdx)}, 0)`);
 }
