@@ -50,6 +50,7 @@ d3.csv("/DataVis/src/a_01fld07_05-09-2021-12-48-25.csv").then(d => {
     SCL_IMG_IDX_TO_LINEAGE_W
         .domain([0, numImg - 1])
         .range([0, LINEAGE_W - lineageImgIdxIndW]);
+   
     drawTree();
     drawTrack();
 });
