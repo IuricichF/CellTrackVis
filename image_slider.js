@@ -8,9 +8,6 @@ window.addEventListener("keydown", e => {
     }
     else if (e.keyCode == "39") {
         // right arrow
-        if (+IMG_SLD_EL.value < +IMG_SLD_EL.max) {
-            console.log(IMG_SLD_EL.value);
-            updateImage(++IMG_SLD_EL.value);
-        }
+        if (+IMG_SLD_EL.value < +IMG_SLD_EL.max) updateImage(++IMG_SLD_EL.value);
     }
 });
