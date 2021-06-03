@@ -1,7 +1,7 @@
 const TRK_DATA = [];
 var numImg;
 d3.csv("/DataVis/src/a_01fld07_05-09-2021-12-48-25.csv").then(d => {
-    let arrTrkID = [];
+   let arrTrkID = [];
     let arrTreeID = [];
     let currTrkID = 0;
     let currTreeID = 0;
@@ -44,7 +44,12 @@ d3.csv("/DataVis/src/a_01fld07_05-09-2021-12-48-25.csv").then(d => {
     numTrk = currTrkID;
     numTree = currTreeID;
     IMG_SLD_EL.max = numImg - 1;
-
+    lineageImgIdxIndW = LINEAGE_W / numImg + 10;
+    LINEAGE_IMG_IDX_IND
+        .attr("width", lineageImgIdxIndW)
+    SCL_IMG_IDX_TO_LINEAGE_W
+        .domain([0, numImg - 1])
+        .range([0, LINEAGE_W - lineageImgIdxIndW]);
     drawTree();
     drawTrack();
 });
