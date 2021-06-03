@@ -55,7 +55,7 @@ const IMG_GRP = IMG_SVG.append("g")
 const IMG = IMG_GRP.append("image")
     .attr("id", "image")
     // hardcoding the image file name for now, might change in future
-    .attr("href", `/src_1/${imgIdx}.png`)
+    .attr("href", `/DataVis/src/${imgIdx}.png`)
     .attr("width", IMG_W)
     .attr("height", IMG_H)
 // scales that translate resolution size to display size
@@ -69,7 +69,7 @@ const SCL_RES_TO_IMG_H = d3.scaleLinear()
 function updateImage(newIdx) {
     imgIdx = newIdx;
     // hardcoding the image file name for now, might change in future
-    IMG.attr("href", `/src_1/${imgIdx}.png`);
+    IMG.attr("href", `/DataVis/src/${imgIdx}.png`);
     // draw tracks on the image
     drawTrack();
 }
