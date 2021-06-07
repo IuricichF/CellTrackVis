@@ -1,19 +1,23 @@
 /////////////// lineage tree zoom ////////////////
 var newTreeH = 0;
+var zmK = 1;
 const TREE_GRP_ARR = [];
 const TREE_W_ARR = [];
 const SCL_ZM_LN_W = d3.scaleLinear();
 function strechTrees(zm) {
     LINEAGE_GRP.attr("transform", `translate(0, ${zm.transform.y})`);
-    for (let i = 0; i < numTree; i++) {
-        newTreeH = zm.transform.k * treeH;
-        LINKS[i] = d3.tree().size([newTreeH, TREE_W_ARR[i]])(ROOTS[i]).links();
-        TREE_GRP_ARR[i].attr("transform", `translate(0, ${i * newTreeH})`);
-        TREE_GRP_ARR[i]
-            .selectAll("path")
-            .data(LINKS[i])
-            .attr("d", LINK_HORIZ)
-            .attr("stroke-width", SCL_ZM_LN_W(zm.transform.k));
+    if (zm.transform.k != zmK) {
+        zmK = zm.transform.k;
+        for (let i = 0; i < numTree; i++) {
+            newTreeH = zm.transform.k * treeH;
+            LINKS[i] = d3.tree().size([newTreeH, TREE_W_ARR[i]])(ROOTS[i]).links();
+            TREE_GRP_ARR[i].attr("transform", `translate(0, ${i * newTreeH})`);
+            TREE_GRP_ARR[i]
+                .selectAll("path")
+                .data(LINKS[i])
+                .attr("d", LINK_HORIZ)
+                .attr("stroke-width", SCL_ZM_LN_W(zm.transform.k));
+        }
     }
 }
 const LINEAGE_ZM = d3.zoom()
@@ -37,8 +41,7 @@ const LINEAGE_GRP = LINEAGE_SVG.append("g")
     .attr("id", "lineageGroup")
     .attr("transform", `translate(0, 0)`);
 const TREE_GRP = LINEAGE_GRP.append("g")
-    .attr("id", "treeGroup")
-    .attr("transform", `translate(0, 0)`);
+    .attr("id", "treeGroup");
 // info about every track and its children
 const TREE_DATA = [];
 // tree info
