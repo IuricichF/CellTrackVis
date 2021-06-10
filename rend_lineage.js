@@ -1,8 +1,8 @@
 /////////////// lineage tree zoom ////////////////
 var newTreeH = 0;
 var zmK = 1;
-const TREE_GRP_ARR = [];
-const TREE_W_ARR = [];
+var treeGrpArr = [];
+var treeWArr = [];
 const SCL_ZM_LN_W = d3.scaleLinear();
 function strechTrees(zm) {
     LINEAGE_GRP.attr("transform", `translate(0, ${zm.transform.y})`);
@@ -10,17 +10,17 @@ function strechTrees(zm) {
         zmK = zm.transform.k;
         for (let i = 0; i < numTree; i++) {
             newTreeH = zm.transform.k * treeH;
-            LINKS[i] = d3.tree().size([newTreeH, TREE_W_ARR[i]])(ROOTS[i]).links();
-            TREE_GRP_ARR[i].attr("transform", `translate(0, ${i * newTreeH})`);
-            TREE_GRP_ARR[i]
+            links[i] = d3.tree().size([newTreeH, treeWArr[i]])(roots[i]).links();
+            treeGrpArr[i].attr("transform", `translate(0, ${i * newTreeH})`);
+            treeGrpArr[i]
                 .selectAll("path")
-                .data(LINKS[i])
+                .data(links[i])
                 .attr("d", LINK_HORIZ)
                 .attr("stroke-width", SCL_ZM_LN_W(zm.transform.k));
         }
     }
 }
-const LINEAGE_ZM = d3.zoom()
+var LINEAGE_ZM = d3.zoom()
     .on("zoom", d => strechTrees(d));
 
 /////////////// lineage tree ////////////////
@@ -43,11 +43,11 @@ const LINEAGE_GRP = LINEAGE_SVG.append("g")
 const TREE_GRP = LINEAGE_GRP.append("g")
     .attr("id", "treeGroup");
 // info about every track and its children
-const TREE_DATA = [];
+var treeData = [];
 // tree info
-const ROOTS = [];
+var roots = [];
 // info used to build trees
-const LINKS = [];
+var links = [];
 const LINK_HORIZ = d3.linkHorizontal().x(d => d.y).y(d => d.x);
 // the function which return last appearing index of the tree
 function getLastAppearIdx(root) {
@@ -62,8 +62,8 @@ function getLastAppearIdx(root) {
 }
 // function that customize the tree by changing depth value
 function setRootDepth(root) {
-    root.depth = TREE_DATA.find(d => d.trkID == root.data.trkID).intvlOfExist[0];
-    root.children[0].depth = TREE_DATA.find(d => d.trkID == root.data.trkID).intvlOfExist[1] + 1;
+    root.depth = treeData.find(d => d.trkID == root.data.trkID).intvlOfExist[0];
+    root.children[0].depth = treeData.find(d => d.trkID == root.data.trkID).intvlOfExist[1] + 1;
     root.children[0].children
         ?.forEach(d => {
             setRootDepth(d);
@@ -73,7 +73,7 @@ function setRootDepth(root) {
 function goStartIdxNHighlight() {
     const MOUSE_OVER_TRK_ID = this.getAttribute("class");
     if (MOUSE_OVER_TRK_ID.slice(7) != "undefined") {
-        const startIdx = TREE_DATA.find(d => d.trkID == MOUSE_OVER_TRK_ID
+        const startIdx = treeData.find(d => d.trkID == MOUSE_OVER_TRK_ID
             .replace(/\D/g, "")).intvlOfExist[0];
         if (imgIdx < startIdx) {
             IMG_SLD_EL.value = startIdx;
@@ -99,47 +99,47 @@ function drawTree() {
         .range([LN_W, Math.log(SCL_ZM_LN_W.domain()[1] * LN_W)]);
     // build tree data
     for (i = 0; i < numTrk; i++) {
-        let tempTrk = TRK_DATA.filter(d => d.trkID == i);
-        TREE_DATA[i] = new Object();
+        let tempTrk = trkData.filter(d => d.trkID == i);
+        treeData[i] = new Object();
         // ID
-        TREE_DATA[i].treeID = tempTrk[0].treeID;
-        TREE_DATA[i].trkID = i;
-        TREE_DATA[i].parentTrkID = tempTrk[0].parentTrkID;
+        treeData[i].treeID = tempTrk[0].treeID;
+        treeData[i].trkID = i;
+        treeData[i].parentTrkID = tempTrk[0].parentTrkID;
         // it is done to prevent the tree from branching at the very start
-        TREE_DATA[i].children = [new Object()];
-        TREE_DATA[i].children[0].children = [];
+        treeData[i].children = [new Object()];
+        treeData[i].children[0].children = [];
         // interval of existence
-        TREE_DATA[i].intvlOfExist = [tempTrk[0].imgIdx, tempTrk[tempTrk.length - 1].imgIdx];
+        treeData[i].intvlOfExist = [tempTrk[0].imgIdx, tempTrk[tempTrk.length - 1].imgIdx];
         // if tempTrk is a child of other trk, assign tempTrk as a child to its parent track
         if (tempTrk[0].parentTrkID != -1) {
             // check if tempTrk is already a child of its parent track
-            if (!TREE_DATA[tempTrk[0].parentTrkID].children[0].children.includes(TREE_DATA[i])) {
-                TREE_DATA[tempTrk[0].parentTrkID].children[0].children.push(TREE_DATA[i]);
+            if (!treeData[tempTrk[0].parentTrkID].children[0].children.includes(treeData[i])) {
+                treeData[tempTrk[0].parentTrkID].children[0].children.push(treeData[i]);
             }
         }
     }
     // set up roots and links
     for (let i = 0; i < numTree; i++) {
         // get root track info
-        let tempTrack = TREE_DATA.find(d => d.treeID == i && d.parentTrkID == -1);
+        let tempTrack = treeData.find(d => d.treeID == i && d.parentTrkID == -1);
         // set width of the tree to the lineage point of last appear frame
-        TREE_W_ARR[i] = SCL_IDX_TO_TREE_W(getLastAppearIdx(tempTrack));
-        let treeLayout = d3.tree().size([treeH, TREE_W_ARR[i]]);
+        treeWArr[i] = SCL_IDX_TO_TREE_W(getLastAppearIdx(tempTrack));
+        let treeLayout = d3.tree().size([treeH, treeWArr[i]]);
         // set root
-        ROOTS[i] = d3.hierarchy(tempTrack);
+        roots[i] = d3.hierarchy(tempTrack);
         // customize the tree
-        setRootDepth(ROOTS[i]);
+        setRootDepth(roots[i]);
         // generate link
-        LINKS[i] = treeLayout(ROOTS[i]).links();
+        links[i] = treeLayout(roots[i]).links();
     }
     // draw trees using information from links
-    for (let i = 0; i < LINKS.length; i++) {
-        TREE_GRP_ARR[i] = TREE_GRP.append("g")
-            .attr("id", `treeID: ${LINKS[i][0].source.data.treeID}`)
+    for (let i = 0; i < links.length; i++) {
+        treeGrpArr[i] = TREE_GRP.append("g")
+            .attr("id", `treeID: ${links[i][0].source.data.treeID}`)
             .attr("transform", `translate(0, ${i * treeH})`);
-        TREE_GRP_ARR[i]
+        treeGrpArr[i]
             .selectAll("path")
-            .data(LINKS[i])
+            .data(links[i])
             .enter()
             .append("path")
             .attr("class", d => `trkID: ${d.source.data.trkID}`)

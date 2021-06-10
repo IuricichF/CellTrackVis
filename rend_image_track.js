@@ -81,7 +81,7 @@ const IMG_GRP = IMG_SVG.append("g")
 const IMG = IMG_GRP.append("image")
     .attr("id", "image")
     // hardcoding the image file name for now, might change in future
-    .attr("href", `/DataVis/src/${imgIdx}.png`)
+    .attr("href", `/DataVis/src/dataset_${dataIdx}/${imgIdx}.png`)
     .attr("width", IMG_W)
     .attr("height", IMG_H)
 // scales that translate resolution size to display size
@@ -95,7 +95,7 @@ const SCL_RES_TO_IMG_H = d3.scaleLinear()
 function updateImage(newIdx) {
     imgIdx = newIdx;
     // hardcoding the image file name for now, might change in future
-    IMG.attr("href", `/DataVis/src/${imgIdx}.png`);
+    IMG.attr("href", `/DataVis/src/dataset_${dataIdx}/${imgIdx}.png`);
     IMG_SLD_TXT.text(`Image Index: ${IMG_SLD_EL.value}`);
     // draw tracks on the image
     drawTrack();
@@ -110,9 +110,9 @@ const TRK_GRP = IMG_GRP.append("g")
 // function that draws tracks on image
 function drawTrack() {
     // populate track path data
-    const TRK_DATA_TO_IDX = TRK_DATA.filter(d => d.imgIdx <= imgIdx);
+    const trkData_TO_IDX = trkData.filter(d => d.imgIdx <= imgIdx);
     var trkPath = [];
-    TRK_DATA_TO_IDX
+    trkData_TO_IDX
         .forEach(d => {
             if (trkPath[d.trkID] === undefined) {
                 trkPath[d.trkID] = [[]];
