@@ -55,6 +55,10 @@ function loadData(dataIdx) {
 
         drawTree();
         drawTrack();
+        console.log(numTrk)
+        console.log(arrTrkID)
+        console.log(numTree)
+        console.log(arrTreeID)
     });
 }
 loadData(dataIdx);
