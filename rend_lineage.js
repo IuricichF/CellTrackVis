@@ -118,10 +118,12 @@ function drawTree() {
             }
         }
     }
+    console.log(treeData)
     // set up roots and links
     for (let i = 0; i < numTree; i++) {
         // get root track info
         let tempTrack = treeData.find(d => d.treeID == i && d.parentTrkID == -1);
+        console.log(tempTrack)
         // set width of the tree to the lineage point of last appear frame
         treeWArr[i] = SCL_IDX_TO_TREE_W(getLastAppearIdx(tempTrack));
         let treeLayout = d3.tree().size([treeH, treeWArr[i]]);
