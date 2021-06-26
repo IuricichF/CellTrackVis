@@ -1,7 +1,8 @@
 ////////////////// highlinght ////////////////////
-var htmlArr = [];
-var selHtmlArr = [];
+var htmlArr;
+var selHtmlArr;
 const TRK_FILL = "red";
+const SEL_TRK_FILL = "blue";
 const NHT_TRK_DEF_OPACITY = 0.2;
 const HT_TRK_DEF_OPACITY = 1;
 function hightlightTrk() {
@@ -31,8 +32,8 @@ function selectTrk() {
     } else {
         selHtmlArr.push(htmlArr);
         for (let item of htmlArr) {
-            if (item.localName === "circle") item.attributes.fill.value = "blue";
-            else if (item.localName === "path") item.attributes.stroke.value = "blue";
+            if (item.localName === "circle") item.attributes.fill.value = SEL_TRK_FILL;
+            else if (item.localName === "path") item.attributes.stroke.value = SEL_TRK_FILL;
         }
     }
 }
@@ -54,48 +55,32 @@ function selectNCenterTrk() {
         // blue the selected track
         selHtmlArr.push(htmlArr);
         for (let item of htmlArr) {
-            if (item.localName === "circle") item.attributes.fill.value = "blue";
-            else if (item.localName === "path") item.attributes.stroke.value = "blue";
+            if (item.localName === "circle") item.attributes.fill.value = SEL_TRK_FILL;
+            else if (item.localName === "path") item.attributes.stroke.value = SEL_TRK_FILL;
         }
     }
 
 }
 ////////////////// image ////////////////////
 // image index from 0 to number of images - 1
-var imgIdx = 0;
+var imgIdx;
 // image info
-const IMG_W = 2040;
-const IMG_H = 2040;
-const RES_W = 2040;
-const RES_H = 2040;
+const imgResSideLength = 2040;
+const viewBoxSideLength = 590;
 // set up the svg that will contain image and tracks
 const IMG_SVG = d3.select(".rend_image_track")
-    .attr("width", 700)
-    .attr("height", 700)
-    .attr("viewBox", `0 0 ${IMG_W} ${IMG_H}`);
-// set up image group
-const IMG_GRP_Y_OFST = 100;
-const IMG_GRP = IMG_SVG.append("g")
-    .attr("id", "imageGroup")
+    .attr("width", viewBoxSideLength)
+    .attr("height", viewBoxSideLength)
+    .attr("viewBox", `0 0 ${imgResSideLength} ${imgResSideLength}`);
 // image
-const IMG = IMG_GRP.append("image")
-    .attr("id", "image")
-    // hardcoding the image file name for now, might change in future
-    .attr("href", `/DataVis/src/dataset_${dataIdx}/${imgIdx}.png`)
-    .attr("width", IMG_W)
-    .attr("height", IMG_H)
-// scales that translate resolution size to display size
-const SCL_RES_TO_IMG_W = d3.scaleLinear()
-    .domain([0, RES_W])
-    .range([0, IMG_W])
-const SCL_RES_TO_IMG_H = d3.scaleLinear()
-    .domain([0, RES_H])
-    .range([0, IMG_H])
+const IMG = d3.select("#image")
+    .attr("width", imgResSideLength)
+    .attr("height", imgResSideLength)
 // update the image
 function updateImage(newIdx) {
     imgIdx = newIdx;
     // hardcoding the image file name for now, might change in future
-    IMG.attr("href", `/DataVis/src/dataset_${dataIdx}/${imgIdx}.png`);
+    IMG.attr("href", `/src/dataset_${datasetIdx}/${imgIdx}.png`);
     IMG_SLD_TXT.text(`Image Index: ${IMG_SLD_EL.value}`);
     // draw tracks on the image
     drawTrack();
@@ -105,8 +90,7 @@ function updateImage(newIdx) {
 const TRK_W = 8;
 var numTrk;
 // track group
-const TRK_GRP = IMG_GRP.append("g")
-    .attr("id", "trackGroup")
+const trkGroup = d3.select("#trackGroup");
 // function that draws tracks on image
 function drawTrack() {
     // populate track path data
@@ -114,18 +98,19 @@ function drawTrack() {
     var trkPath = [];
     trkData_TO_IDX
         .forEach(d => {
-            if (trkPath[d.trkID] === undefined) {
-                trkPath[d.trkID] = [[]];
-                trkPath[d.trkID][1] = d.trkID;
+            let temp = idxToTrkIDArr.indexOf(d.trkID)
+            if (trkPath[temp] === undefined) {
+                trkPath[temp] = [[]];
+                trkPath[temp][1] = d.trkID;
             }
-            trkPath[d.trkID][0].push([d.x, d.y]);
+            trkPath[temp][0].push([d.x, d.y]);
 
         })
     // get rid of underfined elements
     trkPath = trkPath.filter(d => d !== undefined);
     // build starting points of tracks
     // update
-    const START_PTS = TRK_GRP.selectAll("circle")
+    const START_PTS = trkGroup.selectAll("circle")
         .data(trkPath)
         .attr("cx", d => d[0][0][0])
         .attr("cy", d => d[0][0][1])
@@ -150,7 +135,7 @@ function drawTrack() {
 
     // build tracks
     // update
-    const TRKS = TRK_GRP.selectAll("path")
+    const TRKS = trkGroup.selectAll("path")
         .data(trkPath)
         .attr("d", d => d3.line()(d[0]))
         .attr("class", d => `trkID: ${d[1]}`);

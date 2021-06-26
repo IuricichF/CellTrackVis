@@ -1,8 +1,8 @@
 /////////////// lineage tree zoom ////////////////
-var newTreeH = 0;
-var zmK = 1;
-var treeGrpArr = [];
-var treeWArr = [];
+var newTreeH;
+var zmK;
+var treeGrpArr;
+var treeWArr;
 const SCL_ZM_LN_W = d3.scaleLinear();
 function strechTrees(zm) {
     LINEAGE_GRP.attr("transform", `translate(0, ${zm.transform.y})`);
@@ -43,11 +43,11 @@ const LINEAGE_GRP = LINEAGE_SVG.append("g")
 const TREE_GRP = LINEAGE_GRP.append("g")
     .attr("id", "treeGroup");
 // info about every track and its children
-var treeData = [];
+var treeData;
 // tree info
-var roots = [];
+var roots;
 // info used to build trees
-var links = [];
+var links;
 const LINK_HORIZ = d3.linkHorizontal().x(d => d.y).y(d => d.x);
 // the function which return last appearing index of the tree
 function getLastAppearIdx(root) {
@@ -99,11 +99,11 @@ function drawTree() {
         .range([LN_W, Math.log(SCL_ZM_LN_W.domain()[1] * LN_W)]);
     // build tree data
     for (i = 0; i < numTrk; i++) {
-        let tempTrk = trkData.filter(d => d.trkID == i);
+        let tempTrk = trkData.filter(d => d.trkID == idxToTrkIDArr[i]);
         treeData[i] = new Object();
         // ID
         treeData[i].treeID = tempTrk[0].treeID;
-        treeData[i].trkID = i;
+        treeData[i].trkID = tempTrk[0].trkID;
         treeData[i].parentTrkID = tempTrk[0].parentTrkID;
         // it is done to prevent the tree from branching at the very start
         treeData[i].children = [new Object()];
@@ -111,19 +111,18 @@ function drawTree() {
         // interval of existence
         treeData[i].intvlOfExist = [tempTrk[0].imgIdx, tempTrk[tempTrk.length - 1].imgIdx];
         // if tempTrk is a child of other trk, assign tempTrk as a child to its parent track
-        if (tempTrk[0].parentTrkID != -1) {
+        if (tempTrk[0].parentTrkID > 0) {
+            let temp = idxToTrkIDArr.indexOf(tempTrk[0].parentTrkID);
             // check if tempTrk is already a child of its parent track
-            if (!treeData[tempTrk[0].parentTrkID].children[0].children.includes(treeData[i])) {
-                treeData[tempTrk[0].parentTrkID].children[0].children.push(treeData[i]);
+            if (!treeData[temp].children[0].children.includes(treeData[i])) {
+                treeData[temp].children[0].children.push(treeData[i]);
             }
         }
     }
-    console.log(treeData)
     // set up roots and links
     for (let i = 0; i < numTree; i++) {
         // get root track info
-        let tempTrack = treeData.find(d => d.treeID == i && d.parentTrkID == -1);
-        console.log(tempTrack)
+        let tempTrack = treeData.find(d => d.treeID == idxToTreeIDArr[i] && d.parentTrkID == 0);
         // set width of the tree to the lineage point of last appear frame
         treeWArr[i] = SCL_IDX_TO_TREE_W(getLastAppearIdx(tempTrack));
         let treeLayout = d3.tree().size([treeH, treeWArr[i]]);

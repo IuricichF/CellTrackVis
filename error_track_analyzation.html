@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="error_track_analyzation_data_initialization.js"></script>
+    <link rel="stylesheet" href="tailwind.css">
+    <meta charset="utf-8">
+    <title></title>
+</head>
+<body>
+    <div class="flex flex-wrap">
+        <div class="w-1/2 place-content-end relative p-2">
+            <div id="imageSliderContainer">
+                <label for="#imageSlider" id="imageSliderLabel">Image Index: 0</label><br>
+                <input type="range" min="0" max="288" value="0" class="slider" id="imageSlider" oninput="updateImage(+this.value)">
+            </div>
+            <div>
+                <svg id="imageSVG"></svg>
+            </div>
+        </div>
+    </div>
+
+    <script src="error_track_analyzation_tracking.js"></script>
+</body>
+</html>
