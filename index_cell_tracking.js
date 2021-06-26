@@ -80,7 +80,7 @@ const IMG = d3.select("#image")
 function updateImage(newIdx) {
     imgIdx = newIdx;
     // hardcoding the image file name for now, might change in future
-    IMG.attr("href", `/src/dataset_${datasetIdx}/${imgIdx}.png`);
+    IMG.attr("href", `/DataVis/src/dataset_${datasetIdx}/${imgIdx}.png`);
     IMG_SLD_TXT.text(`Image Index: ${IMG_SLD_EL.value}`);
     // draw tracks on the image
     drawTrack();
