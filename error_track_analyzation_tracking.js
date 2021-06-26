@@ -15,7 +15,7 @@ const imgSVG = d3.select("#imageSVG")
 const img = imgSVG.append("image")
     .attr("id", "image")
     // hardcoding the image file name for now, might change in future
-    .attr("href", `/src/dataset_${datasetIdx}/${imgIdx}.png`)
+    .attr("href", `DataVis/src/dataset_${datasetIdx}/${imgIdx}.png`)
     .attr("width", resolutionSideLength)
     .attr("height", resolutionSideLength);
 // error track 
@@ -24,7 +24,7 @@ const errTrkGroup = imgSVG.append("g")
 function updateImage(newIdx) {
     imgIdx = newIdx;
     // hardcoding the image file name for now, might change in future
-    img.attr("href", `/src/dataset_${datasetIdx}/${imgIdx}.png`);
+    img.attr("href", `DataVis/src/dataset_${datasetIdx}/${imgIdx}.png`);
     imgSliderLabel.text(`Image Index: ${imgIdx}`);
     drawErrorTrack();
 }
