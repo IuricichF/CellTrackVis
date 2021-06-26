@@ -20,7 +20,7 @@ function unhighlight() {
 function selectTrack() {
     const tempID = +this.getAttribute("class").slice(OFFSET_TIL_TRK_ID_PATH_CLASSNAME);
     const htmlCollection = document.getElementsByClassName(`${this.getAttribute("class")}`);
-    let tempIdx = seletedHTMLCollectionArr.indexOf(htmlCollection);
+    const tempIdx = seletedHTMLCollectionArr.indexOf(htmlCollection);
     if (tempIdx === -1) {
         for (const item of htmlCollection) {
             item.attributes.opacity.value = SELECTED_OPACITY;
@@ -74,6 +74,8 @@ const ERR_TRK_COLOR = "red";
 const CORRECT_TRK_COLOR_BEFORE_ERR = "green";
 const CORRECT_TRK_COLOR_AFTER_ERR = "#6ef562";
 const TRK_WIDTH = 10;
+const trueTrkGroup = imgSVG.append("g")
+    .attr("class", "trueTrack");
 function drawErrorTrack() {
     const pathData = [];
     for (const key of trkIDToErrImgIdxMap.keys()) {
@@ -125,7 +127,7 @@ function drawErrorTrack() {
     for (const collection of seletedHTMLCollectionArr) {
         const tempID = +collection[0].attributes.class.value.slice(OFFSET_TIL_TRK_ID_PATH_CLASSNAME);
         let tempGroup = d3.select(`#highlightGroup${tempID}`);
-        if (tempGroup.size() === 0) tempGroup = errTrkGroup.append("g").attr("id", `highlightGroup${tempID}`);
+        if (tempGroup.size() === 0) tempGroup = trueTrkGroup.append("g").attr("id", `highlightGroup${tempID}`);
         const tempTrk = trkDataSortedByTrkID.find(d => d[0].trkID === tempID).filter(d => d.imgIdx <= imgIdx)
         const tempPathData = [[], []];
         for (const point of tempTrk) {
