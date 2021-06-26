@@ -5,7 +5,7 @@ var idxToTrkIDArr;
 var idxToTreeIDArr;
 function initializeData(datasetIdx) {
     this.datasetIdx = datasetIdx;
-    d3.csv(`/src/dataset_${this.datasetIdx}/track_data.csv`).then(rawData => {
+    d3.csv(`/DataVis/src/dataset_${this.datasetIdx}/track_data.csv`).then(rawData => {
         newTreeH = 0;
         zmK = 1;
         treeGrpArr = [];
