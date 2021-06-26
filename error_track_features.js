@@ -43,5 +43,4 @@ function setTrkToAnalyseArr(trkID) {
     trkToAnalyseArr.push(trkID)
     localStorage.setItem("setTrkToAnalyseArr", JSON.stringify(trkToAnalyseArr));
     localStorage.setItem("numPageToAnalyse", +localStorage.getItem("numPageToAnalyse") + 1);
-    console.log(localStorage)
 }
