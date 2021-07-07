@@ -2,6 +2,7 @@ const datasetArr = [];
 var numDataset;
 const numDatasetInputElement = document.getElementById("numberOfDatasetInput");
 const setNumDataset = (num) => numDataset = num;
+const removeDatasetNumInput = () => d3.select("#numberOfDatasetDiv").remove();
 let doesTheDatasetExist = true;
 function initializeData() {
     for (let i = 0; i < numDataset; i++) {
