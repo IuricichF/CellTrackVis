@@ -6,7 +6,7 @@ const removeDatasetNumInput = () => d3.select("#numberOfDatasetDiv").remove();
 let doesTheDatasetExist = true;
 function initializeData() {
     for (let i = 0; i < numDataset; i++) {
-        d3.csv(`/DataVis/src/dataset_${i}/track_data.csv`).then(rawData => {
+        d3.csv(`/DataVis/src/dataset_${i + 1}/track_data.csv`).then(rawData => {
             let tempNumImg  = +rawData[rawData.length - 1].FRAME * 4 + 1;
             let tempTrkData = [];
             let tempTrkDataSortedByTrkID = [];
