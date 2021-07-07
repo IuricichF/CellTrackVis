@@ -8,10 +8,12 @@
 </head>
 <body>
    <div>
-       <div>
-            <label for="#numberOfDatasetInput">Number of Dataset: </label>
+       <div id="numberOfDatasetDiv">
+            <label for="#numberOfDatasetInput" id="numberOfDatasetInputLabel">Number of Dataset: </label>
             <input type="number" id="numberOfDatasetInput" min="1">
-            <input type="submit" id="numberOfDatasetSubmit" value="Start" onclick="setNumDataset(numDatasetInputElement.value); initializeData();">
+            <input type="submit" id="numberOfDatasetSubmit" value="Start" onclick="setNumDataset(numDatasetInputElement.value);
+                                                                                   initializeData();
+                                                                                   removeDatasetNumInput();">
        </div>
        <div id="view1">
 
