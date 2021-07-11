@@ -1,25 +1,53 @@
-const numDatasetInputElement = document.getElementById("numberOfDatasetInput");
-const removeDatasetNumInput = () => d3.select("#numberOfDatasetDiv").remove();
-const view1 = d3.select("#view1");
+// const numDatasetInputElement = document.getElementById("numberOfDatasetInput");
+// const removeDatasetNumInput = () => d3.select("#numberOfDatasetDiv").remove();
+
+
+
+
 const view1ErrTrkGroupArr = [];
 const resolutionSideLength = 2040;
 const sVGSideLength = 350;
 const createView1SVG = () => {
+    
+    const view1 = d3.select("#view1");
     datasetArr.forEach((d, i) => {
         const div = view1.append("div");
-        div.append("h1").text(`dataset #${d.datasetIdx}`)
-        view1ErrTrkGroupArr[i] = div.append("a")
+        div.attr("class","box-content bg-white rounded-lg p-2")
+
+        const fieldOfView = div.append("div");
+        fieldOfView.attr("class","flex justify-center")
+
+
+        view1ErrTrkGroupArr[i] = fieldOfView.append("a")
             .attr("href", "view2.html")
             .attr("target", "_blank")
             .append("svg")
             .attr("width", sVGSideLength)
             .attr("height", sVGSideLength)
+            .attr("class", "shadow")
             .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
             .on("click", transferDataForView2)
             .append("g")
-            .attr("id", `errorTrack${d.datasetIdx}`);
+            .attr("id", `errorTrack${d.datasetIdx}`)
+
+
+        const card = div.append("div")
+        card.attr("class","box-content p-2 self-center")
+        
+        const ul = card.append("ul")
+        ul.attr("class", "list-dic")    
+        
+        ul.append("li").text(`Field of view - #${d.datasetIdx}`)
+        ul.append("li").text(`Linking errors - `)
+        ul.append("li").text(`Linking errors (%) - `)
+        ul.append("li").text(`Max cells - `)
+        ul.append("li").text(`Total links - `)
+        
+            
     })
 }
+
+
 const ERR_TRK_COLOR = "red";
 const TRK_WIDTH = 10;
 const drawErrorTrack = () => {
@@ -34,7 +62,7 @@ const drawErrorTrack = () => {
                 .attr("y", resolutionSideLength / 2)
                 .attr("style", "font: 50px sans-serif")
                 .text("Congratulation, this dataset has no error!");
-            const tempWidth = document.getElementById(`noErrorText${currDataset.datasetIdx}`).getBBox().width;
+            const tempWidth = 200
             text.attr("x", (resolutionSideLength - tempWidth) / 2)
         }
         else {
@@ -71,3 +99,4 @@ const drawErrorTrack = () => {
 const transferDataForView2 = () => {
     console.log("caonima")
 }
+
