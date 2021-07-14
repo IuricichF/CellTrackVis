@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang='en' class="text-gray-900 leading-tight">
+<head>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <link rel="stylesheet" href="tailwind.css">
+    <meta charset="utf-8">
+    <script src="index_data_initialization.js"></script>
+    <script src="index_view1.js"></script>
+    <title>Cell Tracking Visualization</title>
+</head>
+<body class="min-h-screen">
+    <script>
+        initializeData(4);
+    </script>
+
+    <div class="box-content p-8 bg-gray-200">
+        <h3 class="text-3xl"> Cell Tracking Dashboard</h3>
+
+        <div class="box-content p-4 ">
+            General statistics
+            <ul>
+                <li>Linking errors -</li>
+                <li>Linking errors (%) -</li>
+                <li>Total cells -</li>
+                <li>Total links - </li>
+            </ul>
+        </div>
+
+        <div class="box-content p-4 ">
+            <div class="grid grid-cols-3 gap-4 place-content-start " id="view1">
+
+            </div>
+        </div>
+
+    </div>
+
+
+
+</body>
+</html>
