@@ -38,7 +38,6 @@ function selectTree() {
             selectedHTMLCollectionByTree = [];
             highlightedHTMLCollectionByTree = [];
         } else {
-            console.log("???")
             previousSeletedTree?.setAttribute("stroke", treeColor);
             previousSeletedTree = this;
             imageSlider.value = trkIDToErrImgIdxMap.get(trkID)[trkIDToErrImgIdxMap.get(trkID).length - 1][1];
@@ -170,5 +169,3 @@ const drawTree = () => {
     }
 }
 drawTree();
-
-
