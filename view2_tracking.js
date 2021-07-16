@@ -86,7 +86,7 @@ const imgSVG = d3.select("#trackingSVG")
     .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`);
 // image
 const img = d3.select("#image")
-    .attr("href", `/src/dataset_${datasetIdx}/${imgIdx}.png`)
+    .attr("href", `/DataVis/src/dataset_${datasetIdx}/${imgIdx}.png`)
     .attr("width", resolutionSideLength)
     .attr("height", resolutionSideLength);
 // error track 
@@ -96,7 +96,7 @@ const trueTrkGroup = d3.select("#trueTrack");
 function updateImage(newIdx) {
     imgIdx = newIdx;
     // hardcoding the image file name for now, might change in future
-    img.attr("href", `/src/dataset_${datasetIdx}/${imgIdx}.png`);
+    img.attr("href", `/DataVis/src/dataset_${datasetIdx}/${imgIdx}.png`);
     imgSliderLabel.text(`Image Index: ${imgIdx}`);
     drawErrorLinkAndTrack();
 }
