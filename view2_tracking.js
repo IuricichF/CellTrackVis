@@ -106,7 +106,7 @@ const TRK_WIDTH = 10;
 const isErrorSelected = (trkID, sec) => {
     if (selectedHTMLCollectionByTrack.length > 0) {
         for (const item of selectedHTMLCollectionByTrack) {
-            if (item.attributes.class.value === `${trkID}-${sec}`) return true;
+            if (item.attributes.class.value === `${trkID}-${sec}-errorLink`) return true;
         }
     }
     return false;
@@ -211,14 +211,15 @@ function drawErrorLinkAndTrack() {
 }
 
 const reset = () => {
-    for (const item of selectedHTMLCollectionByTrack) {
-        if (item.attributes.opacity) item.attributes.opacity.value = DEFAULT_OPACITY;
-    }
     selectedHTMLCollectionByTrack = [];
-    highlightedHTMLCollectionByTree = [];
-    drawTree();
     trueTrkGroup.selectAll("path").remove();
-    drawErrorLinkAndTrack();
+    imageSlider.value = 0;
+    updateImage(0);
+    selectedHTMLCollectionByTree = [];
+    highlightedHTMLCollectionByTree = [];
+    treeGroup.selectAll("*").remove();
+    lineageSVG.call(lineageZm.transform, d3.zoomIdentity);
+    drawTree();
 }
 
 const showAll = () => {
