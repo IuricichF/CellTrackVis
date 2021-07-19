@@ -87,8 +87,8 @@ const findMaxNumberOfErrorLink = () => {
     return Math.max(...tempArr)
 }
 const scaleTreeColor = d3.scaleLinear()
-    .domain([1, findMaxNumberOfErrorLink() === 1 ? 2 : findMaxNumberOfErrorLink()])
-    .range(["yellow", "brown"]);
+    .domain([0, findMaxNumberOfErrorLink()])
+    .range(["white", "blue"]);
 const lineageSVG = d3.select("#lineageSVG")
     .attr("width", lineageSideLength)
     .attr("height", lineageSideLength)
