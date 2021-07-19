@@ -40,7 +40,7 @@ function selectTree() {
             highlightedHTMLCollectionByTree = [];
         } else {
             previousSeletedTree?.setAttribute("stroke",
-                scaleTreeColor(trkIDToErrImgIdxMap.get(previousSeletedTree.getAttribute("id").slice(offset)).length));
+                scaleTreeColor(trkIDToErrImgIdxMap.get(+previousSeletedTree.getAttribute("id").slice(offset)).length));
             previousSeletedTree = this;
             imageSlider.value = trkIDToErrImgIdxMap.get(trkID)[trkIDToErrImgIdxMap.get(trkID).length - 1][1];
             updateImage(+imageSlider.value)
