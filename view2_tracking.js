@@ -38,9 +38,9 @@ function selectTrack() {
             .selectAll("path")
             .data(links[idxToTreeIDArr.indexOf(+pathGroup.attr("id").slice(offset))])
             .attr("d", linkHorizontal)
-            .attr("stroke", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ?
-                scaleTreeColor(trkIDToErrImgIdxMap.get(+d.source.data.trkID)?.length)
-                : "black")
+            .attr("stroke", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) === undefined ? "black"
+                : JSON.stringify(selectedHTMLCollectionByTree) === JSON.stringify(htmlCollection) ? ERR_TRK_COLOR
+                        : scaleTreeColor(trkIDToErrImgIdxMap.get(+d.source.data.trkID)?.length))
             .exit()
             .remove();
         drawErrorLinkAndTrack();
