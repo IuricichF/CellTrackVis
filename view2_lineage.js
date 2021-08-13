@@ -88,7 +88,7 @@ const findMaxNumberOfErrorLink = () => {
 }
 const scaleTreeColor = d3.scaleLinear()
     .domain([0, findMaxNumberOfErrorLink()])
-    .range(["white", "blue"]);
+    .range(["white", "black"]);
 const lineageSVG = d3.select("#lineageSVG")
     .attr("width", lineageSideLength)
     .attr("height", lineageSideLength)
@@ -174,13 +174,12 @@ const drawTree = () => {
             .attr("fill", "none")
             .attr("stroke", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ?
                 scaleTreeColor(trkIDToErrImgIdxMap.get(+d.source.data.trkID)?.length)
-                : "black")
-            .attr("stroke-width", lineWidth)
+                : "#60A5FA")
+            .attr("stroke-width", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ? lineWidth : 2)
+            .style("stroke-dasharray", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ? "none" : ("5,2"))
             .on("mouseover", highlightMouseoverTree)
             .on("mouseout", unhighlightMouseoutTree)
             .on("click", selectTree);
     }
 }
 drawTree();
-
-

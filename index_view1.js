@@ -6,7 +6,7 @@
 
 const view1ErrTrkGroupArr = [];
 const resolutionSideLength = 2040;
-const sVGSideLength = 350;
+const sVGSideLength = 300;
 
 /*const round2Decimal = (num) => Math.round(num * 100) / 100;*/
 const createView1SVG = () => {
@@ -14,7 +14,7 @@ const createView1SVG = () => {
     const view1 = d3.select("#view1");
     datasetArr.forEach((d, i) => {
         const div = view1.append("div");
-        div.attr("class", "box-content bg-white rounded-lg p-2")
+        div.attr("class", "box-content bg-gray-200 rounded-lg p-2")
 
         const fieldOfView = div.append("div");
         fieldOfView.attr("class", "flex justify-center")
@@ -27,11 +27,13 @@ const createView1SVG = () => {
             .attr("id", `sVG${d.datasetIdx}`)
             .attr("width", sVGSideLength)
             .attr("height", sVGSideLength)
+            .attr("style", "background-color:white")
             .attr("class", "shadow")
             .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
             .on("click", transferDataToView2)
             .append("g")
             .attr("id", `errorTrack${d.datasetIdx}`)
+
 
 
         const card = div.append("div")
