@@ -1,9 +1,3 @@
-// const numDatasetInputElement = document.getElementById("numberOfDatasetInput");
-// const removeDatasetNumInput = () => d3.select("#numberOfDatasetDiv").remove();
-
-
-
-
 const view1ErrTrkGroupArr = [];
 const resolutionSideLength = 2040;
 const sVGSideLength = 300;
@@ -47,7 +41,7 @@ const createView1SVG = () => {
         let numlink = d.trkData.length - d.idxToTrkIDArr.length;
         ul.append("li").text(`Field of view - #${d.datasetIdx}`)
         ul.append("li").text(`Linking errors - ${numlinkErr}`)
-        ul.append("li").text(`Linking errors (%) - ${numlinkErr / numlink * 100}%`)
+        ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`)
         ul.append("li").text(`Max cells - ${d.idxToTrkIDArr.length}`)
         ul.append("li").text(`Total links - ${numlink}`)
 
