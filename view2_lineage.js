@@ -4,30 +4,34 @@ var selectedHTMLCollectionByTree = [];
 var highlightedHTMLCollectionByTree = [];
 var canTheTreeBeSelected = false;
 function highlightMouseoverTree() {
-    const offset = 7
-    const trkID = +this.getAttribute("id").slice(offset);
-    const htmlCollection = document.querySelectorAll(`[class^="${trkID}-"]`);
-    if (trkIDToErrImgIdxMap.has(trkID)) {
-        this.setAttribute("stroke", ERR_TRK_COLOR);
-        canTheTreeBeSelected = true;
-        if (htmlCollection.length === 0) {
-            highlightedHTMLCollectionByTree = [];
+    if (selectedHTMLCollectionByTrack.length === 0) {
+        const offset = 7
+        const trkID = +this.getAttribute("id").slice(offset);
+        const htmlCollection = document.querySelectorAll(`[class^="${trkID}-"]`);
+        if (trkIDToErrImgIdxMap.has(trkID)) {
+            this.setAttribute("stroke", ERR_TRK_COLOR);
+            canTheTreeBeSelected = true;
+            if (htmlCollection.length === 0) {
+                highlightedHTMLCollectionByTree = [];
+                drawErrorLinkAndTrack();
+                highlightedHTMLCollectionByTree = document.querySelectorAll(`[class^="${trkID}-"]`);
+            } else {
+                highlightedHTMLCollectionByTree = htmlCollection;
+            }
             drawErrorLinkAndTrack();
-            highlightedHTMLCollectionByTree = document.querySelectorAll(`[class^="${trkID}-"]`);
-        } else {
-            highlightedHTMLCollectionByTree = htmlCollection;
         }
-        drawErrorLinkAndTrack();
     }
 }
 function unhighlightMouseoutTree() {
-    const offset = 7
-    const trkID = +this.getAttribute("id").slice(offset);
-    const htmlCollection = document.querySelectorAll(`[class^="${trkID}-"]`);
-    highlightedHTMLCollectionByTree = selectedHTMLCollectionByTree;
-    if (JSON.stringify(selectedHTMLCollectionByTree) !== JSON.stringify(htmlCollection)) this.setAttribute("stroke",
-        scaleTreeColor(trkIDToErrImgIdxMap.get(trkID).length));
-    drawErrorLinkAndTrack();
+    if (selectedHTMLCollectionByTrack.length === 0) {
+        const offset = 7
+        const trkID = +this.getAttribute("id").slice(offset);
+        const htmlCollection = document.querySelectorAll(`[class^="${trkID}-"]`);
+        highlightedHTMLCollectionByTree = selectedHTMLCollectionByTree;
+        if (JSON.stringify(selectedHTMLCollectionByTree) !== JSON.stringify(htmlCollection)) this.setAttribute("stroke",
+            scaleTreeColor(trkIDToErrImgIdxMap.get(trkID).length));
+        drawErrorLinkAndTrack();
+    }
 }
 function selectTree() {
     const offset = 7
@@ -69,6 +73,9 @@ function strechTree(zm) {
                 .attr("d", linkHorizontal)
                 .attr("stroke-width", scaleZmTolineWidth(zm.transform.k));
         }
+        treeGroup.select(`[stroke="${CORRECT_TRK_COLOR_AFTER_ERR}"]`).remove();
+        const classInfo = selectedHTMLCollectionByTrack[0].getAttribute("class").split("-");
+        colorBranch(treeGroup.select(`#TrackID${classInfo[0]}`), classInfo)
     }
 }
 ////////////////// lineage ////////////////////
@@ -159,7 +166,7 @@ const linkHorizontal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
 const treeGroupArr = [];
 // draw trees using information from links
 const drawTree = () => {
-/*    treeGroup.selectAll("g").remove();*/
+    /*    treeGroup.selectAll("g").remove();*/
     for (let i = 0; i < links.length; i++) {
         treeGroupArr[i] = treeGroup.append("g")
             .attr("id", `TreeID${links[i][0].source.data.treeID}`)
