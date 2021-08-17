@@ -52,24 +52,29 @@ function selectTrack() {
         imageSlider.value = trkIDToErrImgIdxMap.get(tempTrkID)[classInfo[1]][1];
         updateImage(+imageSlider.value)
         // color the track in lineage tree in two colors
-        var pathD = path.attr("d")
-        pathD = pathD.split(",");
-        pathD[0] = pathD[0].replace("M", "");
-        pathD[1] = pathD[1].split("C");
-        const startPoint = [[+pathD[0]], [+pathD[1][0]]];
-        const endPoint = [[+pathD[pathD.length - 2]], [+pathD[pathD.length - 1]]];
-        const tempTrk = trkDataSortedByTrkID.find(d => d[0].trkID === tempTrkID);
-        const percent = (trkIDToErrImgIdxMap.get(tempTrkID)[classInfo[1]][0] - tempTrk[0].imgIdx)
-            / (tempTrk[tempTrk.length - 1].imgIdx - tempTrk[0].imgIdx);
-        const midPoint = [[(endPoint[0] - startPoint[0]) * percent + +startPoint[0]],
-        [(endPoint[1] - startPoint[1]) * percent + +startPoint[1]]];
-        path.attr("d", d3.line()([startPoint, midPoint]))
-        pathGroup.append("path")
-            .attr("d", d => d3.line()([midPoint, endPoint]))
-            .attr("fill", "none")
-            .attr("stroke", CORRECT_TRK_COLOR_AFTER_ERR)
-            .attr("stroke-width", lineWidth)
+        colorBranch(path, classInfo);
     }
+}
+
+const colorBranch = (path, classInfo) => {
+    const trkID = +classInfo[0];
+    var pathD = path.attr("d")
+    pathD = pathD.split(",");
+    pathD[0] = pathD[0].replace("M", "");
+    pathD[1] = pathD[1].split("C");
+    const startPoint = [[+pathD[0]], [+pathD[1][0]]];
+    const endPoint = [[+pathD[pathD.length - 2]], [+pathD[pathD.length - 1]]];
+    const tempTrk = trkDataSortedByTrkID.find(d => d[0].trkID === trkID);
+    const percent = (trkIDToErrImgIdxMap.get(trkID)[classInfo[1]][0] - tempTrk[0].imgIdx)
+        / (tempTrk[tempTrk.length - 1].imgIdx - tempTrk[0].imgIdx);
+    const midPoint = [[(endPoint[0] - startPoint[0]) * percent + +startPoint[0]],
+    [(endPoint[1] - startPoint[1]) * percent + +startPoint[1]]];
+    path.attr("d", d3.line()([startPoint, midPoint]))
+    d3.select(path.node().parentNode).append("path")
+        .attr("d", d => d3.line()([midPoint, endPoint]))
+        .attr("fill", "none")
+        .attr("stroke", CORRECT_TRK_COLOR_AFTER_ERR)
+        .attr("stroke-width", lineWidth)
 }
 ////////////////// tracking ////////////////////
 const imgSlider = d3.select("#imageSlider")
