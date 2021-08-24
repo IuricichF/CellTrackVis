@@ -13,6 +13,9 @@ lineageZm.scaleExtent([1, lineageSideLength / treeHeight / 2]);
 const lineWidth = 3;
 const scaleZmTolineWidth = d3.scaleLinear()
     .domain(lineageZm.scaleExtent());
+const scaleIMGIdxToLineageWidth = d3.scaleLinear()
+    .domain([0, numImg - 1])
+    .range([0, lineageSideLength]);
 scaleZmTolineWidth.range([lineWidth, Math.log(scaleZmTolineWidth.domain()[1] * lineWidth)]);
 // function
 const isATreeBranchSelected = () => trackIDOfSelectedTreeBranch !== undefined;
@@ -184,9 +187,25 @@ for (i = 0; i < numTrk; i++) {
         }
     }
 }
-const scaleIMGIdxToLineageWidth = d3.scaleLinear()
-    .domain([0, numImg - 1])
-    .range([0, lineageSideLength]);
+// sort the trees by the number of error links each contains
+idxToTreeIDArr.sort((a, b) => {
+    const tree1 = trkData.filter(d => d.treeID === a);
+    const trkIDArrOfT1 = [];
+    tree1.forEach(d => {
+        if (!trkIDArrOfT1.includes(d.trkID)) trkIDArrOfT1.push(d.trkID);
+    })
+    const tree2 = trkData.filter(d => d.treeID === b);
+    const trkIDArrOfT2 = [];
+    tree2.forEach(d => {
+        if (!trkIDArrOfT2.includes(d.trkID)) trkIDArrOfT2.push(d.trkID);
+    })
+    var val1 = 0;
+    trkIDArrOfT1.forEach(d => val1 += DoesThisTrackContainsError(d) ? getNumberOfErrorInThisTrack(d) : 0);
+    var val2 = 0;
+    trkIDArrOfT2.forEach(d => val2 += DoesThisTrackContainsError(d) ? getNumberOfErrorInThisTrack(d) : 0);
+
+    return val2 - val1;
+})
 // set up roots and links
 const treeWidthArr = [];
 for (let i = 0; i < numTree; i++) {
