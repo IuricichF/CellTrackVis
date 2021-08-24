@@ -1,7 +1,19 @@
 // constants and variables
 const TreeClassNamePrefix = "TreeID";
+const corrTreeBranchColor = /*"#60A5FA"*/"#6ef562";
 var trackIDOfClickedOnTreeBranch = undefined;
 var trackIDOfSelectedTreeBranch = undefined;
+var newTreeHeight;
+var zmK;
+var lineageZm = d3.zoom()
+    .on("zoom", d => strechTree(d));
+const lineageSideLength = 700;
+const treeHeight = lineageSideLength / numTree;
+lineageZm.scaleExtent([1, lineageSideLength / treeHeight / 2]);
+const lineWidth = 3;
+const scaleZmTolineWidth = d3.scaleLinear()
+    .domain(lineageZm.scaleExtent());
+scaleZmTolineWidth.range([lineWidth, Math.log(scaleZmTolineWidth.domain()[1] * lineWidth)]);
 // function
 const isATreeBranchSelected = () => trackIDOfSelectedTreeBranch !== undefined;
 const isATreeBranchClickedOn = () => trackIDOfClickedOnTreeBranch !== undefined;
@@ -91,10 +103,6 @@ function selectTreeBranchWhenClickedOn() {
     }
 }
 ///////////////// lineage tree zoom ////////////////
-var newTreeHeight;
-var zmK;
-var lineageZm = d3.zoom()
-    .on("zoom", d => strechTree(d));
 function strechTree(zm) {
     treeGroup.attr("transform", `translate(0, ${zm.transform.y})`);
     if (zm.transform.k != zmK) {
@@ -118,13 +126,6 @@ function strechTree(zm) {
     }
 }
 ////////////////// lineage ////////////////////
-const lineageSideLength = 700;
-const treeHeight = lineageSideLength / numTree;
-lineageZm.scaleExtent([1, lineageSideLength / treeHeight / 2]);
-const lineWidth = 3;
-const scaleZmTolineWidth = d3.scaleLinear()
-    .domain(lineageZm.scaleExtent());
-scaleZmTolineWidth.range([lineWidth, Math.log(scaleZmTolineWidth.domain()[1] * lineWidth)]);
 const findMaxNumberOfErrorLink = () => {
     let tempArr = [];
     for (const value of trkIDToErrImgIdxMap.values()) {
@@ -220,7 +221,7 @@ const drawTrees = () => {
             .attr("fill", "none")
             .attr("stroke", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ?
                 scaleColorByErrNum(trkIDToErrImgIdxMap.get(+d.source.data.trkID)?.length)
-                : "#60A5FA")
+                : corrTreeBranchColor)
             .attr("stroke-width", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ? lineWidth : 2)
             .style("stroke-dasharray", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ? "none" : ("5,2"))
             .on("mouseover", selectTreeBranchWhenMouseover)
