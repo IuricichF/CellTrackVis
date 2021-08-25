@@ -8,7 +8,7 @@ var zmK;
 var lineageZm = d3.zoom()
     .on("zoom", d => strechTree(d));
 const lineageSideLength = 700;
-const treeHeight = lineageSideLength / numTreeWithErr;
+const treeHeight = lineageSideLength / (numTreeWithErr > 0 ? numTreeWithErr : numTreeNoErr);
 lineageZm.scaleExtent([1, lineageSideLength / treeHeight / 2]);
 const lineWidth = 3;
 const scaleZmTolineWidth = d3.scaleLinear()
