@@ -103,6 +103,10 @@ function initializeData(numD) {
                     tempTrkIDToErrPathMap.set(key, tempTrkIDToErrPathMapVal);
                 }
             }
+            const tempCellCountAcrossIdx = [];
+            for (let i = 0; i < tempNumImg; i++) {
+                tempCellCountAcrossIdx.push(tempTrkData.filter(d => d.imgIdx === i).length)
+            }
             datasetArr.push({
                 datasetIdx: i + 1,
                 numImg: tempNumImg,
@@ -112,7 +116,8 @@ function initializeData(numD) {
                 trkDataSortedByTrkID: tempTrkDataSortedByTrkID,
                 trkIDToErrTrkIDPredMap: tempTrkIDToErrTrkIDPredMap,
                 trkIDToErrPathMap: tempTrkIDToErrPathMap,
-                trkIDToErrImgIdxMap: tempTrkIDToErrImgIdxMap
+                trkIDToErrImgIdxMap: tempTrkIDToErrImgIdxMap,
+                cellCountAcrossIdx: tempCellCountAcrossIdx
             })
 
             if (datasetArr.length === numDataset) {
