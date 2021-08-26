@@ -45,14 +45,16 @@ const createView1SVG = () => {
         ul.append("li").text(`Cell count (0-${d.numImg - 1}) - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`)
         ul.append("li").text(`Total links - ${numlink}`)
 
-        const cellCountGraph = ul.append("svg");
         const graphHeight = 100;
-        const graphWidth = 500;
+        const graphWidth = 200;
+        const cellCountGraph = ul.append("svg")
+            .attr("width", graphWidth)
+            .attr("height", graphHeight)
         const x = d3.scaleLinear()
             .domain([0, d.numImg - 1])
             .range([0, graphWidth])
         const y = d3.scaleLinear()
-            .domain([0, Math.max(...d.cellCountAcrossIdx)])
+            .domain([Math.min(...d.cellCountAcrossIdx), Math.max(...d.cellCountAcrossIdx)])
             .range([graphHeight, 0])
         const data = [];
         d.cellCountAcrossIdx.forEach((d, i) => data.push({
