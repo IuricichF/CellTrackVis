@@ -42,9 +42,9 @@ const createView1SVG = () => {
         ul.append("li").text(`Field of view - #${d.datasetIdx}`)
         ul.append("li").text(`Linking errors - ${numlinkErr}`)
         ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`)
-        ul.append("li").text(`Cell count (0-${d.numImg - 1}) - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`)
         ul.append("li").text(`Total links - ${numlink}`)
-
+        ul.append("li").text(`Cell count (0-${d.numImg - 1}) - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`)
+        
         const graphHeight = 100;
         const graphWidth = 200;
         const cellCountGraph = ul.append("svg")
