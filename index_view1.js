@@ -42,7 +42,7 @@ const createView1SVG = () => {
         ul.append("li").text(`Field of view - #${d.datasetIdx}`)
         ul.append("li").text(`Linking errors - ${numlinkErr}`)
         ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`)
-        ul.append("li").text(`Max cells - ${d.idxToTrkIDArr.length}`)
+        ul.append("li").text(`Cell count (0-${d.numImg - 1}) - ${d.trkData.filter(d => d.imgIdx === 0).length}-${d.trkData.filter(d2 => d2.imgIdx === d.numImg - 1).length}`)
         ul.append("li").text(`Total links - ${numlink}`)
 
 
