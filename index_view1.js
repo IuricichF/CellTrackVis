@@ -42,10 +42,31 @@ const createView1SVG = () => {
         ul.append("li").text(`Field of view - #${d.datasetIdx}`)
         ul.append("li").text(`Linking errors - ${numlinkErr}`)
         ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`)
-        ul.append("li").text(`Cell count (0-${d.numImg - 1}) - ${d.trkData.filter(d => d.imgIdx === 0).length}-${d.trkData.filter(d2 => d2.imgIdx === d.numImg - 1).length}`)
+        ul.append("li").text(`Cell count (0-${d.numImg - 1}) - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`)
         ul.append("li").text(`Total links - ${numlink}`)
 
-
+        const cellCountGraph = ul.append("svg");
+        const graphHeight = 100;
+        const graphWidth = 500;
+        const x = d3.scaleLinear()
+            .domain([0, d.numImg - 1])
+            .range([0, graphWidth])
+        const y = d3.scaleLinear()
+            .domain([0, Math.max(...d.cellCountAcrossIdx)])
+            .range([graphHeight, 0])
+        const data = [];
+        d.cellCountAcrossIdx.forEach((d, i) => data.push({
+            idx : i,
+            count : d
+        }))
+        const line = d3.line()
+            .x(d => x(d.idx))
+            .y(d => y(d.count))
+        cellCountGraph.append("path")
+            .attr("d", line(data))
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
     })
 }
 
