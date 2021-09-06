@@ -1,10 +1,7 @@
 const view1ErrTrkGroupArr = [];
 const resolutionSideLength = 2040;
 const sVGSideLength = 300;
-
-/*const round2Decimal = (num) => Math.round(num * 100) / 100;*/
 const createView1SVG = () => {
-
     const view1 = d3.select("#view1");
     datasetArr.forEach((d, i) => {
         const div = view1.append("div");
@@ -12,7 +9,6 @@ const createView1SVG = () => {
 
         const fieldOfView = div.append("div");
         fieldOfView.attr("class", "flex justify-center")
-
 
         view1ErrTrkGroupArr[i] = fieldOfView.append("a")
             .attr("href", "view2.html")
@@ -28,8 +24,6 @@ const createView1SVG = () => {
             .append("g")
             .attr("id", `errorTrack${d.datasetIdx}`)
 
-
-
         const card = div.append("div")
         card.attr("class", "box-content p-2 self-center")
 
@@ -44,16 +38,16 @@ const createView1SVG = () => {
         ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`)
         ul.append("li").text(`Total links - ${numlink}`)
         ul.append("li").text(`Cell count (0-${d.numImg - 1}) - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`)
-        
+
         const graphHeight = 100;
         const graphWidth = 200;
         const cellCountGraph = ul.append("svg")
-            .attr("width", graphWidth)
-            .attr("height", graphHeight)
-        const x = d3.scaleLinear()
+            .attr("width", graphWidth * (1 + 1 / 1.8))
+            .attr("height", graphHeight * (1 + 1 / 3.4))
+        const xScale = d3.scaleLinear()
             .domain([0, d.numImg - 1])
             .range([0, graphWidth])
-        const y = d3.scaleLinear()
+        const yScale = d3.scaleLinear()
             .domain([Math.min(...d.cellCountAcrossIdx), Math.max(...d.cellCountAcrossIdx)])
             .range([graphHeight, 0])
         const data = [];
@@ -62,16 +56,59 @@ const createView1SVG = () => {
             count : d
         }))
         const line = d3.line()
-            .x(d => x(d.idx))
-            .y(d => y(d.count))
+            .x(d => xScale(d.idx))
+            .y(d => yScale(d.count))
         cellCountGraph.append("path")
             .attr("d", line(data))
             .attr("fill", "none")
             .attr("stroke", "black")
             .attr("stroke-width", 1)
+        const focus = cellCountGraph.append("g")
+            .attr("style", "z-index: 999")
+            .attr("class", "focus")
+            .style("display", "none");
+        focus.append("circle")
+            .attr("r", 2);
+        focus.append("rect")
+            .attr("class", "tooltip")
+            .attr("width", graphWidth / 1.8)
+            .attr("height", graphHeight / 3.4)
+            .attr("x", 10)
+            .attr("fill", "white")
+        focus.append("text")
+            .attr("x", 10)
+            .attr("y", graphHeight / 6.8)
+            .text("Index:");
+        focus.append("text")
+            .attr("x", 10)
+            .attr("y", graphHeight / 3.4)
+            .text("Cell count:");
+        focus.append("text")
+            .attr("class", "tooltip-index")
+            .attr("x", graphWidth / 1.8 * 0.79)
+            .attr("y", graphHeight / 6.8)
+        focus.append("text")
+            .attr("class", "tooltip-count")
+            .attr("x", graphWidth / 1.8 * 0.79)
+            .attr("y", graphHeight / 3.4)
+        cellCountGraph.append("rect")
+            .attr("class", `overlay-${d.datasetIdx}`)
+            .attr("width", graphWidth)
+            .attr("height", graphHeight * (1 + 1 / 3.4))
+            .attr("opacity", 0)
+            .on("mouseover", () => focus.style("display", null))
+            .on("mouseout", () => focus.style("display", "none"))
+            .on("mousemove", showDetailWhenMousemove);
+
+        function showDetailWhenMousemove() {
+            var x = xScale.invert(d3.pointer(event, this)[0]);
+            x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
+            focus.attr("transform", `translate(${xScale(x)}, ${yScale(d.cellCountAcrossIdx[x])})`);
+            focus.select(".tooltip-index").text(`${x}`);
+            focus.select(".tooltip-count").text(`${d.cellCountAcrossIdx[x]}`);
+        }
     })
 }
-
 var numErr;
 const ERR_TRK_COLOR = "red";
 const TRK_WIDTH = 10;
