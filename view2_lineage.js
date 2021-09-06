@@ -108,10 +108,9 @@ function selectTreeBranchWhenClickedOn() {
 }
 ///////////////// lineage tree zoom ////////////////
 function strechTree(zm) {
-    treeGroup.attr("transform", `translate(0, ${zm.transform.y})`);
     if (zm.transform.k != zmK) {
         zmK = zm.transform.k;
-        for (let i = 0, numTree = numTreeWithErr + numTreeNoErr; i < numTree; i++) {
+        for (let i = 0; i < numTree; i++) {
             newTreeHeight = zm.transform.k * treeHeight;
             links[i] = d3.tree().size([newTreeHeight, treeWidthArr[i]])(roots[i]).links();
             treeGroupArr[i].attr("transform", `translate(0, ${i * newTreeHeight})`);
@@ -127,6 +126,8 @@ function strechTree(zm) {
             const classInfo = classNameOfSelectedErrorLink.split("-");
             colorTreeBranch(+classInfo[0], +classInfo[1]);
         }
+
+        lineageSVG.attr("height", newTreeHeight * numTree)
     }
 }
 ////////////////// lineage ////////////////////
@@ -142,8 +143,8 @@ const scaleColorByErrNum = d3.scaleLinear()
     .range(["white", "black"]);
 const lineageSVG = d3.select("#lineageSVG")
     .attr("width", lineageSideLength)
-    .attr("height", lineageSideLength)
-    .call(lineageZm);
+    .attr("height", treeHeight * numTree);
+/*    .call(lineageZm);*/
 const treeGroup = d3.select("#lineage");
 const links = [];
 const roots = [];
@@ -228,7 +229,7 @@ for (let i = 0; i < numTreeWithErr; i++) {
     // generate link
     links[i] = treeLayout(roots[i]).links();
 }
-for (let i = numTreeWithErr, numTree = numTreeWithErr + numTreeNoErr; i < numTree; i++) {
+for (let i = numTreeWithErr; i < numTree; i++) {
     // get root track info
     let tempTrack = inheritanceData.find(d => d.treeID === idxToTreeIDNoErrArr[i - numTreeWithErr] && d.parentTrkID === 0);
     // set width of the tree to the lineage point of last appear frame
