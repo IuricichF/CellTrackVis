@@ -20,6 +20,7 @@ const createView1SVG = () => {
             .attr("style", "background-color:white")
             .attr("class", "shadow")
             .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
+            .attr("preserveAspectRatio", "none")
             .on("click", transferDataToView2)
             .append("g")
             .attr("id", `errorTrack${d.datasetIdx}`)
@@ -44,6 +45,8 @@ const createView1SVG = () => {
         const cellCountGraph = ul.append("svg")
             .attr("width", graphWidth * (1 + 1 / 1.8))
             .attr("height", graphHeight * (1 + 1 / 3.4))
+            .attr("preserveAspectRatio", "none")
+            .attr("viewBox", `0 0 ${graphWidth * (1 + 1 / 1.8)} ${graphHeight * (1 + 1 / 3.4)}`);
         const xScale = d3.scaleLinear()
             .domain([0, d.numImg - 1])
             .range([0, graphWidth])
@@ -64,8 +67,9 @@ const createView1SVG = () => {
             .attr("stroke", "black")
             .attr("stroke-width", 1)
         const focus = cellCountGraph.append("g")
-            .attr("style", "z-index: 999")
             .attr("class", "focus")
+            .style("position", "absolute")
+            .style("z-index", "999")
             .style("display", "none");
         focus.append("circle")
             .attr("r", 2);
@@ -107,6 +111,13 @@ const createView1SVG = () => {
             focus.select(".tooltip-index").text(`${x}`);
             focus.select(".tooltip-count").text(`${d.cellCountAcrossIdx[x]}`);
         }
+        window.addEventListener('resize', () => {
+            const rate = this.outerWidth / this.screen.availWidth;
+            d3.select(`#sVG${d.datasetIdx}`).attr("width", sVGSideLength * rate);
+            cellCountGraph.attr("width", graphWidth * (1 + 1 / 1.8) * rate);
+            console.log(cellCountGraph)
+        })
+
     })
 }
 var numErr;
