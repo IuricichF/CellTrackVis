@@ -20,7 +20,6 @@ const createView1SVG = () => {
             .attr("style", "background-color:white")
             .attr("class", "shadow")
             .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
-            .attr("preserveAspectRatio", "none")
             .on("click", transferDataToView2)
             .append("g")
             .attr("id", `errorTrack${d.datasetIdx}`)
@@ -45,7 +44,6 @@ const createView1SVG = () => {
         const cellCountGraph = ul.append("svg")
             .attr("width", graphWidth * (1 + 1 / 1.8))
             .attr("height", graphHeight * (1 + 1 / 3.4))
-            .attr("preserveAspectRatio", "none")
             .attr("viewBox", `0 0 ${graphWidth * (1 + 1 / 1.8)} ${graphHeight * (1 + 1 / 3.4)}`);
         const xScale = d3.scaleLinear()
             .domain([0, d.numImg - 1])
