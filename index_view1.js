@@ -42,9 +42,9 @@ const createView1SVG = () => {
         const graphHeight = 100;
         const graphWidth = 200;
         const cellCountGraph = ul.append("svg")
-            .attr("width", graphWidth * (1 + 1 / 1.8))
-            .attr("height", graphHeight * (1 + 1 / 3.4))
-            .attr("viewBox", `0 0 ${graphWidth * (1 + 1 / 1.8)} ${graphHeight * (1 + 1 / 3.4)}`);
+            .attr("width", graphWidth)
+            .attr("height", graphHeight)
+            .attr("viewBox", `0 0 ${graphWidth} ${graphHeight}`);
         const xScale = d3.scaleLinear()
             .domain([0, d.numImg - 1])
             .range([0, graphWidth])
@@ -71,25 +71,27 @@ const createView1SVG = () => {
             .style("display", "none");
         focus.append("circle")
             .attr("r", 2);
-        focus.append("rect")
+        const tooltipGroup = focus.append("g");
+        tooltipGroup.append("rect")
             .attr("class", "tooltip")
             .attr("width", graphWidth / 1.8)
             .attr("height", graphHeight / 3.4)
             .attr("x", 10)
+            .attr("y", 0)
             .attr("fill", "white")
-        focus.append("text")
+        tooltipGroup.append("text")
             .attr("x", 10)
             .attr("y", graphHeight / 6.8)
             .text("Index:");
-        focus.append("text")
+        tooltipGroup.append("text")
             .attr("x", 10)
             .attr("y", graphHeight / 3.4)
             .text("Cell count:");
-        focus.append("text")
+        tooltipGroup.append("text")
             .attr("class", "tooltip-index")
             .attr("x", graphWidth / 1.8 * 0.79)
             .attr("y", graphHeight / 6.8)
-        focus.append("text")
+        tooltipGroup.append("text")
             .attr("class", "tooltip-count")
             .attr("x", graphWidth / 1.8 * 0.79)
             .attr("y", graphHeight / 3.4)
@@ -105,15 +107,29 @@ const createView1SVG = () => {
         function showDetailWhenMousemove() {
             var x = xScale.invert(d3.pointer(event, this)[0]);
             x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
-            focus.attr("transform", `translate(${xScale(x)}, ${yScale(d.cellCountAcrossIdx[x])})`);
+            var transX = xScale(x);
+            var transY = yScale(d.cellCountAcrossIdx[x]);
+            console.log(`x = ${xScale(x)}`)
+            console.log(`y = ${yScale(d.cellCountAcrossIdx[x])}`)
+            focus.attr("transform", `translate(${transX}, ${transY})`);
+            if (transY + graphHeight / 3.4 > graphHeight) {
+                tooltipGroup.attr("transform", `translate(0, ${-graphHeight / 3.4})`)
+            }
+            else if (transX + graphWidth / 1.8 + 10> graphWidth) {
+                tooltipGroup.attr("transform", `translate(${graphWidth - (transX + graphWidth / 1.8 + 10)}, 10)`)
+            }
+            else tooltipGroup.attr("transform", `translate(0, 0)`)
             focus.select(".tooltip-index").text(`${x}`);
             focus.select(".tooltip-count").text(`${d.cellCountAcrossIdx[x]}`);
         }
         window.addEventListener('resize', () => {
             const rate = this.outerWidth / this.screen.availWidth;
-            d3.select(`#sVG${d.datasetIdx}`).attr("width", sVGSideLength * rate);
-            cellCountGraph.attr("width", graphWidth * (1 + 1 / 1.8) * rate);
-            console.log(cellCountGraph)
+            d3.select(`#sVG${d.datasetIdx}`)
+                .attr("width", sVGSideLength * rate)
+                .attr("height", sVGSideLength * rate);
+            cellCountGraph
+                .attr("width", graphWidth * (1 + 1 / 1.8) * rate)
+                .attr("height", graphHeight * (1 + 1 / 3.4) * rate);
         })
 
     })
