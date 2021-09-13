@@ -27,7 +27,7 @@ const setSelectedErrorLink = (className) => classNameOfSelectedErrorLink = class
 const unsetSelectedErrorLink = () => classNameOfSelectedErrorLink = undefined;
 const updateTracking = (newIdx) => {
     imgIdx = newIdx;
-    img.attr("href", `/src/dataset_${datasetIdx}/${imgIdx}.png`);
+    img.attr("href", `/DataVis/src/dataset_${datasetIdx}/${imgIdx}.png`);
     // set slider
     imageSlider.value = newIdx;
     imgSliderLabel.text(`Image Index: ${imgIdx}`);
@@ -103,7 +103,7 @@ const imgSVG = d3.select("#trackingSVG")
     .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`);
 // image
 const img = d3.select("#image")
-    .attr("href", `/src/dataset_${datasetIdx}/${imgIdx}.png`)
+    .attr("href", `/DataVis/src/dataset_${datasetIdx}/${imgIdx}.png`)
     .attr("width", resolutionSideLength)
     .attr("height", resolutionSideLength);
 // error track 
