@@ -60,6 +60,7 @@ const createView1SVG = () => {
             .x(d => xScale(d.idx))
             .y(d => yScale(d.count))
         cellCountGraph.append("path")
+            .attr("id", "cellCountLine")
             .attr("d", line(data))
             .attr("fill", "none")
             .attr("stroke", "black")
@@ -109,8 +110,6 @@ const createView1SVG = () => {
             x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
             var transX = xScale(x);
             var transY = yScale(d.cellCountAcrossIdx[x]);
-            console.log(`x = ${xScale(x)}`)
-            console.log(`y = ${yScale(d.cellCountAcrossIdx[x])}`)
             focus.attr("transform", `translate(${transX}, ${transY})`);
             if (transY + graphHeight / 3.4 > graphHeight) {
                 tooltipGroup.attr("transform", `translate(0, ${-graphHeight / 3.4})`)
@@ -128,8 +127,8 @@ const createView1SVG = () => {
                 .attr("width", sVGSideLength * rate)
                 .attr("height", sVGSideLength * rate);
             cellCountGraph
-                .attr("width", graphWidth * (1 + 1 / 1.8) * rate)
-                .attr("height", graphHeight * (1 + 1 / 3.4) * rate);
+                .attr("width", graphWidth * rate)
+                .attr("height", graphHeight * rate);
         })
 
     })
