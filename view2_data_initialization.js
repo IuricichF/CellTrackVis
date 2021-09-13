@@ -1,0 +1,16 @@
+const datasetIdx = localStorage.getItem("datasetIdx");
+const numImg = localStorage.getItem("numImg");
+const trkIDToErrPathMap = new Map(JSON.parse(localStorage.getItem("trkIDToErrPathMap")));
+const trkIDToErrImgIdxMap = new Map(JSON.parse(localStorage.getItem("trkIDToErrImgIdxMap")));
+const idxToTrkIDWithErrArr = JSON.parse(localStorage.getItem("idxToTrkIDWithErrArr"));
+const idxToTrkIDNoErrArr = JSON.parse(localStorage.getItem("idxToTrkIDNoErrArr"));
+const idxToErrTrkIDArr = JSON.parse(localStorage.getItem("idxToErrTrkIDArr"));
+const idxToTreeIDWithErrArr = JSON.parse(localStorage.getItem("idxToTreeIDWithErrArr"));
+const idxToTreeIDNoErrArr = JSON.parse(localStorage.getItem("idxToTreeIDNoErrArr"));
+const trkDataSortedByTrkID = JSON.parse(localStorage.getItem("trkDataSortedByTrkID"));
+const trkData = trkDataSortedByTrkID.flat();
+const numTrkWithErr = idxToTrkIDWithErrArr.length;
+const numTrkNoErr = idxToTrkIDNoErrArr.length;
+const numTreeWithErr = idxToTreeIDWithErrArr.length;
+const numTreeNoErr = idxToTreeIDNoErrArr.length;
+const numTree = numTreeWithErr + numTreeNoErr;
