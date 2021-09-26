@@ -58,7 +58,9 @@ function initializeData(numD) {
                         tempIdxToTreeIDArr[+d.TRACK_ID] = +d.TRACK_ID;
                     }
                 })
+            console.log(tempTrkData)
             tempTrkData = tempTrkData.filter(d => d.imgIdx < tempNumImg);
+            console.log(tempTrkData)
             tempIdxToTreeIDArr = tempIdxToTreeIDArr.filter(d => d !== undefined);
             for (let i = 0; i < tempIdxToTrkIDArr.length; i++) {
                 tempTrkDataSortedByTrkID[i] = tempTrkData.filter(d => d.trkID === tempIdxToTrkIDArr[i]);
