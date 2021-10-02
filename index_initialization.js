@@ -11,7 +11,7 @@ const initView1 = function() {
         d3.select("#view1").selectAll("*").remove();
         datasetArr = [];
         for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
-            d3.csv(`/src/dataset_${datasetIdx}/res_lap_real_dt${dt}.csv`).then(rawData => {
+            d3.csv(`/DataVis/src/dataset_${datasetIdx}/res_lap_real_dt${dt}.csv`).then(rawData => {
                 let trkData = [];
                 let trkDataSortedByTrkID = [];
                 let idxToTrkIDArr = [];
