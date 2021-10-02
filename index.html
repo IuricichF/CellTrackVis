@@ -4,27 +4,34 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <link rel="stylesheet" href="tailwind.css">
     <meta charset="utf-8">
-    <script src="index_data_initialization.js"></script>
-    <script src="index_view1.js"></script>
+    <script src="index_initialization.js"></script>
     <title>Cell Tracking Visualization</title>
 </head>
 <body class="min-h-screen">
-    <script>
-        initializeData(4);
-    </script>
-
     <div class="box-content p-8">
         <h3 class="text-3xl"> Cell Tracking Dashboard</h3>
-
-        <div class="box-content p-4 ">
-            <div class="grid grid-cols-5 gap-4 place-content-start" id="view1">
-
-            </div>
+        <div>
+            <label for="dtOption">Available dt options:</label>
+            <g id="dtOption" name="dtOption"></g>
+            <script>
+                const dtOption = d3.select("#dtOption");
+                for (const dt of dtArr) {
+                    dtOption.append("input")
+                        .attr("type", "radio")
+                        .attr("id", `dt${dt}`)
+                        .attr("name", "dtOption")
+                        .attr("value", dt)
+                        .attr("onclick", `initView1.initToDt(${dt})`);
+                    dtOption.append("label")
+                        .attr("for", dt.toString())
+                        .text(dt.toString());
+                }
+                dt1.checked="checked";
+            </script>
         </div>
-
+        <div class="box-content p-4 ">
+            <div class="grid grid-cols-5 gap-4 place-content-start" id="view1"></div>
+        </div>
     </div>
-
-
-
 </body>
 </html>
