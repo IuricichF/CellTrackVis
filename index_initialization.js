@@ -77,7 +77,7 @@ const initView1 = function() {
                     for (let i = 1; i < trkIDToErrTrkIDPredMap.get(key).length; i++) {
                         let tempIdx = tempTrk.findIndex(d => d.trkIDPred === trkIDToErrTrkIDPredMap.get(key)[i] && d.imgIdx > tempImgIdx) - 1;
                         let tempPt = tempTrk[tempIdx]
-                        imgIdx = tempPt.imgIdx;
+                        tempImgIdx = tempPt.imgIdx;
                         tempTrkIDToErrImgIdxMapVal[i - 1] = [tempPt.imgIdx];
                         tempTrkIDToErrPathMapVal[i - 1] = [[tempPt.x, tempPt.y]];
                         tempPt = trkData.find(d => d.trkIDPred === tempPt.trkIDPred && d.imgIdx === tempPt.imgIdx + 1);
