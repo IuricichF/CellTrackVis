@@ -21,12 +21,26 @@
                         .attr("id", `dt${dt}`)
                         .attr("name", "dtOption")
                         .attr("value", dt)
-                        .attr("onclick", `initView1.initToDt(${dt})`);
+                        .attr("onclick", `initView1.initToDt(${dt}, initView1.getAlg())`);
                     dtOption.append("label")
-                        .attr("for", dt.toString())
+                        .attr("for", `#dt${dt}`)
                         .text(dt.toString());
                 }
                 dt1.checked="checked";
+            </script>
+        </div>
+        <div>
+            <label for="algorithmOption">Algorithm options:</label>
+            <g id="algorithmOption" name="algorithmOption">
+                <input type="radio" id="algA" name="algorithmOption" value="A", 
+                    onclick="initView1.initToDt(initView1.getDt(), 'A')">
+                <label for="#algA">A</label>
+                <input type="radio" id="algB" name="algorithmOption" value="B".
+                    onclick="initView1.initToDt(initView1.getDt(), 'B')">
+                <label for="#algB">B</label>
+            </g>
+            <script>
+                algA.checked="checked";
             </script>
         </div>
         <div class="box-content p-4 ">

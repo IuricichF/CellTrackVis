@@ -6,12 +6,18 @@ const errTrkColor = "red";
 const trkWidth = 10;
 const initView1 = function() {
     let datasetArr;
-    const initToDt = (dt) => {
+    var currDt = 1;
+    var currAlg = 'A';
+    const getDt = () => currDt;
+    const getAlg = () => currAlg;
+    const initToDt = (dt, alg) => {
         localStorage.clear();
         d3.select("#view1").selectAll("*").remove();
         datasetArr = [];
+        currDt = dt;
+        currAlg = alg;
         for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
-            d3.csv(`/DataVis/src/dataset_${datasetIdx}/res_lap_real_dt${dt}.csv`).then(rawData => {
+            d3.csv(`/src/dataset_${datasetIdx}/res_lap_real_dt${currDt}.csv`).then(rawData => {
                 let trkData = [];
                 let trkDataSortedByTrkID = [];
                 let idxToTrkIDArr = [];
@@ -21,14 +27,14 @@ const initView1 = function() {
                 let trkIDToErrTrkIDPredMap = new Map();
                 let trkIDToErrPathMap = new Map();
                 let trkIDToErrImgIdxMap = new Map();
-                let numImg = +rawData[rawData.length - 1].FRAME * dt + 1;
+                let numImg = +rawData[rawData.length - 1].FRAME * currDt + 1;
 
                 rawData.forEach(d => {
-                    for (let i = 0, xTrans = 0, yTrans = 0; i < dt; i++) {
+                    for (let i = 0, xTrans = 0, yTrans = 0; i < currDt; i++) {
                         if ((d[`dt${i}_n0_dx`] !== undefined)) xTrans = +d[`dt${i}_n0_dx`];
                         if ((d[`dt${i}_n0_dy`] !== undefined)) yTrans = +d[`dt${i}_n0_dx`];
                         trkData.push({
-                            imgIdx: +d.FRAME * dt + i,
+                            imgIdx: +d.FRAME * currDt + i,
                             treeID: +d.TRACK_ID,
                             trkID: +d.track_id_unique,
                             trkIDPred: +d.track_id_unique_pred,
@@ -306,10 +312,12 @@ const initView1 = function() {
             })
         }
     }
-    initToDt(1)
+    initToDt(currDt, currAlg)
 
     return {
         initToDt: initToDt,
+        getDt: getDt,
+        getAlg: getAlg,
         datasetArr: datasetArr
     }
 }();
