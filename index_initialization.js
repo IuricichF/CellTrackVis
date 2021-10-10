@@ -112,7 +112,7 @@ const initView1 = function() {
             }
         }
         for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
-            d3.csv(`/src/dataset_${datasetIdx}/res_${alg}_real_dt${currDt}.csv`).then(rawData => {
+            d3.csv(`/DataVis/src/dataset_${datasetIdx}/res_${alg}_real_dt${currDt}.csv`).then(rawData => {
                 datasetArr.push(processRawData(datasetIdx, currDt, rawData));
 
                 if (datasetArr.length === datasetNum) {
