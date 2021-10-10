@@ -4,52 +4,13 @@
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <link rel="stylesheet" href="tailwind.css">
     <meta charset="utf-8">
-    <script src="view2_data_initialization.js"></script>
+    <script src="view2_initialization.js"></script>
     <title>Cell Tracking Visualization</title>
 </head>
 <body>
-    <div class="box-content p-8 space-y-2">
-        <h3 class="text-3xl"> Field of View Visualizer</h3>
-
-        <div class="flex items-stretch gap-4 place-content-start bg-gray-200 rounded-lg p-2">
-            <div id="imageSliderContainer">
-                <label for="#imageSlider" id="imageSliderLabel">Image Index: 0</label><br>
-                <input type="range" min="0" max="288" value="0" class="slider" id="imageSlider" oninput="initTracking.updateTracking(+this.value)">
-            </div>
-
-            <div>
-                <button type="button" class="w-24 ring-0 bg-blue-400 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50"
-                        onclick="initTracking.reset();">
-                    Reset
-                </button>
-                <button type="button" class="w-24 ring-0 bg-blue-400 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50"
-                        onclick="initTracking.showAll();">
-                    Show all
-                </button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-2 justify-items-center gap-4 p-4 border-2 border-gray-200 rounded-lg">
-            <div>
-                <svg id="trackingSVG">
-                    <image id="image"></image>
-                    <g id="errorLink"></g>
-                    <g id="trueTrack"></g>
-                </svg>
-            </div>
-            <div style="width: 720px; height: 700px; overflow-y: scroll">
-                <svg id="lineageSVG">
-                    <g id="lineage">
-
-                    </g>
-                </svg>
-            </div>
-        </div>
-
-
+  <div id="view2Div">
+    <div id="compareDiv">
     </div>
-
-    <script src="view2_tracking.js"></script>
-    <script src="view2_lineage.js"></script>
+  </div>
 </body>
 </html>

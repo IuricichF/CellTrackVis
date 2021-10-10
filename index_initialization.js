@@ -1,13 +1,14 @@
 const datasetNum = 12;
 const dtArr = [1, 2, 4, 8, 12, 16]
+const algArr = ["lap", "algB"]
 const resolutionSideLength = 2040;
 const sVGSideLength = 300;
 const errTrkColor = "red";
 const trkWidth = 10;
 const initView1 = function() {
     let datasetArr;
-    var currDt = 1;
-    var currAlg = 'A';
+    var currDt = dtArr[0];
+    var currAlg = algArr[0];
     const getDt = () => currDt;
     const getAlg = () => currAlg;
     const initToDt = (dt, alg) => {
@@ -16,100 +17,103 @@ const initView1 = function() {
         datasetArr = [];
         currDt = dt;
         currAlg = alg;
-        for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
-            d3.csv(`/src/dataset_${datasetIdx}/res_lap_real_dt${currDt}.csv`).then(rawData => {
-                let trkData = [];
-                let trkDataSortedByTrkID = [];
-                let idxToTrkIDArr = [];
-                let idxToTreeIDArr = [];
-                let idxToTrkIDPredArr = [];
-                let cellCountAcrossIdx = [];
-                let trkIDToErrTrkIDPredMap = new Map();
-                let trkIDToErrPathMap = new Map();
-                let trkIDToErrImgIdxMap = new Map();
-                let numImg = +rawData[rawData.length - 1].FRAME * currDt + 1;
+        const processRawData = (datasetIdx, dt, rawData) => {
+            let trkData = [];
+            let trkDataSortedByTrkID = [];
+            let idxToTrkIDArr = [];
+            let idxToTreeIDArr = [];
+            let idxToTrkIDPredArr = [];
+            let cellCountAcrossIdx = [];
+            let trkIDToErrTrkIDPredMap = new Map();
+            let trkIDToErrPathMap = new Map();
+            let trkIDToErrImgIdxMap = new Map();
+            let numImg = +rawData[rawData.length - 1].FRAME * dt + 1;
 
-                rawData.forEach(d => {
-                    for (let i = 0, xTrans = 0, yTrans = 0; i < currDt; i++) {
-                        if ((d[`dt${i}_n0_dx`] !== undefined)) xTrans = +d[`dt${i}_n0_dx`];
-                        if ((d[`dt${i}_n0_dy`] !== undefined)) yTrans = +d[`dt${i}_n0_dx`];
-                        trkData.push({
-                            imgIdx: +d.FRAME * currDt + i,
-                            treeID: +d.TRACK_ID,
-                            trkID: +d.track_id_unique,
-                            trkIDPred: +d.track_id_unique_pred,
-                            parentTrkID: +d.track_id_parent,
-                            x: +d.pos_x + xTrans,
-                            y: +d.pos_y + yTrans
-                        })
-                    }
-                    // tracks are sorted by appear frame
-                    if (!idxToTrkIDArr.includes(+d.track_id_unique)) {
-                        idxToTrkIDArr.push(+d.track_id_unique);
-                    }
-                    // trees are sorted by id
-                    if (!idxToTreeIDArr[+d.TRACK_ID]) {
-                        idxToTreeIDArr[+d.TRACK_ID] = +d.TRACK_ID;
-                    }
-                })
-                trkData = trkData.filter(d => d.imgIdx < numImg);
-                idxToTreeIDArr = idxToTreeIDArr.filter(d => d !== undefined);
-                for (let i = 0; i < idxToTrkIDArr.length; i++) {
-                    trkDataSortedByTrkID[i] = trkData.filter(d => d.trkID === idxToTrkIDArr[i]);
+            rawData.forEach(d => {
+                for (let i = 0, xTrans = 0, yTrans = 0; i < dt; i++) {
+                    if ((d[`dt${i}_n0_dx`] !== undefined)) xTrans = +d[`dt${i}_n0_dx`];
+                    if ((d[`dt${i}_n0_dy`] !== undefined)) yTrans = +d[`dt${i}_n0_dx`];
+                    trkData.push({
+                        imgIdx: +d.FRAME * dt + i,
+                        treeID: +d.TRACK_ID,
+                        trkID: +d.track_id_unique,
+                        trkIDPred: +d.track_id_unique_pred,
+                        parentTrkID: +d.track_id_parent,
+                        x: +d.pos_x + xTrans,
+                        y: +d.pos_y + yTrans
+                    })
                 }
-                const CORRECT_NUM_TRK_ID_PRED = 1;
-                trkDataSortedByTrkID.forEach(d => {
-                        let temp = d[0].trkIDPred;
-                        let tempMapVal = [temp];
-                        let tempArr = [];
-                        if (!idxToTrkIDPredArr.includes(temp)) tempArr.push(temp);
-                        d.forEach(d => {
-                            if (d.trkIDPred !== temp) {
-                                temp = d.trkIDPred;
-                                if (!idxToTrkIDPredArr.includes(temp)) tempArr.push(temp);
-                                tempMapVal.push(temp);
-                            }
-                        })
-                        if (tempMapVal.length > CORRECT_NUM_TRK_ID_PRED) {
-                            trkIDToErrTrkIDPredMap.set(d[0].trkID, tempMapVal);
-                            idxToTrkIDPredArr.push(...tempArr);
+                // tracks are sorted by appear frame
+                if (!idxToTrkIDArr.includes(+d.track_id_unique)) {
+                    idxToTrkIDArr.push(+d.track_id_unique);
+                }
+                // trees are sorted by id
+                if (!idxToTreeIDArr[+d.TRACK_ID]) {
+                    idxToTreeIDArr[+d.TRACK_ID] = +d.TRACK_ID;
+                }
+            })
+            trkData = trkData.filter(d => d.imgIdx < numImg);
+            idxToTreeIDArr = idxToTreeIDArr.filter(d => d !== undefined);
+            for (let i = 0; i < idxToTrkIDArr.length; i++) {
+                trkDataSortedByTrkID[i] = trkData.filter(d => d.trkID === idxToTrkIDArr[i]);
+            }
+            const CORRECT_NUM_TRK_ID_PRED = 1;
+            trkDataSortedByTrkID.forEach(d => {
+                    let temp = d[0].trkIDPred;
+                    let tempMapVal = [temp];
+                    let tempArr = [];
+                    if (!idxToTrkIDPredArr.includes(temp)) tempArr.push(temp);
+                    d.forEach(d => {
+                        if (d.trkIDPred !== temp) {
+                            temp = d.trkIDPred;
+                            if (!idxToTrkIDPredArr.includes(temp)) tempArr.push(temp);
+                            tempMapVal.push(temp);
                         }
-                })
-                for (const key of trkIDToErrTrkIDPredMap.keys()) {
-                    const tempTrk = trkData.filter(d => d.trkID === key);
-                    const tempTrkIDToErrImgIdxMapVal = [];
-                    const tempTrkIDToErrPathMapVal = [];
-                    let tempImgIdx = tempTrk[0].imgIdx;
-                    for (let i = 1; i < trkIDToErrTrkIDPredMap.get(key).length; i++) {
-                        let tempIdx = tempTrk.findIndex(d => d.trkIDPred === trkIDToErrTrkIDPredMap.get(key)[i] && d.imgIdx > tempImgIdx) - 1;
-                        let tempPt = tempTrk[tempIdx]
-                        tempImgIdx = tempPt.imgIdx;
-                        tempTrkIDToErrImgIdxMapVal[i - 1] = [tempPt.imgIdx];
-                        tempTrkIDToErrPathMapVal[i - 1] = [[tempPt.x, tempPt.y]];
-                        tempPt = trkData.find(d => d.trkIDPred === tempPt.trkIDPred && d.imgIdx === tempPt.imgIdx + 1);
-                        if (tempPt !== undefined) {
-                            tempTrkIDToErrImgIdxMapVal[i - 1].push(tempPt.imgIdx)
-                            tempTrkIDToErrPathMapVal[i - 1].push([tempPt.x, tempPt.y])
-                        }
-                        trkIDToErrImgIdxMap.set(key, tempTrkIDToErrImgIdxMapVal);
-                        trkIDToErrPathMap.set(key, tempTrkIDToErrPathMapVal);
+                    })
+                    if (tempMapVal.length > CORRECT_NUM_TRK_ID_PRED) {
+                        trkIDToErrTrkIDPredMap.set(d[0].trkID, tempMapVal);
+                        idxToTrkIDPredArr.push(...tempArr);
                     }
+            })
+            for (const key of trkIDToErrTrkIDPredMap.keys()) {
+                const tempTrk = trkData.filter(d => d.trkID === key);
+                const tempTrkIDToErrImgIdxMapVal = [];
+                const tempTrkIDToErrPathMapVal = [];
+                let tempImgIdx = tempTrk[0].imgIdx;
+                for (let i = 1; i < trkIDToErrTrkIDPredMap.get(key).length; i++) {
+                    let tempIdx = tempTrk.findIndex(d => d.trkIDPred === trkIDToErrTrkIDPredMap.get(key)[i] && d.imgIdx > tempImgIdx) - 1;
+                    let tempPt = tempTrk[tempIdx]
+                    tempImgIdx = tempPt.imgIdx;
+                    tempTrkIDToErrImgIdxMapVal[i - 1] = [tempPt.imgIdx];
+                    tempTrkIDToErrPathMapVal[i - 1] = [[tempPt.x, tempPt.y]];
+                    tempPt = trkData.find(d => d.trkIDPred === tempPt.trkIDPred && d.imgIdx === tempPt.imgIdx + 1);
+                    if (tempPt !== undefined) {
+                        tempTrkIDToErrImgIdxMapVal[i - 1].push(tempPt.imgIdx)
+                        tempTrkIDToErrPathMapVal[i - 1].push([tempPt.x, tempPt.y])
+                    }
+                    trkIDToErrImgIdxMap.set(key, tempTrkIDToErrImgIdxMapVal);
+                    trkIDToErrPathMap.set(key, tempTrkIDToErrPathMapVal);
                 }
-                for (let i = 0; i < numImg; i++) {
-                    cellCountAcrossIdx.push(trkData.filter(d => d.imgIdx === i).length)
-                }
-                datasetArr.push({
-                    datasetIdx: datasetIdx,
-                    numImg: numImg,
-                    trkData: trkData,
-                    idxToTrkIDArr: idxToTrkIDArr,
-                    idxToTreeIDArr: idxToTreeIDArr,
-                    trkDataSortedByTrkID: trkDataSortedByTrkID,
-                    trkIDToErrTrkIDPredMap: trkIDToErrTrkIDPredMap,
-                    trkIDToErrPathMap: trkIDToErrPathMap,
-                    trkIDToErrImgIdxMap: trkIDToErrImgIdxMap,
-                    cellCountAcrossIdx: cellCountAcrossIdx
-                })
+            }
+            for (let i = 0; i < numImg; i++) {
+                cellCountAcrossIdx.push(trkData.filter(d => d.imgIdx === i).length)
+            }
+            return {
+                datasetIdx: datasetIdx,
+                numImg: numImg,
+                trkData: trkData,
+                idxToTrkIDArr: idxToTrkIDArr,
+                idxToTreeIDArr: idxToTreeIDArr,
+                trkDataSortedByTrkID: trkDataSortedByTrkID,
+                trkIDToErrTrkIDPredMap: trkIDToErrTrkIDPredMap,
+                trkIDToErrPathMap: trkIDToErrPathMap,
+                trkIDToErrImgIdxMap: trkIDToErrImgIdxMap,
+                cellCountAcrossIdx: cellCountAcrossIdx
+            }
+        }
+        for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
+            d3.csv(`/src/dataset_${datasetIdx}/res_${alg}_real_dt${currDt}.csv`).then(rawData => {
+                datasetArr.push(processRawData(datasetIdx, currDt, rawData));
 
                 if (datasetArr.length === datasetNum) {
                     datasetArr.sort((a, b) => b.trkIDToErrTrkIDPredMap.size - a.trkIDToErrTrkIDPredMap.size);
@@ -130,7 +134,7 @@ const initView1 = function() {
                             .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
                             .on("click", transferDataToView2)
                             .append("g")
-                            .attr("id", `errorTrack${d.datasetIdx}`);
+                            .attr("id", `errorLink${d.datasetIdx}`);
                         const ul = div.append("div")
                             .attr("class", "box-content p-2 self-center")
                             .append("ul")
@@ -267,46 +271,52 @@ const initView1 = function() {
                                 .data(errLinkPathData)
                                 .enter()
                                 .append("circle")
-                                .attr("class", (dd, i) => `Track ID: ${d.idxToTrkIDArr[i]}`)
-                                .attr("cx", d => d[0] ? d[0][0] : undefined)
-                                .attr("cy", d => d[0] ? d[0][1] : undefined)
-                                .attr("r", d => d[0] ? trkWidth * 1.5 : undefined)
-                                .attr("fill", errTrkColor)
+                                .attr("cx", d => d[0][0])
+                                .attr("cy", d => d[0][1])
+                                .attr("r", trkWidth * 1.5)
+                                .attr("fill", errTrkColor);
                 
                             errLinkWindow.selectAll("path")
                                 .data(errLinkPathData)
                                 .enter()
                                 .append("path")
-                                .attr("class", (dd, i) => `Track ID: ${d.idxToTrkIDArr[i]}`)
                                 .attr("d", d => d3.line()(d))
                                 .attr("fill", "none")
                                 .attr("stroke", errTrkColor)
-                                .attr("stroke-width", trkWidth)
-
+                                .attr("stroke-width", trkWidth);
                         }
                         function transferDataToView2() {
                             const offset = 3;
-                            const data = datasetArr.find(d => d.datasetIdx === +this.getAttribute("id").slice(offset));
-                            localStorage.setItem("datasetIdx", data.datasetIdx);
-                            localStorage.setItem("numImg", data.numImg);
-                            localStorage.setItem("numTree", data.idxToTreeIDArr.length);
-                            localStorage.setItem("trkIDToErrPathMap", JSON.stringify(Array.from(data.trkIDToErrPathMap.entries())));
-                            localStorage.setItem("trkIDToErrImgIdxMap", JSON.stringify(Array.from(data.trkIDToErrImgIdxMap.entries())));
-                            var tempTreeIDArr = [];
-                            for (const key of data.trkIDToErrImgIdxMap.keys()) {
-                                let tempTreeID = data.trkData.find(d => d.trkID === key).treeID;
-                                if (!tempTreeIDArr.includes(tempTreeID)) tempTreeIDArr.push(tempTreeID);
-                            }
-                            const tempIdxToTrkIDArr = data.idxToTrkIDArr.filter((d => tempTreeIDArr.includes(data.trkData.find(d2 => d2.trkID === d).treeID)));
-                            const idxToErrTrkIDArr = data.idxToTrkIDArr.filter(d => data.trkIDToErrImgIdxMap.has(d));
-                            tempTreeIDArr = tempTreeIDArr.filter(d => d !== undefined);
-                            localStorage.setItem("idxToTreeIDWithErrArr", JSON.stringify(tempTreeIDArr));
-                            localStorage.setItem("idxToTreeIDNoErrArr", JSON.stringify(data.idxToTreeIDArr.filter(d => !tempTreeIDArr.includes(d))));
-                            localStorage.setItem("idxToErrTrkIDArr", JSON.stringify(idxToErrTrkIDArr));
-                            localStorage.setItem("idxToTrkIDWithErrArr", JSON.stringify(tempIdxToTrkIDArr));
-                            localStorage.setItem("idxToTrkIDNoErrArr", JSON.stringify(data.idxToTrkIDArr.filter(d => !tempIdxToTrkIDArr.includes(d))));
-                            localStorage.setItem("trkDataSortedByTrkID", JSON.stringify(data.trkDataSortedByTrkID));
+                            localStorage.setItem("resolutionSideLength", resolutionSideLength);
+                            localStorage.setItem("datasetIdx", +this.getAttribute("id").slice(offset));
+                            localStorage.setItem("dt", currDt);
+                            localStorage.setItem("processRawData", processRawData.toString());
+                            localStorage.setItem("algArr", JSON.stringify(algArr));
                         }
+                        // function transferDataToView3() {
+                        //     const offset = 3;
+                        //     const data = datasetArr.find(d => d.datasetIdx === +this.getAttribute("id").slice(offset));
+                        //     localStorage.setItem("datasetIdx", data.datasetIdx);
+                        //     localStorage.setItem("numImg", data.numImg);
+                        //     localStorage.setItem("numTree", data.idxToTreeIDArr.length);
+                        //     localStorage.setItem("resolutionSideLength", resolutionSideLength);
+                        //     localStorage.setItem("trkIDToErrPathMap", JSON.stringify(Array.from(data.trkIDToErrPathMap.entries())));
+                        //     localStorage.setItem("trkIDToErrImgIdxMap", JSON.stringify(Array.from(data.trkIDToErrImgIdxMap.entries())));
+                        //     var tempTreeIDArr = [];
+                        //     for (const key of data.trkIDToErrImgIdxMap.keys()) {
+                        //         let tempTreeID = data.trkData.find(d => d.trkID === key).treeID;
+                        //         if (!tempTreeIDArr.includes(tempTreeID)) tempTreeIDArr.push(tempTreeID);
+                        //     }
+                        //     const tempIdxToTrkIDArr = data.idxToTrkIDArr.filter((d => tempTreeIDArr.includes(data.trkData.find(d2 => d2.trkID === d).treeID)));
+                        //     const idxToErrTrkIDArr = data.idxToTrkIDArr.filter(d => data.trkIDToErrImgIdxMap.has(d));
+                        //     tempTreeIDArr = tempTreeIDArr.filter(d => d !== undefined);
+                        //     localStorage.setItem("idxToTreeIDWithErrArr", JSON.stringify(tempTreeIDArr));
+                        //     localStorage.setItem("idxToTreeIDNoErrArr", JSON.stringify(data.idxToTreeIDArr.filter(d => !tempTreeIDArr.includes(d))));
+                        //     localStorage.setItem("idxToErrTrkIDArr", JSON.stringify(idxToErrTrkIDArr));
+                        //     localStorage.setItem("idxToTrkIDWithErrArr", JSON.stringify(tempIdxToTrkIDArr));
+                        //     localStorage.setItem("idxToTrkIDNoErrArr", JSON.stringify(data.idxToTrkIDArr.filter(d => !tempIdxToTrkIDArr.includes(d))));
+                        //     localStorage.setItem("trkDataSortedByTrkID", JSON.stringify(data.trkDataSortedByTrkID));
+                        // }
                     })
                 }
             })
@@ -320,4 +330,4 @@ const initView1 = function() {
         getAlg: getAlg,
         datasetArr: datasetArr
     }
-}();
+}()

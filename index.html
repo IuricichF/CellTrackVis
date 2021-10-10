@@ -18,29 +18,34 @@
                 for (const dt of dtArr) {
                     dtOption.append("input")
                         .attr("type", "radio")
-                        .attr("id", `dt${dt}`)
+                        .attr("id", `dt-${dt}`)
                         .attr("name", "dtOption")
                         .attr("value", dt)
                         .attr("onclick", `initView1.initToDt(${dt}, initView1.getAlg())`);
                     dtOption.append("label")
-                        .attr("for", `#dt${dt}`)
+                        .attr("for", `#dt-${dt}`)
                         .text(dt.toString());
                 }
-                dt1.checked="checked";
+                document.getElementById(`dt-${dtArr[0]}`).checked="checked";
             </script>
         </div>
         <div>
             <label for="algorithmOption">Algorithm options:</label>
-            <g id="algorithmOption" name="algorithmOption">
-                <input type="radio" id="algA" name="algorithmOption" value="A", 
-                    onclick="initView1.initToDt(initView1.getDt(), 'A')">
-                <label for="#algA">A</label>
-                <input type="radio" id="algB" name="algorithmOption" value="B".
-                    onclick="initView1.initToDt(initView1.getDt(), 'B')">
-                <label for="#algB">B</label>
-            </g>
+            <g id="algorithmOption" name="algorithmOption"></g>
             <script>
-                algA.checked="checked";
+                const algorithmOption = d3.select("#algorithmOption");
+                for (const alg of algArr) {
+                    algorithmOption.append("input")
+                        .attr("type", "radio")
+                        .attr("id", `alg-${alg}`)
+                        .attr("name", "algorithmOption")
+                        .attr("value", alg)
+                        .attr("onclick", `initView1.initToDt(initView1.getDt(), "${alg}")`);
+                        algorithmOption.append("label")
+                        .attr("for", `alg-${alg}`)
+                        .text(alg);
+                }
+                document.getElementById(`alg-${algArr[0]}`).checked="checked";
             </script>
         </div>
         <div class="box-content p-4 ">
