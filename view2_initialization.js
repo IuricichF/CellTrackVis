@@ -11,9 +11,10 @@ const initView2 = function() {
     for (let i = 0; i < algArr.length; i++) {
         d3.csv(`/src/dataset_${datasetIdx}/res_${algArr[i]}_real_dt${dt}.csv`).then(rawData => {
             data.push(processRawData(datasetIdx, dt, rawData));
+            const view2Div = d3.select("#view2Div");
             if (data.length === algArr.length) {
                 data.forEach((d, i) => {
-                    const errLinkWindow = d3.select("#view2Div")
+                    const errLinkWindow = view2Div
                     .append("div")
                     .attr("id",`div-${algArr[i]}`)
                     .append("svg")
@@ -71,7 +72,7 @@ const initView2 = function() {
                 // color shared error links from two algorithms
                 d3.select(`#svg-${algArr[0]}`).selectAll("circle").each(function(){
                     const circle = this;
-                    const idx = +circle.getAttribute("class").split('-')[1];
+                    const idx = circle.getAttribute("class").split('-')[1];
                     const x = circle.getAttribute('cx')
                     const y = circle.getAttribute('cy')
                     d3.select(`#svg-${algArr[1]}`).selectAll(`circle.${algArr[1]}-${idx}`).each(function(){
@@ -83,7 +84,7 @@ const initView2 = function() {
                 })   
                 d3.select(`#svg-${algArr[0]}`).selectAll("path").each(function(){
                     const path = this;
-                    const idx = +path.getAttribute("class").split('-')[1];
+                    const idx = path.getAttribute("class").split('-')[1];
                     const d = path.getAttribute('d')
                     d3.select(`#svg-${algArr[1]}`).selectAll(`path.${algArr[1]}-${idx}`).each(function(){
                         if (d === this.getAttribute('d')) {
@@ -91,7 +92,51 @@ const initView2 = function() {
                             this.setAttribute("stroke", errTrkColorArr[2]);
                         }
                     })
-                })            
+                })
+                const compaList = view2Div.append("div")
+                    .attr("id", "comparisonPanel")
+                    .append("ul")
+                    .attr("id", "comparisonList");
+                compaList.append("li").text(`Field of View - #${datasetIdx}`);
+                let errLinkNum1 = 0;
+                let LinkNum1 = data[0].trkData.length - data[0].idxToTrkIDArr.length;
+                for (const value of data[0].trkIDToErrTrkIDPredMap.values()) errLinkNum1 += value.length - 1;
+                let errLinkNum2 = 0;
+                let LinkNum2 = data[1].trkData.length - data[1].idxToTrkIDArr.length;
+                for (const value of data[1].trkIDToErrTrkIDPredMap.values()) errLinkNum2 += value.length - 1;
+                let item = compaList.append("li").text("Linking errors - ");
+                item.append("span")
+                    .style("color", `${errTrkColorArr[0]}`)
+                    .text(`${errLinkNum1}`);
+                item.append("text").text(", ")
+                item.append("span")
+                    .style("color", `${errTrkColorArr[1]}`)
+                    .text(`${errLinkNum2}`);
+                item = compaList.append("li").text("Linking errors (%) - ");
+                item.append("span")
+                    .style("color", `${errTrkColorArr[0]}`)
+                    .text(`${(errLinkNum1 / LinkNum1 * 100).toFixed(2)}%`);
+                item.append("text").text(", ")
+                item.append("span")
+                    .style("color", `${errTrkColorArr[1]}`)
+                    .text(`${(errLinkNum2 / LinkNum2 * 100).toFixed(2)}%`);
+                item = compaList.append("li").text("Total links - ");
+                item.append("span")
+                    .style("color", `${errTrkColorArr[0]}`)
+                    .text(`${LinkNum1}`);
+                item.append("text").text(", ")
+                item.append("span")
+                    .style("color", `${errTrkColorArr[1]}`)
+                    .text(`${LinkNum2}`);
+                item = compaList.append("li").text(`Total Cell count (0-${data[0].numImg - 1}) - `);
+                item.append("span")
+                    .style("color", `${errTrkColorArr[0]}`)
+                    .text(`${data[0].cellCountAcrossIdx[0]}-${data[0].cellCountAcrossIdx[data[0].cellCountAcrossIdx.length - 1]}`);
+                item.append("text").text(", ")
+                item.append("span")
+                    .style("color", `${errTrkColorArr[1]}`)
+                    .text(`${data[1].cellCountAcrossIdx[0]}-${data[1].cellCountAcrossIdx[data[1].cellCountAcrossIdx.length - 1]}`);
+
             }
         })
     }
