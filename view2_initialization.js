@@ -9,7 +9,7 @@ const algArr = JSON.parse(localStorage.getItem("algArr"));
 const initView2 = function() {
     let data = [];
     for (let i = 0; i < algArr.length; i++) {
-        d3.csv(`/src/dataset_${datasetIdx}/res_${algArr[i]}_real_dt${dt}.csv`).then(rawData => {
+        d3.csv(`/DataVis/src/dataset_${datasetIdx}/res_${algArr[i]}_real_dt${dt}.csv`).then(rawData => {
             data.push(processRawData(datasetIdx, dt, rawData));
             const view2Div = d3.select("#view2Div");
             if (data.length === algArr.length) {
