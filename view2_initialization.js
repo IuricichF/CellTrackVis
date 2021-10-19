@@ -11,17 +11,19 @@ const initView2 = function() {
     for (let i = 0; i < algArr.length; i++) {
         d3.csv(`/DataVis/src/dataset_${datasetIdx}/res_${algArr[i]}_real_dt${dt}.csv`).then(rawData => {
             data.push(processRawData(datasetIdx, dt, rawData));
-            const view2Div = d3.select("#view2Div");
+            const compareDiv = d3.select("#compareDiv");
             if (data.length === algArr.length) {
                 data.forEach((d, i) => {
-                    const errLinkWindow = view2Div
+                    const errLinkWindow = compareDiv
                     .append("div")
                     .attr("id",`div-${algArr[i]}`)
+                    .attr("class", "box-content rounded-lg p-2 flex justify-center")
                     .append("svg")
                     .attr("id",`svg-${algArr[i]}`)
                     .attr("width", sVGSideLength)
                     .attr("height", sVGSideLength)
                     .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
+                    .attr("style", "background-color:white")
                     .append("g")
                     .attr("id", `errorLink-${algArr[i]}`);
                     
@@ -93,10 +95,13 @@ const initView2 = function() {
                         }
                     })
                 })
-                const compaList = view2Div.append("div")
+                // comparison panel
+                const compaList = compareDiv.append("div")
                     .attr("id", "comparisonPanel")
+                    .attr("class", "flex justify-center")
                     .append("ul")
-                    .attr("id", "comparisonList");
+                    .attr("id", "comparisonList")
+                    .attr("class", "box-content p-2 self-center");
                 compaList.append("li").text(`Field of View - #${datasetIdx}`);
                 let errLinkNum1 = 0;
                 let LinkNum1 = data[0].trkData.length - data[0].idxToTrkIDArr.length;
@@ -136,6 +141,79 @@ const initView2 = function() {
                 item.append("span")
                     .style("color", `${errTrkColorArr[1]}`)
                     .text(`${data[1].cellCountAcrossIdx[0]}-${data[1].cellCountAcrossIdx[data[1].cellCountAcrossIdx.length - 1]}`);
+                
+                const graphHeight = 100;
+                const graphWidth = 200;
+                const tooltipHeight = graphHeight / 2;
+                const tooltipWidth = graphWidth / 1.4;
+                const cellCountGraph = compaList.append("li").append("svg")
+                    .attr("width", graphWidth + tooltipWidth)
+                    .attr("height", graphHeight)
+                    .attr("viewBox", `0 0 ${graphWidth + tooltipWidth} ${graphHeight}`);
+                const xScale = d3.scaleLinear()
+                    .domain([0, data[0].numImg - 1])
+                    .range([0, graphWidth])
+                const yScale = d3.scaleLinear()
+                    .domain([Math.min(...data[0].cellCountAcrossIdx, ...data[1].cellCountAcrossIdx)
+                        , Math.max(...data[0].cellCountAcrossIdx, ...data[1].cellCountAcrossIdx)])
+                    .range([graphHeight, 0])
+                const pathData = [[], []];
+                data.forEach((d, i) => {
+                    d.cellCountAcrossIdx.forEach((dd, ii) => pathData[i].push({
+                        idx : ii,
+                        count : dd
+                    }))
+                })
+                const line = d3.line()
+                .x(d => xScale(d.idx))
+                .y(d => yScale(d.count))
+                cellCountGraph.selectAll("path")
+                .data(pathData)
+                .enter()
+                .append("path")
+                .attr('d', d => line(d))
+                .attr("fill", "none")
+                .attr("stroke", (d, i) => errTrkColorArr[i])
+                .attr("stroke-width", 1)
+                const tooltipGroup = cellCountGraph.append("g")
+                    .attr("transform", `translate(${graphWidth}, ${(graphHeight - tooltipHeight) / 2})`)
+                const tooltip = tooltipGroup.append("rect")
+                    .attr("height", tooltipHeight)
+                    .attr("width", tooltipWidth)
+                    .attr("fill", "white");
+                const idxText = tooltipGroup.append("text")
+                    .text("Index: 0");
+                const cellNumText = tooltipGroup.append("text")
+                    .text(`Cell count: `);
+                cellNumText.append("span")
+                    .style("color", `${errTrkColorArr[0]}`)
+                    .text(`${data[0].cellCountAcrossIdx[0]}`);
+                cellNumText.append("text").text(", ");
+                cellNumText.append("span")
+                    .style("color", `${errTrkColorArr[1]}`)
+                    .text(`${data[1].cellCountAcrossIdx[0]}`);
+                const textHeight = idxText.node().getBBox().height;
+                idxText.attr('y', textHeight);
+                cellNumText.attr('y', tooltipHeight - textHeight / 2);
+                cellCountGraph.append("rect")
+                .attr("width", graphWidth)
+                .attr("height", graphHeight)
+                .attr("opacity", 0)
+                .on("mousemove", showDetailWhenMousemove);
+                const tooltipIndicator = cellCountGraph.append("rect")
+                    .attr("width", 1)
+                    .attr("height", graphHeight)
+                function showDetailWhenMousemove() {
+                    let x = xScale.invert(d3.pointer(event, this)[0]);
+                    x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
+                    tooltipIndicator.attr('x', xScale(x));
+                    idxText.text(`Index: ${x}`);
+                    cellNumText.text(`Cell count: ${data[0].cellCountAcrossIdx[x]}, ${data[1].cellCountAcrossIdx[x]}`);
+                    tempWidth = Math.max(idxText.node().getBBox().width, cellNumText.node().getBBox().width);
+                    if (tempWidth > tooltipWidth) tooltip.attr("width", tempWidth);
+                }
+
+                compareDiv.node().appendChild(compareDiv.node().childNodes[2]);
 
             }
         })

@@ -1,6 +1,6 @@
 const datasetNum = 12;
 const dtArr = [1, 2, 4, 8, 12, 16]
-const algArr = ["lap", "algB"]
+const algArr = ["lap", "rnn"]
 const resolutionSideLength = 2040;
 const sVGSideLength = 300;
 const errTrkColor = "red";
