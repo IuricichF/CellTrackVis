@@ -18,15 +18,43 @@ const initView2 = function() {
                     .append("div")
                     .attr("id",`div-${algArr[i]}`)
                     .attr("class", "box-content rounded-lg p-2 flex justify-center")
+                    .append("a")
+                    .attr("href", "view3.html")
+                    .attr("target", "_blank")
                     .append("svg")
                     .attr("id",`svg-${algArr[i]}`)
                     .attr("width", sVGSideLength)
                     .attr("height", sVGSideLength)
                     .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
                     .attr("style", "background-color:white")
+                    .on("click", transferDataToView3)
                     .append("g")
                     .attr("id", `errorLink-${algArr[i]}`);
                     
+                    function transferDataToView3() {
+                        const index = algArr.indexOf(this.getAttribute("id").split('-')[1]);
+                        localStorage.setItem("datasetIdx", data[index].datasetIdx);
+                        localStorage.setItem("numImg", data[index].numImg);
+                        localStorage.setItem("numTree", data[index].idxToTreeIDArr.length);
+                        localStorage.setItem("resolutionSideLength", resolutionSideLength);
+                        localStorage.setItem("trkIDToErrPathMap", JSON.stringify(Array.from(data[index].trkIDToErrPathMap.entries())));
+                        localStorage.setItem("trkIDToErrImgIdxMap", JSON.stringify(Array.from(data[index].trkIDToErrImgIdxMap.entries())));
+                        var tempTreeIDArr = [];
+                        for (const key of data[index].trkIDToErrImgIdxMap.keys()) {
+                            let tempTreeID = data[index].trkData.find(d => d.trkID === key).treeID;
+                            if (!tempTreeIDArr.includes(tempTreeID)) tempTreeIDArr.push(tempTreeID);
+                        }
+                        const tempIdxToTrkIDArr = data[index].idxToTrkIDArr.filter((d => tempTreeIDArr.includes(data[index].trkData.find(d2 => d2.trkID === d).treeID)));
+                        const idxToErrTrkIDArr = data[index].idxToTrkIDArr.filter(d => data[index].trkIDToErrImgIdxMap.has(d));
+                        tempTreeIDArr = tempTreeIDArr.filter(d => d !== undefined);
+                        localStorage.setItem("idxToTreeIDWithErrArr", JSON.stringify(tempTreeIDArr));
+                        localStorage.setItem("idxToTreeIDNoErrArr", JSON.stringify(data[index].idxToTreeIDArr.filter(d => !tempTreeIDArr.includes(d))));
+                        localStorage.setItem("idxToErrTrkIDArr", JSON.stringify(idxToErrTrkIDArr));
+                        localStorage.setItem("idxToTrkIDWithErrArr", JSON.stringify(tempIdxToTrkIDArr));
+                        localStorage.setItem("idxToTrkIDNoErrArr", JSON.stringify(data[index].idxToTrkIDArr.filter(d => !tempIdxToTrkIDArr.includes(d))));
+                        localStorage.setItem("trkDataSortedByTrkID", JSON.stringify(data[index].trkDataSortedByTrkID));
+                    }
+
                     const errLinkPathData = [];
                     for (const key of d.trkIDToErrImgIdxMap.keys()) {
                         const points = d.trkIDToErrPathMap.get(key)

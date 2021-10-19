@@ -293,30 +293,6 @@ const initView1 = function() {
                             localStorage.setItem("processRawData", processRawData.toString());
                             localStorage.setItem("algArr", JSON.stringify(algArr));
                         }
-                        // function transferDataToView3() {
-                        //     const offset = 3;
-                        //     const data = datasetArr.find(d => d.datasetIdx === +this.getAttribute("id").slice(offset));
-                        //     localStorage.setItem("datasetIdx", data.datasetIdx);
-                        //     localStorage.setItem("numImg", data.numImg);
-                        //     localStorage.setItem("numTree", data.idxToTreeIDArr.length);
-                        //     localStorage.setItem("resolutionSideLength", resolutionSideLength);
-                        //     localStorage.setItem("trkIDToErrPathMap", JSON.stringify(Array.from(data.trkIDToErrPathMap.entries())));
-                        //     localStorage.setItem("trkIDToErrImgIdxMap", JSON.stringify(Array.from(data.trkIDToErrImgIdxMap.entries())));
-                        //     var tempTreeIDArr = [];
-                        //     for (const key of data.trkIDToErrImgIdxMap.keys()) {
-                        //         let tempTreeID = data.trkData.find(d => d.trkID === key).treeID;
-                        //         if (!tempTreeIDArr.includes(tempTreeID)) tempTreeIDArr.push(tempTreeID);
-                        //     }
-                        //     const tempIdxToTrkIDArr = data.idxToTrkIDArr.filter((d => tempTreeIDArr.includes(data.trkData.find(d2 => d2.trkID === d).treeID)));
-                        //     const idxToErrTrkIDArr = data.idxToTrkIDArr.filter(d => data.trkIDToErrImgIdxMap.has(d));
-                        //     tempTreeIDArr = tempTreeIDArr.filter(d => d !== undefined);
-                        //     localStorage.setItem("idxToTreeIDWithErrArr", JSON.stringify(tempTreeIDArr));
-                        //     localStorage.setItem("idxToTreeIDNoErrArr", JSON.stringify(data.idxToTreeIDArr.filter(d => !tempTreeIDArr.includes(d))));
-                        //     localStorage.setItem("idxToErrTrkIDArr", JSON.stringify(idxToErrTrkIDArr));
-                        //     localStorage.setItem("idxToTrkIDWithErrArr", JSON.stringify(tempIdxToTrkIDArr));
-                        //     localStorage.setItem("idxToTrkIDNoErrArr", JSON.stringify(data.idxToTrkIDArr.filter(d => !tempIdxToTrkIDArr.includes(d))));
-                        //     localStorage.setItem("trkDataSortedByTrkID", JSON.stringify(data.trkDataSortedByTrkID));
-                        // }
                     })
                 }
             })
