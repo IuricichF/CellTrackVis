@@ -29,28 +29,42 @@ const initView1 = function() {
             let trkIDToErrImgIdxMap = new Map();
             let numImg = +rawData[rawData.length - 1].FRAME * dt + 1;
 
+            
             rawData.forEach(d => {
-                for (let i = 0, xTrans = 0, yTrans = 0; i < dt; i++) {
-                    if ((d[`dt${i}_n0_dx`] !== undefined)) xTrans = +d[`dt${i}_n0_dx`];
-                    if ((d[`dt${i}_n0_dy`] !== undefined)) yTrans = +d[`dt${i}_n0_dx`];
-                    trkData.push({
-                        imgIdx: +d.FRAME * dt + i,
-                        treeID: +d.TRACK_ID,
-                        trkID: +d.track_id_unique,
-                        trkIDPred: +d.track_id_unique_pred,
-                        parentTrkID: +d.track_id_parent,
-                        x: +d.pos_x + xTrans,
-                        y: +d.pos_y + yTrans
-                    })
+                const getTreeID = (d) => {
+                    if (+d.track_id_parent === 0) return +d.track_id_unique;
+                    else {
+                        let parentPoint = rawData.find(dd => dd.track_id_unique === d.track_id_parent)
+                        if (parentPoint === undefined) return -1;
+                        else getTreeID(rawData.find(dd => dd.track_id_unique === d.track_id_parent));
+                    }
                 }
-                // tracks are sorted by appear frame
-                if (!idxToTrkIDArr.includes(+d.track_id_unique)) {
-                    idxToTrkIDArr.push(+d.track_id_unique);
+                let treeID = getTreeID(d);
+                // removes cells with parents that do not exist (error in ground truth)
+                if (treeID !== -1) {
+                    for (let i = 0, xTrans = 0, yTrans = 0; i < dt; i++) {
+                        if ((d[`dt${i}_n0_dx`] !== undefined)) xTrans = +d[`dt${i}_n0_dx`];
+                        if ((d[`dt${i}_n0_dy`] !== undefined)) yTrans = +d[`dt${i}_n0_dx`];
+                        trkData.push({
+                            imgIdx: +d.FRAME * dt + i,
+                            treeID: treeID,
+                            trkID: +d.track_id_unique,
+                            trkIDPred: +d.track_id_unique_pred,
+                            parentTrkID: +d.track_id_parent,
+                            x: +d.pos_x + xTrans,
+                            y: +d.pos_y + yTrans
+                        })
+                    }
+                    // tracks are sorted by appear frame
+                    if (!idxToTrkIDArr.includes(+d.track_id_unique)) {
+                        idxToTrkIDArr.push(+d.track_id_unique);
+                    }
+                    // trees are sorted by id
+                    if (!idxToTreeIDArr[+d.TRACK_ID]) {
+                        idxToTreeIDArr[+d.TRACK_ID] = +d.TRACK_ID;
+                    }
                 }
-                // trees are sorted by id
-                if (!idxToTreeIDArr[+d.TRACK_ID]) {
-                    idxToTreeIDArr[+d.TRACK_ID] = +d.TRACK_ID;
-                }
+
             })
             trkData = trkData.filter(d => d.imgIdx < numImg);
             idxToTreeIDArr = idxToTreeIDArr.filter(d => d !== undefined);
@@ -114,7 +128,6 @@ const initView1 = function() {
         for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
             d3.csv(`/DataVis/src/dataset_${datasetIdx}/res_${alg}_real_dt${currDt}.csv`).then(rawData => {
                 datasetArr.push(processRawData(datasetIdx, currDt, rawData));
-
                 if (datasetArr.length === datasetNum) {
                     datasetArr.sort((a, b) => b.trkIDToErrTrkIDPredMap.size - a.trkIDToErrTrkIDPredMap.size);
                     datasetArr.forEach(d => {
