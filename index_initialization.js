@@ -6,13 +6,13 @@ const sVGSideLength = 300;
 const errTrkColor = "red";
 const trkWidth = 10;
 const initView1 = function() {
+    localStorage.clear();
     let datasetArr;
     var currDt = dtArr[0];
     var currAlg = algArr[0];
     const getDt = () => currDt;
     const getAlg = () => currAlg;
     const initToDt = (dt, alg) => {
-        localStorage.clear();
         d3.select("#view1").selectAll("*").remove();
         datasetArr = [];
         currDt = dt;
@@ -29,19 +29,15 @@ const initView1 = function() {
             let trkIDToErrImgIdxMap = new Map();
             let numImg = +rawData[rawData.length - 1].FRAME * dt + 1;
 
-            
+            function getTreeID(d){
+                if (d === undefined) return undefined;
+                if (+d.track_id_parent === 0) return +d.track_id_unique;
+                return getTreeID(rawData.find(dd => dd.track_id_unique === d.track_id_parent));
+            }
             rawData.forEach(d => {
-                const getTreeID = (d) => {
-                    if (+d.track_id_parent === 0) return +d.track_id_unique;
-                    else {
-                        let parentPoint = rawData.find(dd => dd.track_id_unique === d.track_id_parent)
-                        if (parentPoint === undefined) return -1;
-                        else getTreeID(rawData.find(dd => dd.track_id_unique === d.track_id_parent));
-                    }
-                }
                 let treeID = getTreeID(d);
                 // removes cells with parents that do not exist (error in ground truth)
-                if (treeID !== -1) {
+                if (treeID !== undefined) {
                     for (let i = 0, xTrans = 0, yTrans = 0; i < dt; i++) {
                         if ((d[`dt${i}_n0_dx`] !== undefined)) xTrans = +d[`dt${i}_n0_dx`];
                         if ((d[`dt${i}_n0_dy`] !== undefined)) yTrans = +d[`dt${i}_n0_dx`];
@@ -60,11 +56,10 @@ const initView1 = function() {
                         idxToTrkIDArr.push(+d.track_id_unique);
                     }
                     // trees are sorted by id
-                    if (!idxToTreeIDArr[+d.TRACK_ID]) {
-                        idxToTreeIDArr[+d.TRACK_ID] = +d.TRACK_ID;
+                    if (!idxToTreeIDArr[treeID]) {
+                        idxToTreeIDArr[treeID] = treeID;
                     }
                 }
-
             })
             trkData = trkData.filter(d => d.imgIdx < numImg);
             idxToTreeIDArr = idxToTreeIDArr.filter(d => d !== undefined);
@@ -274,7 +269,7 @@ const initView1 = function() {
                             const text = errLinkWindow.append("text")
                                 .attr("id", `noErrorText${d.datasetIdx}`)
                                 .attr("y", resolutionSideLength / 2)
-                                .attr("style", "font: 50px sans-serif")
+                                .attr("style", "font: 100px sans-serif")
                                 .text("Congratulation, this dataset has no error!");
                             const tempWidth = document.getElementById(`noErrorText${d.datasetIdx}`).getBBox().width
                             text.attr("x", (resolutionSideLength - tempWidth) / 2)

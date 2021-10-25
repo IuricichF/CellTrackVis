@@ -213,13 +213,13 @@ const initView2 = function() {
                     .text("Index: 0");
                 const cellNumText = tooltipGroup.append("text")
                     .text(`Cell count: `);
-                cellNumText.append("span")
-                    .style("color", `${errTrkColorArr[0]}`)
-                    .text(`${data[0].cellCountAcrossIdx[0]}`);
-                cellNumText.append("text").text(", ");
-                cellNumText.append("span")
-                    .style("color", `${errTrkColorArr[1]}`)
-                    .text(`${data[1].cellCountAcrossIdx[0]}`);
+                // cellNumText.append("span")
+                //     .style("color", `${errTrkColorArr[0]}`)
+                //     .text(`${data[0].cellCountAcrossIdx[0]}`);
+                // cellNumText.append("text").text(", ");
+                // cellNumText.append("span")
+                //     .style("color", `${errTrkColorArr[1]}`)
+                //     .text(`${data[1].cellCountAcrossIdx[0]}`);
                 const textHeight = idxText.node().getBBox().height;
                 idxText.attr('y', textHeight);
                 cellNumText.attr('y', tooltipHeight - textHeight / 2);
