@@ -1,22 +1,19 @@
 const datasetNum = 12;
-const dtArr = [1, 2, 4, 8, 12, 16]
-const algArr = ["lap", "rnn"]
+const dtArr = [4, 1, 2, 8, 12, 16]
+const algArr = ["lap", "rnn", "cnn30", "cnn40"]
+const Overall = "Overall"
 const resolutionSideLength = 2040;
 const sVGSideLength = 300;
-const errTrkColor = "red";
+const errTrkColorArr = ["#eb7134", "#34eb5f", "#3499eb", "#c934eb"];
 const trkWidth = 10;
-const initView1 = function() {
+const initView1 = function(dt, alg) {
     localStorage.clear();
     let datasetArr;
-    var currDt = dtArr[0];
-    var currAlg = algArr[0];
-    const getDt = () => currDt;
-    const getAlg = () => currAlg;
+    const getDt = () => dt;
+    const getAlg = () => alg;
     const initToDt = (dt, alg) => {
         d3.select("#view1").selectAll("*").remove();
         datasetArr = [];
-        currDt = dt;
-        currAlg = alg;
         const processRawData = (datasetIdx, dt, rawData) => {
             let trkData = [];
             let trkDataSortedByTrkID = [];
@@ -24,9 +21,11 @@ const initView1 = function() {
             let idxToTreeIDArr = [];
             let idxToTrkIDPredArr = [];
             let cellCountAcrossIdx = [];
+            let errCountAcrossIdx = [];
             let trkIDToErrTrkIDPredMap = new Map();
             let trkIDToErrPathMap = new Map();
             let trkIDToErrImgIdxMap = new Map();
+            let numErrLink = 0;
             let numImg = +rawData[rawData.length - 1].FRAME * dt + 1;
 
             function getTreeID(d){
@@ -107,9 +106,20 @@ const initView1 = function() {
             for (let i = 0; i < numImg; i++) {
                 cellCountAcrossIdx.push(trkData.filter(d => d.imgIdx === i).length)
             }
+            for (let i = temp = 0; i < numImg; i++) {
+                for (const value of trkIDToErrImgIdxMap.values()) {
+                    for (const idx of value) {
+                        if (idx[1] === i) temp++;
+                    }
+                }
+                errCountAcrossIdx.push(temp)
+            }
+            numErrLink = errCountAcrossIdx[errCountAcrossIdx.length - 1];
+            
             return {
                 datasetIdx: datasetIdx,
                 numImg: numImg,
+                numErrLink: numErrLink,
                 trkData: trkData,
                 idxToTrkIDArr: idxToTrkIDArr,
                 idxToTreeIDArr: idxToTreeIDArr,
@@ -117,196 +127,377 @@ const initView1 = function() {
                 trkIDToErrTrkIDPredMap: trkIDToErrTrkIDPredMap,
                 trkIDToErrPathMap: trkIDToErrPathMap,
                 trkIDToErrImgIdxMap: trkIDToErrImgIdxMap,
-                cellCountAcrossIdx: cellCountAcrossIdx
+                cellCountAcrossIdx: cellCountAcrossIdx,
+                errCountAcrossIdx: errCountAcrossIdx
             }
         }
-        for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
-            d3.csv(`/DataVis/src/dataset_${datasetIdx}/res_${alg}_real_dt${currDt}.csv`).then(rawData => {
-                datasetArr.push(processRawData(datasetIdx, currDt, rawData));
-                if (datasetArr.length === datasetNum) {
-                    datasetArr.sort((a, b) => b.trkIDToErrTrkIDPredMap.size - a.trkIDToErrTrkIDPredMap.size);
-                    datasetArr.forEach(d => {
-                        const div = d3.selectAll("#view1").append("div")
-                            .attr("class", "box-content bg-gray-200 rounded-lg p-2");
-                        const fieldOfView = div.append("div")
-                            .attr("class", "flex justify-center");
-                        const errLinkWindow = fieldOfView.append("a")
-                            .attr("href", "view2.html")
-                            .attr("target", "_blank")
-                            .append("svg")
-                            .attr("id", `sVG${d.datasetIdx}`)
-                            .attr("width", sVGSideLength)
-                            .attr("height", sVGSideLength)
-                            .attr("style", "background-color:white")
-                            .attr("class", "shadow")
-                            .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
-                            .on("click", transferDataToView2)
-                            .append("g")
-                            .attr("id", `errorLink${d.datasetIdx}`);
-                        const ul = div.append("div")
-                            .attr("class", "box-content p-2 self-center")
-                            .append("ul")
-                            .attr("class", "list-dic");
+        let dataReadCount = 0;
+        if (alg === Overall) {
+            for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
+                let tempArr = [[], []]
+                for (let algIdx = 0; algIdx < algArr.length; algIdx++) {
+                        d3.csv(`/DataVis/src/dataset_${datasetIdx}/${algArr[algIdx]}_dt${dt}.csv`)
+                            .then(rawData => {
+                                tempArr[algIdx] = processRawData(datasetIdx, dt, rawData);
+                                dataReadCount++;
+                                // run when all data read
+                                if (dataReadCount === datasetNum * algArr.length) {
+                                    datasetArr.sort((a, b) => (b[0].numErrLink + b[1].numErrLink) - (a[0].numErrLink + a[1].numErrLink));
+                                    datasetArr.forEach(d => {
+                                        const div = d3.selectAll("#view1").append("div")
+                                            .attr("class", "box-content rounded-lg p-2 text-center text-lg relative");
+                                        const styleDivBackgroundColor = (() => {
+                                                let min = Number.MAX_SAFE_INTEGER;
+                                                let minIdxArr = [];
+                                                d.forEach((dd, ii) => {
+                                                    if (dd.numErrLink < min) {
+                                                        min = dd.numErrLink;
+                                                        minIdxArr = [ii];
+                                                    } else if (dd.numErrLink === min) minIdxArr.push(ii);
+                                                })
+                                                let bg = '';
+                                                if (minIdxArr.length > 1) {
+                                                    let deg = 90;
+                                                    let pct = 100 / minIdxArr.length;
+                                                    for (let i = 0; i < minIdxArr.length; i++) {
+                                                        if (minIdxArr.length - i === 2) {
+                                                            bg = bg.concat(`linear-gradient(${deg}deg, ${errTrkColorArr[minIdxArr[i]]} ${(i + 1) * pct}%, ` + 
+                                                                `${errTrkColorArr[minIdxArr[i + 1]]} ${(i + 1) * pct}%`);
+                                                            break;
+                                                        }
+                                                        bg = bg.concat(`linear-gradient(${deg}deg, ${errTrkColorArr[minIdxArr[i]]} ${(i + 1) * pct}%, ` +
+                                                            `rgba(0, 0, 0, 0) ${(i + 1) * pct}%), `);
+                                                    }
+                                                } else bg = `${errTrkColorArr[minIdxArr[0]]}`
+                                                div.style("background", bg);
+                                        })()
+                                        div.append("div")
+                                            .text(`${d[0].datasetIdx}`)
+                                            .attr("class", "absolute -inset-x-1/2 -top-2 bg-gray-100 rounded-full " +  
+                                                "h-12 w-12 flex items-center justify-center m-auto font-sans text-3xl")
+                                        div.append("br");
+                                        const graph1Group = div.append('g');
+                                        graph1Group.append("text").text("Error Link #")
+                                        const graphWidth = 250;
+                                        const graphHeight = 150;
+                                        const tooltipHeight = graphHeight * 0.2
+                                        const graphFooterHeight = graphHeight * 0.15;
+                                        const graph1 = graph1Group.append("svg")
+                                            .attr("width", graphWidth)
+                                            .attr("height", graphHeight)
+                                            .attr("class", "bg-white m-auto");
+                                        const containNoErrorLinkInArray = (arr) => {
+                                            for (const data of arr) {
+                                                if (data.numErrLink !== 0) return false;
+                                            }
+                                            return true;
+                                        }
+                                        if (containNoErrorLinkInArray(d)) {
+                                            graph1.append("text")
+                                                .text("No Error!")
+                                                .attr('x', "50%")
+                                                .attr('y', "50%")
+                                                .attr('dominant-baseline', "middle")
+                                                .attr('text-anchor', "middle")
+                                        } else {
+                                            let xScale = d3.scaleBand()
+                                                .domain(algArr)
+                                                .range([0, graphWidth])
+                                                .padding(0.1);
+                                            const yScale = d3.scaleLinear()
+                                                // 0.0000001 is for when input is 0, then the output should 0 as well
+                                                .domain([0, Math.max(d[0].numErrLink, d[1].numErrLink) + 0.0000001])
+                                                .range([0, graphHeight - tooltipHeight - graphFooterHeight])
+                                            d.forEach((dd, ii) => {
+                                                graph1.append("rect")
+                                                    .attr('x', xScale(algArr[ii]))
+                                                    .attr('y', graphHeight - yScale(dd.numErrLink) - graphFooterHeight)
+                                                    .attr("width", xScale.bandwidth())
+                                                    .attr("height", yScale(dd.numErrLink))
+                                                    .attr("fill", errTrkColorArr[ii])
+                                                let text = graph1.append("text")
+                                                    .text(`${dd.numErrLink}`);
+                                                text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
+                                                    .attr('y', graphHeight - yScale(dd.numErrLink) - graphFooterHeight - tooltipHeight / 6);
+                                                text = graph1.append("text")
+                                                    .text(algArr[ii]);
+                                                text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
+                                                .attr('y', graphHeight - text.node().getBBox().height / 3);
+                                            })
+                                            graph1Group.append("br");
 
-                        let numlinkErr = 0;
-                        for (const value of d.trkIDToErrTrkIDPredMap.values()) numlinkErr += value.length - 1;
-                        let numlink = d.trkData.length - d.idxToTrkIDArr.length;
-                        ul.append("li").text(`Field of view - #${d.datasetIdx}`)
-                        ul.append("li").text(`Linking errors - ${numlinkErr}`)
-                        ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`)
-                        ul.append("li").text(`Total links - ${numlink}`)
-                        ul.append("li").text(`Cell count (0-${d.numImg - 1}) 
-                            - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`)
-                            
-                        const graphHeight = 100;
-                        const graphWidth = 200;
-                        const spaceBtwnTextAndTooltipBoundary = 6;
-                        const tooltipDotRadius = 2;
-                        const disBtwnDotAndTooltip = 10;
-                        const tooltipHeight = graphHeight / 3.4 + spaceBtwnTextAndTooltipBoundary;
-                        const tooltipWidth = graphWidth / 1.8;
-                        const cellCountGraph = ul.append("svg")
-                            .attr("width", graphWidth)
-                            .attr("height", graphHeight + tooltipHeight)
-                            .attr("viewBox", `0 0 ${graphWidth} ${graphHeight}`);
-                        const xScale = d3.scaleLinear()
-                            .domain([0, d.numImg - 1])
-                            .range([0, graphWidth])
-                        const yScale = d3.scaleLinear()
-                            .domain([Math.min(...d.cellCountAcrossIdx), Math.max(...d.cellCountAcrossIdx)])
-                            .range([graphHeight, 0])
-                        const linearPath = [];
-                        d.cellCountAcrossIdx.forEach((d, i) => linearPath.push({
-                            idx : i,
-                            count : d
-                        }))
-                        const line = d3.line()
-                        .x(d => xScale(d.idx))
-                        .y(d => yScale(d.count))
-                        cellCountGraph.append("path")
-                            .attr("id", "cellCountLine")
-                            .attr("d", line(linearPath))
-                            .attr("fill", "none")
-                            .attr("stroke", "black")
-                            .attr("stroke-width", 1)
-
-                        const focus = cellCountGraph.append("g")
-                            .attr("class", "focus")
-                            .style("display", "none");
-                        const tooltipGroup = focus.append("g")
-                            .attr("class", "tooltipGroup")
-                        focus.append("circle")
-                            .attr("r", tooltipDotRadius);
-                        tooltipGroup.append("rect")
-                            .attr("class", "tooltip")
-                            .attr("width", tooltipWidth)
-                            .attr("height", tooltipHeight)
-                            .attr("x", disBtwnDotAndTooltip)
-                            .attr("y", 0)
-                            .attr("fill", "white")
-                        tooltipGroup.append("text")
-                            .attr("x", disBtwnDotAndTooltip)
-                            .attr("y", (tooltipHeight - spaceBtwnTextAndTooltipBoundary) / 2)
-                            .text("Index:");
-                        tooltipGroup.append("text")
-                            .attr("x", disBtwnDotAndTooltip)
-                            .attr("y", tooltipHeight - spaceBtwnTextAndTooltipBoundary / 2)
-                            .text("Cell count:");
-                        const tooltipDataXPos = tooltipWidth * 0.79;
-                        tooltipGroup.append("text")
-                            .attr("class", "tooltip-index")
-                            .attr("x", tooltipDataXPos)
-                            .attr("y", (tooltipHeight - spaceBtwnTextAndTooltipBoundary) / 2)
-                        tooltipGroup.append("text")
-                            .attr("class", "tooltip-count")
-                            .attr("x", tooltipDataXPos)
-                            .attr("y", tooltipHeight - spaceBtwnTextAndTooltipBoundary / 2)
-                        cellCountGraph.append("rect")
-                            .attr("class", `overlay-${d.datasetIdx}`)
-                            .attr("width", graphWidth)
-                            .attr("height", graphHeight + tooltipHeight)
-                            .attr("opacity", 0)
-                            .on("mouseover", () => focus.style("display", null))
-                            .on("mouseout", () => focus.style("display", "none"))
-                            .on("mousemove", showDetailWhenMousemove);
-                        function showDetailWhenMousemove() {
-                            let x = xScale.invert(d3.pointer(event, this)[0]);
-                            x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
-                            let transX = xScale(x);
-                            let transY = yScale(d.cellCountAcrossIdx[x]);
-                            tooltipGroup.select(".tooltip-index").text(`${x}`);
-                            tooltipGroup.select(".tooltip-count").text(`${d.cellCountAcrossIdx[x]}`);
-                            focus.attr("transform", `translate(${transX}, ${transY})`);
-                            if (transY + tooltipHeight > graphHeight) {
-                                if (transX + tooltipWidth + disBtwnDotAndTooltip > graphWidth) {
-                                    tooltipGroup.attr("transform", `translate(${graphWidth 
-                                        - (transX + tooltipWidth + disBtwnDotAndTooltip)}, ${-tooltipHeight})`);
-                                }else tooltipGroup.attr("transform", `translate(0, ${-tooltipHeight})`);
-                            }
-                            else if (transX + tooltipWidth + disBtwnDotAndTooltip > graphWidth) {
-                                tooltipGroup.attr("transform", `translate(${graphWidth 
-                                    - (transX + tooltipWidth + disBtwnDotAndTooltip)}, ${disBtwnDotAndTooltip})`);
-                            }
-                            else tooltipGroup.attr("transform", undefined);
-                        }
-                        window.addEventListener('resize', () => {
-                            const rate = this.outerWidth / this.screen.availWidth;
-                            d3.select(`#sVG${d.datasetIdx}`)
-                                .attr("width", sVGSideLength * rate)
-                                .attr("height", sVGSideLength * rate);
-                            cellCountGraph
-                                .attr("width", graphWidth * rate)
-                                .attr("height", graphHeight * rate);
+                                            const graph2Group = div.append('g');
+                                            graph2Group.append("text").text("Error Link # vs. Image Index")
+                                            const graph2 = graph2Group.append("svg")
+                                                .attr("width", graphWidth)
+                                                .attr("height", graphHeight)
+                                                .attr("class", "bg-white m-auto")
+                                                .on("mouseover", () => focus.style("display", null))
+                                                .on("mouseout", () => focus.style("display", "none"))
+                                                .on("mousemove", showDetailWhenMousemove);
+                                            xScale =  d3.scaleLinear()
+                                                .domain([0, d[0].numImg - 1])
+                                                .range([0, graphWidth]);
+                                            const maxTotalErrorLink = (d) => {
+                                                let max = 0;
+                                                for (const data of d) {
+                                                    let temp = data.numErrLink;
+                                                    if (temp > max) max = temp;
+                                                }
+                                                return max;
+                                            }
+                                            yScale.domain([0, maxTotalErrorLink(d)])
+                                                .range([graphHeight, tooltipHeight]);
+                                            const line = d3.line()
+                                                .x(d => xScale(d.x))
+                                                .y(d => yScale(d.y));
+                                            const graph2PathData = [];
+                                            d.forEach(dd => {
+                                                let temp = [];
+                                                dd.errCountAcrossIdx.forEach((ddd, iii) => {
+                                                    temp.push({
+                                                        x : iii,
+                                                        y : ddd
+                                                    })
+                                                })
+                                                graph2PathData.push(temp);
+                                            })
+                                            graph2.selectAll("path")
+                                                .data(graph2PathData)
+                                                .enter()
+                                                .append("path")
+                                                .attr("d", dd => line(dd))
+                                                .attr("fill", "none")
+                                                .attr("stroke", (dd, ii) => errTrkColorArr[ii])
+                                                .attr("stroke-width", 1);
+                                            const tooltipDotRadius = 2;
+                                            const focus = graph2.append('g')
+                                                .style("display", "none");
+                                            const tooltipDotArr = [];
+                                            d.forEach((dd, ii) => {
+                                                tooltipDotArr.push(
+                                                    focus.append("circle")
+                                                        .attr('r', tooltipDotRadius)
+                                                        .attr("fill", errTrkColorArr[ii])
+                                                );
+                                            })
+                                            let txt = focus.append("text")
+                                                .attr('y', tooltipHeight / 2);
+                                            function showDetailWhenMousemove() {
+                                                let x = xScale.invert(d3.pointer(event, this)[0]);
+                                                x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
+                                                txt.text(`idx: ${x},  #: `);
+                                                d.forEach((dd, ii) => {
+                                                    let y = dd.errCountAcrossIdx[x];
+                                                    tooltipDotArr[ii]
+                                                        .attr("cx", xScale(x))
+                                                        .attr("cy", yScale(y));
+                                                    txt.append("tspan")
+                                                        .text(`${y}`)
+                                                        .style("fill", errTrkColorArr[ii]);
+                                                    if (ii !== d.length - 1) {
+                                                        txt.append("tspan")
+                                                            .text(", ");
+                                                    }
+                                                })
+                                            }
+                                        }
+                                    })
+                               }
                         })
-
-                        const errLinkPathData = [];
-                        for (const value of d.trkIDToErrPathMap.values()) {
-                            for (const point of value) {
-                                errLinkPathData.push(point);
-                            }
-                        }
-                        if (errLinkPathData.length === 0) {
-                            const text = errLinkWindow.append("text")
-                                .attr("id", `noErrorText${d.datasetIdx}`)
-                                .attr("y", resolutionSideLength / 2)
-                                .attr("style", "font: 100px sans-serif")
-                                .text("Congratulation, this dataset has no error!");
-                            const tempWidth = document.getElementById(`noErrorText${d.datasetIdx}`).getBBox().width
-                            text.attr("x", (resolutionSideLength - tempWidth) / 2)
-                        }
-                        else {
-                            errLinkWindow.selectAll("circle")
-                                .data(errLinkPathData)
-                                .enter()
-                                .append("circle")
-                                .attr("cx", d => d[0][0])
-                                .attr("cy", d => d[0][1])
-                                .attr("r", trkWidth * 1.5)
-                                .attr("fill", errTrkColor);
-                
-                            errLinkWindow.selectAll("path")
-                                .data(errLinkPathData)
-                                .enter()
-                                .append("path")
-                                .attr("d", d => d3.line()(d))
-                                .attr("fill", "none")
-                                .attr("stroke", errTrkColor)
-                                .attr("stroke-width", trkWidth);
-                        }
-                        function transferDataToView2() {
-                            const offset = 3;
-                            localStorage.setItem("resolutionSideLength", resolutionSideLength);
-                            localStorage.setItem("datasetIdx", +this.getAttribute("id").slice(offset));
-                            localStorage.setItem("dt", currDt);
-                            localStorage.setItem("processRawData", processRawData.toString());
-                            localStorage.setItem("algArr", JSON.stringify(algArr));
-                        }
-                    })
                 }
-            })
+                datasetArr.push(tempArr);
+            }
+        } else {
+            for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
+                d3.csv(`/DataVis/src/dataset_${datasetIdx}/${alg}_dt${dt}.csv`).then(rawData => {
+                    datasetArr.push(processRawData(datasetIdx, dt, rawData));
+                    if (datasetArr.length === datasetNum) {
+                        datasetArr.sort((a, b) => b.trkIDToErrTrkIDPredMap.size - a.trkIDToErrTrkIDPredMap.size);
+                        datasetArr.forEach(d => {
+                            const div = d3.selectAll("#view1").append("div")
+                                .attr("class", "box-content bg-gray-200 rounded-lg p-2");
+                            const fieldOfView = div.append("div")
+                                .attr("class", "flex justify-center");
+                            const errLinkWindow = fieldOfView.append("a")
+                                .attr("href", "view2.html")
+                                .attr("target", "_blank")
+                                .append("svg")
+                                .attr("id", `sVG${d.datasetIdx}`)
+                                .attr("width", sVGSideLength)
+                                .attr("height", sVGSideLength)
+                                .attr("style", "background-color:white")
+                                .attr("class", "shadow")
+                                .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
+                                .on("click", transferDataToView2)
+                                .append("g")
+                                .attr("id", `errorLink${d.datasetIdx}`);
+                            const ul = div.append("div")
+                                .attr("class", "box-content p-2 self-center")
+                                .append("ul")
+                                .attr("class", "list-dic");
+    
+                            let numlinkErr = 0;
+                            for (const value of d.trkIDToErrTrkIDPredMap.values()) numlinkErr += value.length - 1;
+                            let numlink = d.trkData.length - d.idxToTrkIDArr.length;
+                            ul.append("li").text(`Field of view - #${d.datasetIdx}`)
+                            ul.append("li").text(`Linking errors - ${numlinkErr}`)
+                            ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`)
+                            ul.append("li").text(`Total links - ${numlink}`)
+                            ul.append("li").text(`Cell count (0-${d.numImg - 1}) 
+                                - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`)
+                                
+                            const graphHeight = 100;
+                            const graphWidth = 200;
+                            const spaceBtwnTextAndTooltipBoundary = 6;
+                            const tooltipDotRadius = 2;
+                            const disBtwnDotAndTooltip = 10;
+                            const tooltipHeight = graphHeight / 3.4 + spaceBtwnTextAndTooltipBoundary;
+                            const tooltipWidth = graphWidth / 1.8;
+                            const cellCountGraph = ul.append("svg")
+                                .attr("width", graphWidth)
+                                .attr("height", graphHeight + tooltipHeight)
+                                .attr("viewBox", `0 0 ${graphWidth} ${graphHeight}`);
+                            const xScale = d3.scaleLinear()
+                                .domain([0, d.numImg - 1])
+                                .range([0, graphWidth])
+                            const yScale = d3.scaleLinear()
+                                .domain([Math.min(...d.cellCountAcrossIdx), Math.max(...d.cellCountAcrossIdx)])
+                                .range([graphHeight, 0])
+                            const linearPath = [];
+                            d.cellCountAcrossIdx.forEach((d, i) => linearPath.push({
+                                idx : i,
+                                count : d
+                            }))
+                            const line = d3.line()
+                            .x(d => xScale(d.idx))
+                            .y(d => yScale(d.count))
+                            cellCountGraph.append("path")
+                                .attr("id", "cellCountLine")
+                                .attr("d", line(linearPath))
+                                .attr("fill", "none")
+                                .attr("stroke", "black")
+                                .attr("stroke-width", 1)
+    
+                            const focus = cellCountGraph.append("g")
+                                .attr("class", "focus")
+                                .style("display", "none");
+                            const tooltipGroup = focus.append("g")
+                                .attr("class", "tooltipGroup")
+                            focus.append("circle")
+                                .attr("r", tooltipDotRadius);
+                            tooltipGroup.append("rect")
+                                .attr("class", "tooltip")
+                                .attr("width", tooltipWidth)
+                                .attr("height", tooltipHeight)
+                                .attr("x", disBtwnDotAndTooltip)
+                                .attr("y", 0)
+                                .attr("fill", "white")
+                            tooltipGroup.append("text")
+                                .attr("x", disBtwnDotAndTooltip)
+                                .attr("y", (tooltipHeight - spaceBtwnTextAndTooltipBoundary) / 2)
+                                .text("Index:");
+                            tooltipGroup.append("text")
+                                .attr("x", disBtwnDotAndTooltip)
+                                .attr("y", tooltipHeight - spaceBtwnTextAndTooltipBoundary / 2)
+                                .text("Cell count:");
+                            const tooltipDataXPos = tooltipWidth * 0.79;
+                            tooltipGroup.append("text")
+                                .attr("class", "tooltip-index")
+                                .attr("x", tooltipDataXPos)
+                                .attr("y", (tooltipHeight - spaceBtwnTextAndTooltipBoundary) / 2)
+                            tooltipGroup.append("text")
+                                .attr("class", "tooltip-count")
+                                .attr("x", tooltipDataXPos)
+                                .attr("y", tooltipHeight - spaceBtwnTextAndTooltipBoundary / 2)
+                            cellCountGraph.append("rect")
+                                .attr("class", `overlay-${d.datasetIdx}`)
+                                .attr("width", graphWidth)
+                                .attr("height", graphHeight + tooltipHeight)
+                                .attr("opacity", 0)
+                                .on("mouseover", () => focus.style("display", null))
+                                .on("mouseout", () => focus.style("display", "none"))
+                                .on("mousemove", showDetailWhenMousemove);
+                            function showDetailWhenMousemove() {
+                                let x = xScale.invert(d3.pointer(event, this)[0]);
+                                x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
+                                let transX = xScale(x);
+                                let transY = yScale(d.cellCountAcrossIdx[x]);
+                                tooltipGroup.select(".tooltip-index").text(`${x}`);
+                                tooltipGroup.select(".tooltip-count").text(`${d.cellCountAcrossIdx[x]}`);
+                                focus.attr("transform", `translate(${transX}, ${transY})`);
+                                if (transY + tooltipHeight > graphHeight) {
+                                    if (transX + tooltipWidth + disBtwnDotAndTooltip > graphWidth) {
+                                        tooltipGroup.attr("transform", `translate(${graphWidth 
+                                            - (transX + tooltipWidth + disBtwnDotAndTooltip)}, ${-tooltipHeight})`);
+                                    }else tooltipGroup.attr("transform", `translate(0, ${-tooltipHeight})`);
+                                }
+                                else if (transX + tooltipWidth + disBtwnDotAndTooltip > graphWidth) {
+                                    tooltipGroup.attr("transform", `translate(${graphWidth 
+                                        - (transX + tooltipWidth + disBtwnDotAndTooltip)}, ${disBtwnDotAndTooltip})`);
+                                }
+                                else tooltipGroup.attr("transform", undefined);
+                            }
+                            window.addEventListener('resize', () => {
+                                const rate = this.outerWidth / this.screen.availWidth;
+                                d3.select(`#sVG${d.datasetIdx}`)
+                                    .attr("width", sVGSideLength * rate)
+                                    .attr("height", sVGSideLength * rate);
+                                cellCountGraph
+                                    .attr("width", graphWidth * rate)
+                                    .attr("height", graphHeight * rate);
+                            })
+    
+                            const errLinkPathData = [];
+                            for (const value of d.trkIDToErrPathMap.values()) {
+                                for (const point of value) {
+                                    errLinkPathData.push(point);
+                                }
+                            }
+                            if (errLinkPathData.length === 0) {
+                                const text = errLinkWindow.append("text")
+                                    .attr("id", `noErrorText${d.datasetIdx}`)
+                                    .attr("y", resolutionSideLength / 2)
+                                    .attr("style", "font: 100px sans-serif")
+                                    .text("Congratulation, this dataset has no error!");
+                                const tempWidth = document.getElementById(`noErrorText${d.datasetIdx}`).getBBox().width
+                                text.attr("x", (resolutionSideLength - tempWidth) / 2)
+                            }
+                            else {
+                                errLinkWindow.selectAll("circle")
+                                    .data(errLinkPathData)
+                                    .enter()
+                                    .append("circle")
+                                    .attr("cx", d => d[0][0])
+                                    .attr("cy", d => d[0][1])
+                                    .attr("r", trkWidth * 1.5)
+                                    .attr("fill", errTrkColorArr[algArr.indexOf(alg)]);
+                    
+                                errLinkWindow.selectAll("path")
+                                    .data(errLinkPathData)
+                                    .enter()
+                                    .append("path")
+                                    .attr("d", d => d3.line()(d))
+                                    .attr("fill", "none")
+                                    .attr("stroke", errTrkColorArr[algArr.indexOf(alg)])
+                                    .attr("stroke-width", trkWidth);
+                            }
+                            function transferDataToView2() {
+                                const offset = 3;
+                                localStorage.setItem("errTrkColorArr", JSON.stringify(errTrkColorArr));
+                                localStorage.setItem("resolutionSideLength", resolutionSideLength);
+                                localStorage.setItem("datasetIdx", +this.getAttribute("id").slice(offset));
+                                localStorage.setItem("dt", dt);
+                                localStorage.setItem("processRawData", processRawData.toString());
+                                localStorage.setItem("algArr", JSON.stringify(algArr));
+                            }
+                        })
+                    }
+                })
+            }
         }
     }
-    initToDt(currDt, currAlg)
+    initToDt(dt, alg)
 
     return {
         initToDt: initToDt,
@@ -314,4 +505,7 @@ const initView1 = function() {
         getAlg: getAlg,
         datasetArr: datasetArr
     }
-}()
+}
+var view1 = initView1(dtArr[0], Overall);
+
+

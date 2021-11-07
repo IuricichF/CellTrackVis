@@ -8,48 +8,33 @@
     <title>Cell Tracking Visualization</title>
 </head>
 <body class="min-h-screen">
-    <div class="box-content p-8">
+    <div class="box-content p-8 text-xl">
         <h3 class="text-3xl"> Cell Tracking Dashboard</h3>
         <div>
             <label for="dtOption">Available dt options:</label>
-            <g id="dtOption" name="dtOption"></g>
+            <select id="dtOption" name="dtOption" oninput="view1 = initView1(this.value, view1.getAlg())"></select>
             <script>
                 const dtOption = d3.select("#dtOption");
                 for (const dt of dtArr) {
-                    dtOption.append("input")
-                        .attr("type", "radio")
-                        .attr("id", `dt-${dt}`)
-                        .attr("name", "dtOption")
-                        .attr("value", dt)
-                        .attr("onclick", `initView1.initToDt(${dt}, initView1.getAlg())`);
-                    dtOption.append("label")
-                        .attr("for", `#dt-${dt}`)
-                        .text(dt.toString());
+                    dtOption.append("option")
+                        .text(`${dt}`);
                 }
-                document.getElementById(`dt-${dtArr[0]}`).checked="checked";
             </script>
         </div>
         <div>
             <label for="algorithmOption">Algorithm options:</label>
-            <g id="algorithmOption" name="algorithmOption"></g>
+            <select id="algorithmOption" name="algorithmOption" oninput="view1 = initView1(view1.getDt(), this.value)"></select>
             <script>
                 const algorithmOption = d3.select("#algorithmOption");
+                algorithmOption.append("option").text("Overall");
                 for (const alg of algArr) {
-                    algorithmOption.append("input")
-                        .attr("type", "radio")
-                        .attr("id", `alg-${alg}`)
-                        .attr("name", "algorithmOption")
-                        .attr("value", alg)
-                        .attr("onclick", `initView1.initToDt(initView1.getDt(), "${alg}")`);
-                        algorithmOption.append("label")
-                        .attr("for", `alg-${alg}`)
-                        .text(alg);
+                    algorithmOption.append("option")
+                        .text(`${alg}`);
                 }
-                document.getElementById(`alg-${algArr[0]}`).checked="checked";
             </script>
         </div>
         <div class="box-content p-4 ">
-            <div class="grid grid-cols-5 gap-4 place-content-start" id="view1"></div>
+            <div class="grid grid-cols-4 gap-3 place-content-start" id="view1"></div>
         </div>
     </div>
 </body>

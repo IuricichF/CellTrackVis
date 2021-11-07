@@ -1,6 +1,7 @@
 const sVGSideLength = 600;
 const trkWidth = 20;
-const errTrkColorArr = ["red", "blue", "black"];
+const errTrkColorArr = JSON.parse(localStorage.getItem("errTrkColorArr"));
+const sameTrkColor = "black";
 const resolutionSideLength = +localStorage.getItem("resolutionSideLength");
 const datasetIdx = +localStorage.getItem("datasetIdx");
 const dt = +localStorage.getItem("dt");
@@ -9,7 +10,7 @@ const algArr = JSON.parse(localStorage.getItem("algArr"));
 const initView2 = function() {
     let data = [];
     for (let i = 0; i < algArr.length; i++) {
-        d3.csv(`/DataVis/src/dataset_${datasetIdx}/res_${algArr[i]}_real_dt${dt}.csv`).then(rawData => {
+        d3.csv(`/DataVis/src/dataset_${datasetIdx}/${algArr[i]}_dt${dt}.csv`).then(rawData => {
             data.push(processRawData(datasetIdx, dt, rawData));
             const compareDiv = d3.select("#compareDiv");
             if (data.length === algArr.length) {
@@ -107,8 +108,8 @@ const initView2 = function() {
                     const y = circle.getAttribute('cy')
                     d3.select(`#svg-${algArr[1]}`).selectAll(`circle.${algArr[1]}-${idx}`).each(function(){
                         if (x === this.getAttribute('cx') && y === this.getAttribute('cy')) {
-                            circle.setAttribute("fill", errTrkColorArr[2]);
-                            this.setAttribute("fill", errTrkColorArr[2]);
+                            circle.setAttribute("fill", sameTrkColor);
+                            this.setAttribute("fill", sameTrkColor);
                         }
                     })
                 })   
@@ -118,8 +119,8 @@ const initView2 = function() {
                     const d = path.getAttribute('d')
                     d3.select(`#svg-${algArr[1]}`).selectAll(`path.${algArr[1]}-${idx}`).each(function(){
                         if (d === this.getAttribute('d')) {
-                            path.setAttribute("stroke", errTrkColorArr[2]);
-                            this.setAttribute("stroke", errTrkColorArr[2]);
+                            path.setAttribute("stroke", sameTrkColor);
+                            this.setAttribute("stroke", sameTrkColor);
                         }
                     })
                 })
@@ -185,13 +186,12 @@ const initView2 = function() {
                     .domain([Math.min(...data[0].cellCountAcrossIdx, ...data[1].cellCountAcrossIdx)
                         , Math.max(...data[0].cellCountAcrossIdx, ...data[1].cellCountAcrossIdx)])
                     .range([graphHeight, 0])
-                const pathData = [[], []];
-                data.forEach((d, i) => {
-                    d.cellCountAcrossIdx.forEach((dd, ii) => pathData[i].push({
-                        idx : ii,
-                        count : dd
-                    }))
-                })
+                const pathData = [[]];
+                data[0].cellCountAcrossIdx.forEach((d, i) => pathData[0].push({
+                            idx : i,
+                            count : d
+                        })
+                    )
                 const line = d3.line()
                 .x(d => xScale(d.idx))
                 .y(d => yScale(d.count))
@@ -201,7 +201,7 @@ const initView2 = function() {
                 .append("path")
                 .attr('d', d => line(d))
                 .attr("fill", "none")
-                .attr("stroke", (d, i) => errTrkColorArr[i])
+                .attr("stroke", sameTrkColor)
                 .attr("stroke-width", 1)
                 const tooltipGroup = cellCountGraph.append("g")
                     .attr("transform", `translate(${graphWidth}, ${(graphHeight - tooltipHeight) / 2})`)
@@ -212,14 +212,7 @@ const initView2 = function() {
                 const idxText = tooltipGroup.append("text")
                     .text("Index: 0");
                 const cellNumText = tooltipGroup.append("text")
-                    .text(`Cell count: `);
-                // cellNumText.append("span")
-                //     .style("color", `${errTrkColorArr[0]}`)
-                //     .text(`${data[0].cellCountAcrossIdx[0]}`);
-                // cellNumText.append("text").text(", ");
-                // cellNumText.append("span")
-                //     .style("color", `${errTrkColorArr[1]}`)
-                //     .text(`${data[1].cellCountAcrossIdx[0]}`);
+                    .text(`Cell count: ${data[0].cellCountAcrossIdx[0]}`);
                 const textHeight = idxText.node().getBBox().height;
                 idxText.attr('y', textHeight);
                 cellNumText.attr('y', tooltipHeight - textHeight / 2);
@@ -236,7 +229,7 @@ const initView2 = function() {
                     x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
                     tooltipIndicator.attr('x', xScale(x));
                     idxText.text(`Index: ${x}`);
-                    cellNumText.text(`Cell count: ${data[0].cellCountAcrossIdx[x]}, ${data[1].cellCountAcrossIdx[x]}`);
+                    cellNumText.text(`Cell count: ${data[0].cellCountAcrossIdx[x]}`);
                     tempWidth = Math.max(idxText.node().getBBox().width, cellNumText.node().getBBox().width);
                     if (tempWidth > tooltipWidth) tooltip.attr("width", tempWidth);
                 }
