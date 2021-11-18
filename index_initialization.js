@@ -4,7 +4,6 @@ const algArr = ["lap", "rnn", "cnn30", "cnn40"]
 const Overall = "Overall"
 const resolutionSideLength = 2040;
 const sVGSideLength = 300;
-const errTrkColorArr = ["#eb7134", "#34eb5f", "#3499eb", "#c934eb"];
 const trkWidth = 10;
 const initView1 = function(dt, alg) {
     localStorage.clear();
@@ -131,12 +130,15 @@ const initView1 = function(dt, alg) {
                 errCountAcrossIdx: errCountAcrossIdx
             }
         }
+        const colorScale = d3.scaleOrdinal()
+            .domain([0, algArr.length - 1])
+            .range(d3.schemeCategory10);
         let dataReadCount = 0;
         if (alg === Overall) {
             for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
                 let tempArr = [[], []]
                 for (let algIdx = 0; algIdx < algArr.length; algIdx++) {
-                        d3.csv(`/DataVis/src/dataset_${datasetIdx}/${algArr[algIdx]}_dt${dt}.csv`)
+                        d3.csv(`./src/dataset_${datasetIdx}/${algArr[algIdx]}_dt${dt}.csv`)
                             .then(rawData => {
                                 tempArr[algIdx] = processRawData(datasetIdx, dt, rawData);
                                 dataReadCount++;
@@ -161,14 +163,14 @@ const initView1 = function(dt, alg) {
                                                     let pct = 100 / minIdxArr.length;
                                                     for (let i = 0; i < minIdxArr.length; i++) {
                                                         if (minIdxArr.length - i === 2) {
-                                                            bg = bg.concat(`linear-gradient(${deg}deg, ${errTrkColorArr[minIdxArr[i]]} ${(i + 1) * pct}%, ` + 
-                                                                `${errTrkColorArr[minIdxArr[i + 1]]} ${(i + 1) * pct}%`);
+                                                            bg = bg.concat(`linear-gradient(${deg}deg, ${colorScale(minIdxArr[i])} ${(i + 1) * pct}%, ` + 
+                                                                `${colorScale(minIdxArr[i + 1])} ${(i + 1) * pct}%`);
                                                             break;
                                                         }
-                                                        bg = bg.concat(`linear-gradient(${deg}deg, ${errTrkColorArr[minIdxArr[i]]} ${(i + 1) * pct}%, ` +
+                                                        bg = bg.concat(`linear-gradient(${deg}deg, ${colorScale(minIdxArr[i])} ${(i + 1) * pct}%, ` +
                                                             `rgba(0, 0, 0, 0) ${(i + 1) * pct}%), `);
                                                     }
-                                                } else bg = `${errTrkColorArr[minIdxArr[0]]}`
+                                                } else bg = `${colorScale(minIdxArr[0])}`
                                                 div.style("background", bg);
                                         })()
                                         div.append("div")
@@ -214,7 +216,7 @@ const initView1 = function(dt, alg) {
                                                     .attr('y', graphHeight - yScale(dd.numErrLink) - graphFooterHeight)
                                                     .attr("width", xScale.bandwidth())
                                                     .attr("height", yScale(dd.numErrLink))
-                                                    .attr("fill", errTrkColorArr[ii])
+                                                    .attr("fill", colorScale(ii))
                                                 let text = graph1.append("text")
                                                     .text(`${dd.numErrLink}`);
                                                 text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
@@ -233,11 +235,15 @@ const initView1 = function(dt, alg) {
                                                 .attr("height", graphHeight)
                                                 .attr("class", "bg-white m-auto")
                                                 .on("mouseover", () => focus.style("display", null))
-                                                .on("mouseout", () => focus.style("display", "none"))
+                                                .on("mouseout", () => focus.style("display","none"))
                                                 .on("mousemove", showDetailWhenMousemove);
+                                            const graph2RightPadding = graphWidth * 0.025;
                                             xScale =  d3.scaleLinear()
-                                                .domain([0, d[0].numImg - 1])
-                                                .range([0, graphWidth]);
+                                                .domain([0, d[0].numImg - 1]);
+                                            const xAxis = graph2.append("g")
+                                                .call(d3.axisBottom(xScale));
+                                            const graph2BotPadding = xAxis.node().getBoundingClientRect().height;
+                                            xAxis.attr("transform", `translate(0, ${graphHeight - graph2BotPadding})`)
                                             const maxTotalErrorLink = (d) => {
                                                 let max = 0;
                                                 for (const data of d) {
@@ -246,8 +252,16 @@ const initView1 = function(dt, alg) {
                                                 }
                                                 return max;
                                             }
-                                            yScale.domain([0, maxTotalErrorLink(d)])
-                                                .range([graphHeight, tooltipHeight]);
+                                            yScale.domain([0, maxTotalErrorLink(d)]);
+                                            const yAxis = graph2.append("g")
+                                                .call(d3.axisLeft(yScale));
+                                            const graph2LeftPadding = yAxis.node().getBoundingClientRect().width;
+                                            yAxis.attr("transform", `translate(${graph2LeftPadding}, 0)`)
+                                            xScale.range([graph2LeftPadding, graphWidth - graph2RightPadding]);
+                                            xAxis.call(d3.axisBottom(xScale).ticks(5));
+                                            yScale.range([graphHeight - graph2BotPadding, tooltipHeight]);
+                                            yAxis.call(d3.axisLeft(yScale));
+
                                             const line = d3.line()
                                                 .x(d => xScale(d.x))
                                                 .y(d => yScale(d.y));
@@ -262,13 +276,13 @@ const initView1 = function(dt, alg) {
                                                 })
                                                 graph2PathData.push(temp);
                                             })
-                                            graph2.selectAll("path")
+                                            graph2.append('g').selectAll("path")
                                                 .data(graph2PathData)
                                                 .enter()
                                                 .append("path")
                                                 .attr("d", dd => line(dd))
                                                 .attr("fill", "none")
-                                                .attr("stroke", (dd, ii) => errTrkColorArr[ii])
+                                                .attr("stroke", (dd, ii) => colorScale(ii))
                                                 .attr("stroke-width", 1);
                                             const tooltipDotRadius = 2;
                                             const focus = graph2.append('g')
@@ -278,7 +292,7 @@ const initView1 = function(dt, alg) {
                                                 tooltipDotArr.push(
                                                     focus.append("circle")
                                                         .attr('r', tooltipDotRadius)
-                                                        .attr("fill", errTrkColorArr[ii])
+                                                        .attr("fill", colorScale(ii))
                                                 );
                                             })
                                             let txt = focus.append("text")
@@ -286,6 +300,8 @@ const initView1 = function(dt, alg) {
                                             function showDetailWhenMousemove() {
                                                 let x = xScale.invert(d3.pointer(event, this)[0]);
                                                 x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
+                                                if (x < 0) x = 0;
+                                                if (x > xScale.domain()[1]) x = xScale.domain()[1];
                                                 txt.text(`idx: ${x},  #: `);
                                                 d.forEach((dd, ii) => {
                                                     let y = dd.errCountAcrossIdx[x];
@@ -294,7 +310,7 @@ const initView1 = function(dt, alg) {
                                                         .attr("cy", yScale(y));
                                                     txt.append("tspan")
                                                         .text(`${y}`)
-                                                        .style("fill", errTrkColorArr[ii]);
+                                                        .style("fill", colorScale(ii));
                                                     if (ii !== d.length - 1) {
                                                         txt.append("tspan")
                                                             .text(", ");
@@ -310,7 +326,7 @@ const initView1 = function(dt, alg) {
             }
         } else {
             for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
-                d3.csv(`/DataVis/src/dataset_${datasetIdx}/${alg}_dt${dt}.csv`).then(rawData => {
+                d3.csv(`./src/dataset_${datasetIdx}/${alg}_dt${dt}.csv`).then(rawData => {
                     datasetArr.push(processRawData(datasetIdx, dt, rawData));
                     if (datasetArr.length === datasetNum) {
                         datasetArr.sort((a, b) => b.trkIDToErrTrkIDPredMap.size - a.trkIDToErrTrkIDPredMap.size);
@@ -471,7 +487,7 @@ const initView1 = function(dt, alg) {
                                     .attr("cx", d => d[0][0])
                                     .attr("cy", d => d[0][1])
                                     .attr("r", trkWidth * 1.5)
-                                    .attr("fill", errTrkColorArr[algArr.indexOf(alg)]);
+                                    .attr("fill", colorScale(algArr.indexOf(alg)));
                     
                                 errLinkWindow.selectAll("path")
                                     .data(errLinkPathData)
@@ -479,12 +495,11 @@ const initView1 = function(dt, alg) {
                                     .append("path")
                                     .attr("d", d => d3.line()(d))
                                     .attr("fill", "none")
-                                    .attr("stroke", errTrkColorArr[algArr.indexOf(alg)])
+                                    .attr("stroke", colorScale(algArr.indexOf(alg)))
                                     .attr("stroke-width", trkWidth);
                             }
                             function transferDataToView2() {
                                 const offset = 3;
-                                localStorage.setItem("errTrkColorArr", JSON.stringify(errTrkColorArr));
                                 localStorage.setItem("resolutionSideLength", resolutionSideLength);
                                 localStorage.setItem("datasetIdx", +this.getAttribute("id").slice(offset));
                                 localStorage.setItem("dt", dt);

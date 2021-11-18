@@ -1,16 +1,18 @@
 const sVGSideLength = 600;
 const trkWidth = 20;
-const errTrkColorArr = JSON.parse(localStorage.getItem("errTrkColorArr"));
 const sameTrkColor = "black";
 const resolutionSideLength = +localStorage.getItem("resolutionSideLength");
 const datasetIdx = +localStorage.getItem("datasetIdx");
 const dt = +localStorage.getItem("dt");
 const processRawData = eval('(' + localStorage.getItem("processRawData") + ')');
 const algArr = JSON.parse(localStorage.getItem("algArr"));
+const colorScale = d3.scaleOrdinal()
+    .domain([0, algArr.length - 1])
+    .range(d3.schemeCategory10);
 const initView2 = function() {
     let data = [];
     for (let i = 0; i < algArr.length; i++) {
-        d3.csv(`/DataVis/src/dataset_${datasetIdx}/${algArr[i]}_dt${dt}.csv`).then(rawData => {
+        d3.csv(`./src/dataset_${datasetIdx}/${algArr[i]}_dt${dt}.csv`).then(rawData => {
             data.push(processRawData(datasetIdx, dt, rawData));
             const compareDiv = d3.select("#compareDiv");
             if (data.length === algArr.length) {
@@ -87,7 +89,7 @@ const initView2 = function() {
                             .attr("cx", d => d[0][0])
                             .attr("cy", d => d[0][1])
                             .attr("r", trkWidth * 1.5)
-                            .attr("fill", errTrkColorArr[i]);
+                            .attr("fill", colorScale(i));
         
                         errLinkWindow.selectAll("path")
                             .data(errLinkPathData)
@@ -96,7 +98,7 @@ const initView2 = function() {
                             .attr("class", d => `${algArr[i]}-${d[0][2]}`)
                             .attr("d", d => d3.line()(d))
                             .attr("fill", "none")
-                            .attr("stroke", errTrkColorArr[i])
+                            .attr("stroke", colorScale(i))
                             .attr("stroke-width", trkWidth);
                     }
                 })
@@ -140,35 +142,35 @@ const initView2 = function() {
                 for (const value of data[1].trkIDToErrTrkIDPredMap.values()) errLinkNum2 += value.length - 1;
                 let item = compaList.append("li").text("Linking errors - ");
                 item.append("span")
-                    .style("color", `${errTrkColorArr[0]}`)
+                    .style("color", `${colorScale(0)}`)
                     .text(`${errLinkNum1}`);
                 item.append("text").text(", ")
                 item.append("span")
-                    .style("color", `${errTrkColorArr[1]}`)
+                    .style("color", `${colorScale(1)}`)
                     .text(`${errLinkNum2}`);
                 item = compaList.append("li").text("Linking errors (%) - ");
                 item.append("span")
-                    .style("color", `${errTrkColorArr[0]}`)
+                    .style("color", `${colorScale(0)}`)
                     .text(`${(errLinkNum1 / LinkNum1 * 100).toFixed(2)}%`);
                 item.append("text").text(", ")
                 item.append("span")
-                    .style("color", `${errTrkColorArr[1]}`)
+                    .style("color", `${colorScale(1)}`)
                     .text(`${(errLinkNum2 / LinkNum2 * 100).toFixed(2)}%`);
                 item = compaList.append("li").text("Total links - ");
                 item.append("span")
-                    .style("color", `${errTrkColorArr[0]}`)
+                    .style("color", `${colorScale(0)}`)
                     .text(`${LinkNum1}`);
                 item.append("text").text(", ")
                 item.append("span")
-                    .style("color", `${errTrkColorArr[1]}`)
+                    .style("color", `${colorScale(1)}`)
                     .text(`${LinkNum2}`);
                 item = compaList.append("li").text(`Total Cell count (0-${data[0].numImg - 1}) - `);
                 item.append("span")
-                    .style("color", `${errTrkColorArr[0]}`)
+                    .style("color", `${colorScale(0)}`)
                     .text(`${data[0].cellCountAcrossIdx[0]}-${data[0].cellCountAcrossIdx[data[0].cellCountAcrossIdx.length - 1]}`);
                 item.append("text").text(", ")
                 item.append("span")
-                    .style("color", `${errTrkColorArr[1]}`)
+                    .style("color", `${colorScale(1)}`)
                     .text(`${data[1].cellCountAcrossIdx[0]}-${data[1].cellCountAcrossIdx[data[1].cellCountAcrossIdx.length - 1]}`);
                 
                 const graphHeight = 100;
