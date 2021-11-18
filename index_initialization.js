@@ -237,7 +237,7 @@ const initView1 = function(dt, alg) {
                                                 .on("mouseover", () => focus.style("display", null))
                                                 .on("mouseout", () => focus.style("display","none"))
                                                 .on("mousemove", showDetailWhenMousemove);
-                                            const graph2RightPadding = graphWidth * 0.025;
+                                            const graph2RightPadding = graphWidth * 0.07;
                                             xScale =  d3.scaleLinear()
                                                 .domain([0, d[0].numImg - 1]);
                                             const xAxis = graph2.append("g")
