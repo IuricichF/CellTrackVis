@@ -179,7 +179,8 @@ const initView1 = function(dt, alg) {
                                                 "h-12 w-12 flex items-center justify-center m-auto font-sans text-3xl")
                                         div.append("br");
                                         const graph1Group = div.append('g');
-                                        graph1Group.append("text").text("Error Link #")
+                                        graph1Group.append("tspan").attr("class", "bg-white px-2")
+                                        .append("text").text("Error Link #");
                                         const graphWidth = 250;
                                         const graphHeight = 150;
                                         const tooltipHeight = graphHeight * 0.2
@@ -229,7 +230,8 @@ const initView1 = function(dt, alg) {
                                             graph1Group.append("br");
 
                                             const graph2Group = div.append('g');
-                                            graph2Group.append("text").text("Error Link # vs. Image Index")
+                                            graph2Group.append("tspan").attr("class", "bg-white px-2")
+                                            .append("text").text("Error Link # vs. Image Index")
                                             const graph2 = graph2Group.append("svg")
                                                 .attr("width", graphWidth)
                                                 .attr("height", graphHeight)
