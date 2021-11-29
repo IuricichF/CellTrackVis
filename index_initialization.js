@@ -510,6 +510,8 @@ const initView1 = function(dt, alg) {
                             function openDialog() {
                                 const currAlg = view1.getAlg();
                                 const select = d3.select("#algToCompareSelect");
+                                select.selectAll("option").remove();
+                                select.append("option");
                                 for (const alg of algArr) {
                                     if (alg !== currAlg) select.append("option").text(alg)
                                 }
