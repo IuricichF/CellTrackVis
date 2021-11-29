@@ -337,9 +337,7 @@ const initView1 = function(dt, alg) {
                                 .attr("class", "box-content bg-gray-200 rounded-lg p-2");
                             const fieldOfView = div.append("div")
                                 .attr("class", "flex justify-center");
-                            const errLinkWindow = fieldOfView.append("a")
-                                .attr("href", "view2.html")
-                                .attr("target", "_blank")
+                            const errLinkWindow = fieldOfView
                                 .append("svg")
                                 .attr("id", `sVG${d.datasetIdx}`)
                                 .attr("width", sVGSideLength)
@@ -347,7 +345,7 @@ const initView1 = function(dt, alg) {
                                 .attr("style", "background-color:white")
                                 .attr("class", "shadow")
                                 .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
-                                .on("click", transferDataToView2)
+                                .on("click", openDialog)
                                 .append("g")
                                 .attr("id", `errorLink${d.datasetIdx}`);
                             const ul = div.append("div")
@@ -500,13 +498,26 @@ const initView1 = function(dt, alg) {
                                     .attr("stroke", colorScale(algArr.indexOf(alg)))
                                     .attr("stroke-width", trkWidth);
                             }
-                            function transferDataToView2() {
+                            function transferDataToView2(element, alg1, alg2) {
                                 const offset = 3;
                                 localStorage.setItem("resolutionSideLength", resolutionSideLength);
-                                localStorage.setItem("datasetIdx", +this.getAttribute("id").slice(offset));
+                                localStorage.setItem("datasetIdx", +element.getAttribute("id").slice(offset));
                                 localStorage.setItem("dt", dt);
                                 localStorage.setItem("processRawData", processRawData.toString());
-                                localStorage.setItem("algArr", JSON.stringify(algArr));
+                                localStorage.setItem("algArr", JSON.stringify([alg1, alg2]));
+                                localStorage.setItem("algColorArr", JSON.stringify([colorScale(algArr.indexOf(alg1)), colorScale(algArr.indexOf(alg2))]));
+                            }
+                            function openDialog() {
+                                const currAlg = view1.getAlg();
+                                const select = d3.select("#algToCompareSelect");
+                                for (const alg of algArr) {
+                                    if (alg !== currAlg) select.append("option").text(alg)
+                                }
+                                d3.select("#algToCompareConfirm").on("click", () => {
+                                    transferDataToView2(this, view1.getAlg(), algToCompareSelect.value); 
+                                    window.open('./view2.html', '_blank');
+                                })
+                                algToCompare.showModal();
                             }
                         })
                     }

@@ -37,5 +37,19 @@
             <div class="grid grid-cols-4 gap-3 place-content-start" id="view1"></div>
         </div>
     </div>
+    <div>
+        <dialog id="algToCompare">
+            <div>
+                <label>Algorithm to compare with:</label>
+                <select id="algToCompareSelect">
+                    <option></option>
+                </select>
+            </div>
+            <div>
+                <input type="button" value="cancel" onclick="algToCompare.close()">
+                <input type="button" id="algToCompareConfirm" value="Confirm">
+            </div>
+        </dialog>
+    </div>
 </body>
 </html>

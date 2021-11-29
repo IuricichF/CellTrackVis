@@ -6,9 +6,7 @@ const datasetIdx = +localStorage.getItem("datasetIdx");
 const dt = +localStorage.getItem("dt");
 const processRawData = eval('(' + localStorage.getItem("processRawData") + ')');
 const algArr = JSON.parse(localStorage.getItem("algArr"));
-const colorScale = d3.scaleOrdinal()
-    .domain([0, algArr.length - 1])
-    .range(d3.schemeCategory10);
+const algColorArr = JSON.parse(localStorage.getItem("algColorArr"));
 const initView2 = function() {
     let data = [];
     for (let i = 0; i < algArr.length; i++) {
@@ -89,7 +87,7 @@ const initView2 = function() {
                             .attr("cx", d => d[0][0])
                             .attr("cy", d => d[0][1])
                             .attr("r", trkWidth * 1.5)
-                            .attr("fill", colorScale(i));
+                            .attr("fill", algColorArr[i]);
         
                         errLinkWindow.selectAll("path")
                             .data(errLinkPathData)
@@ -98,7 +96,7 @@ const initView2 = function() {
                             .attr("class", d => `${algArr[i]}-${d[0][2]}`)
                             .attr("d", d => d3.line()(d))
                             .attr("fill", "none")
-                            .attr("stroke", colorScale(i))
+                            .attr("stroke", algColorArr[i])
                             .attr("stroke-width", trkWidth);
                     }
                 })
@@ -142,35 +140,35 @@ const initView2 = function() {
                 for (const value of data[1].trkIDToErrTrkIDPredMap.values()) errLinkNum2 += value.length - 1;
                 let item = compaList.append("li").text("Linking errors - ");
                 item.append("span")
-                    .style("color", `${colorScale(0)}`)
+                    .style("color", `${algColorArr[0]}`)
                     .text(`${errLinkNum1}`);
                 item.append("text").text(", ")
                 item.append("span")
-                    .style("color", `${colorScale(1)}`)
+                    .style("color", `${algColorArr[1]}`)
                     .text(`${errLinkNum2}`);
                 item = compaList.append("li").text("Linking errors (%) - ");
                 item.append("span")
-                    .style("color", `${colorScale(0)}`)
+                    .style("color", `${algColorArr[0]}`)
                     .text(`${(errLinkNum1 / LinkNum1 * 100).toFixed(2)}%`);
                 item.append("text").text(", ")
                 item.append("span")
-                    .style("color", `${colorScale(1)}`)
+                    .style("color", `${algColorArr[1]}`)
                     .text(`${(errLinkNum2 / LinkNum2 * 100).toFixed(2)}%`);
                 item = compaList.append("li").text("Total links - ");
                 item.append("span")
-                    .style("color", `${colorScale(0)}`)
+                    .style("color", `${algColorArr[0]}`)
                     .text(`${LinkNum1}`);
                 item.append("text").text(", ")
                 item.append("span")
-                    .style("color", `${colorScale(1)}`)
+                    .style("color", `${algColorArr[1]}`)
                     .text(`${LinkNum2}`);
                 item = compaList.append("li").text(`Total Cell count (0-${data[0].numImg - 1}) - `);
                 item.append("span")
-                    .style("color", `${colorScale(0)}`)
+                    .style("color", `${algColorArr[0]}`)
                     .text(`${data[0].cellCountAcrossIdx[0]}-${data[0].cellCountAcrossIdx[data[0].cellCountAcrossIdx.length - 1]}`);
                 item.append("text").text(", ")
                 item.append("span")
-                    .style("color", `${colorScale(1)}`)
+                    .style("color", `${algColorArr[1]}`)
                     .text(`${data[1].cellCountAcrossIdx[0]}-${data[1].cellCountAcrossIdx[data[1].cellCountAcrossIdx.length - 1]}`);
                 
                 const graphHeight = 100;
