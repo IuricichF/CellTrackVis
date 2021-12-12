@@ -359,13 +359,14 @@ const initView1 = function(dt, alg) {
                             ul.append("li").text(`Linking errors - ${numlinkErr}`);
                             ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`);
                             ul.append("li").text(`Total links - ${numlink}`);
-                            ul.append("li").text(`Cell count (0-${d.numImg - 1}) ;
-                                - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`);
                             
                             const graphWidth = 250;
                             const graphHeight = 150;
                             const tooltipHeight = graphHeight * 0.2
-                            const cellCountGraph = ul.append("svg")
+                            const cellCountGraphGroup = ul.append("g");
+                            cellCountGraphGroup.append("text").attr("class", "px-2")
+                                .text("Cell Count vs. Image Index")
+                            const cellCountGraph = cellCountGraphGroup.append("svg")
                                                 .attr("width", graphWidth)
                                                 .attr("height", graphHeight)
                                                 .attr("class", "bg-white m-auto")
