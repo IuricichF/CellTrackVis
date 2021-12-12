@@ -97,7 +97,7 @@ const initTracking = function() {
     const imgSlider = d3.select("#imageSlider")
         .attr("max", numImg - 1);
     const imgSliderLabel = d3.select("#imageSliderLabel");
-    const sVGSideLength = 700;
+    const sVGSideLength = 575;
     // set up the svg that will contain image and tracks
     const imgSVG = d3.select("#trackingSVG")
         .attr("width", sVGSideLength)

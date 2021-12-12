@@ -1,7 +1,7 @@
 // constants and variables
 const TreeClassNamePrefix = "TreeID";
 const corrTreeBranchColor = "#6ef562";
-const lineageSideLength = 700;
+const lineageSideLength = 550;
 const defNumTreeInAPage = 20;
 const treeHeight = lineageSideLength / defNumTreeInAPage;
 const lineWidth = 3;
