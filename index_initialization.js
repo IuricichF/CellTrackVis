@@ -334,9 +334,8 @@ const initView1 = function(dt, alg) {
                         datasetArr.sort((a, b) => b.trkIDToErrTrkIDPredMap.size - a.trkIDToErrTrkIDPredMap.size);
                         datasetArr.forEach(d => {
                             const div = d3.selectAll("#view1").append("div")
-                                .attr("class", "box-content bg-gray-200 rounded-lg p-2");
+                                .attr("class", "box-content bg-gray-200 rounded-lg p-2 justify-center");
                             const fieldOfView = div.append("div")
-                                .attr("class", "flex justify-center");
                             const errLinkWindow = fieldOfView
                                 .append("svg")
                                 .attr("id", `sVG${d.datasetIdx}`)
@@ -349,37 +348,47 @@ const initView1 = function(dt, alg) {
                                 .append("g")
                                 .attr("id", `errorLink${d.datasetIdx}`);
                             const ul = div.append("div")
-                                .attr("class", "box-content p-2 self-center")
+                                .attr("class", "box-content p-2 self-center text-center")
                                 .append("ul")
                                 .attr("class", "list-dic");
     
                             let numlinkErr = 0;
                             for (const value of d.trkIDToErrTrkIDPredMap.values()) numlinkErr += value.length - 1;
                             let numlink = d.trkData.length - d.idxToTrkIDArr.length;
-                            ul.append("li").text(`Field of view - #${d.datasetIdx}`)
-                            ul.append("li").text(`Linking errors - ${numlinkErr}`)
-                            ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`)
-                            ul.append("li").text(`Total links - ${numlink}`)
-                            ul.append("li").text(`Cell count (0-${d.numImg - 1}) 
-                                - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`)
-                                
-                            const graphHeight = 100;
-                            const graphWidth = 200;
-                            const spaceBtwnTextAndTooltipBoundary = 6;
-                            const tooltipDotRadius = 2;
-                            const disBtwnDotAndTooltip = 10;
-                            const tooltipHeight = graphHeight / 3.4 + spaceBtwnTextAndTooltipBoundary;
-                            const tooltipWidth = graphWidth / 1.8;
+                            ul.append("li").text(`Field of view - #${d.datasetIdx}`);
+                            ul.append("li").text(`Linking errors - ${numlinkErr}`);
+                            ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`);
+                            ul.append("li").text(`Total links - ${numlink}`);
+                            ul.append("li").text(`Cell count (0-${d.numImg - 1}) ;
+                                - ${d.cellCountAcrossIdx[0]}-${d.cellCountAcrossIdx[d.cellCountAcrossIdx.length - 1]}`);
+                            
+                            const graphWidth = 250;
+                            const graphHeight = 150;
+                            const tooltipHeight = graphHeight * 0.2
                             const cellCountGraph = ul.append("svg")
-                                .attr("width", graphWidth)
-                                .attr("height", graphHeight + tooltipHeight)
-                                .attr("viewBox", `0 0 ${graphWidth} ${graphHeight}`);
+                                                .attr("width", graphWidth)
+                                                .attr("height", graphHeight)
+                                                .attr("class", "bg-white m-auto")
+                                                .on("mouseover", () => focus.style("display", null))
+                                                .on("mouseout", () => focus.style("display","none"))
+                                                .on("mousemove", showDetailWhenMousemove);
+                            const cellCountGraphRightPadding = graphWidth * 0.07;    
                             const xScale = d3.scaleLinear()
-                                .domain([0, d.numImg - 1])
-                                .range([0, graphWidth])
-                            const yScale = d3.scaleLinear()
-                                .domain([Math.min(...d.cellCountAcrossIdx), Math.max(...d.cellCountAcrossIdx)])
-                                .range([graphHeight, 0])
+                                .domain([0, d.numImg - 1]);
+                            const xAxis = cellCountGraph.append("g")
+                                .call(d3.axisBottom(xScale));
+                            const cellCountGraphBotPadding = xAxis.node().getBoundingClientRect().height;
+                            xAxis.attr("transform", `translate(0, ${graphHeight - cellCountGraphBotPadding})`)
+                            const yScale = d3.scaleLinear().domain([Math.min(...d.cellCountAcrossIdx), Math.max(...d.cellCountAcrossIdx)]);
+                            const yAxis = cellCountGraph.append("g")
+                                .call(d3.axisLeft(yScale));
+                            const cellCountGraphLeftPadding = yAxis.node().getBoundingClientRect().width;
+                            yAxis.attr("transform", `translate(${cellCountGraphLeftPadding}, 0)`)
+                            xScale.range([cellCountGraphLeftPadding, graphWidth - cellCountGraphRightPadding]);
+                            xAxis.call(d3.axisBottom(xScale).ticks(5));
+                            yScale.range([graphHeight - cellCountGraphBotPadding, tooltipHeight]);
+                            yAxis.call(d3.axisLeft(yScale));
+                                                        
                             const linearPath = [];
                             d.cellCountAcrossIdx.forEach((d, i) => linearPath.push({
                                 idx : i,
@@ -394,66 +403,28 @@ const initView1 = function(dt, alg) {
                                 .attr("fill", "none")
                                 .attr("stroke", "black")
                                 .attr("stroke-width", 1)
-    
-                            const focus = cellCountGraph.append("g")
-                                .attr("class", "focus")
+                            const tooltipDotRadius = 2;
+                            const focus = cellCountGraph.append('g')
                                 .style("display", "none");
-                            const tooltipGroup = focus.append("g")
-                                .attr("class", "tooltipGroup")
-                            focus.append("circle")
-                                .attr("r", tooltipDotRadius);
-                            tooltipGroup.append("rect")
-                                .attr("class", "tooltip")
-                                .attr("width", tooltipWidth)
-                                .attr("height", tooltipHeight)
-                                .attr("x", disBtwnDotAndTooltip)
-                                .attr("y", 0)
-                                .attr("fill", "white")
-                            tooltipGroup.append("text")
-                                .attr("x", disBtwnDotAndTooltip)
-                                .attr("y", (tooltipHeight - spaceBtwnTextAndTooltipBoundary) / 2)
-                                .text("Index:");
-                            tooltipGroup.append("text")
-                                .attr("x", disBtwnDotAndTooltip)
-                                .attr("y", tooltipHeight - spaceBtwnTextAndTooltipBoundary / 2)
-                                .text("Cell count:");
-                            const tooltipDataXPos = tooltipWidth * 0.79;
-                            tooltipGroup.append("text")
-                                .attr("class", "tooltip-index")
-                                .attr("x", tooltipDataXPos)
-                                .attr("y", (tooltipHeight - spaceBtwnTextAndTooltipBoundary) / 2)
-                            tooltipGroup.append("text")
-                                .attr("class", "tooltip-count")
-                                .attr("x", tooltipDataXPos)
-                                .attr("y", tooltipHeight - spaceBtwnTextAndTooltipBoundary / 2)
-                            cellCountGraph.append("rect")
-                                .attr("class", `overlay-${d.datasetIdx}`)
-                                .attr("width", graphWidth)
-                                .attr("height", graphHeight + tooltipHeight)
-                                .attr("opacity", 0)
-                                .on("mouseover", () => focus.style("display", null))
-                                .on("mouseout", () => focus.style("display", "none"))
-                                .on("mousemove", showDetailWhenMousemove);
+                            const tooltipDot = focus.append("circle")
+                                .attr('r', tooltipDotRadius);
+                            let txt = focus.append("text")
+                                .attr('y', tooltipHeight / 2);
                             function showDetailWhenMousemove() {
                                 let x = xScale.invert(d3.pointer(event, this)[0]);
                                 x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
-                                let transX = xScale(x);
-                                let transY = yScale(d.cellCountAcrossIdx[x]);
-                                tooltipGroup.select(".tooltip-index").text(`${x}`);
-                                tooltipGroup.select(".tooltip-count").text(`${d.cellCountAcrossIdx[x]}`);
-                                focus.attr("transform", `translate(${transX}, ${transY})`);
-                                if (transY + tooltipHeight > graphHeight) {
-                                    if (transX + tooltipWidth + disBtwnDotAndTooltip > graphWidth) {
-                                        tooltipGroup.attr("transform", `translate(${graphWidth 
-                                            - (transX + tooltipWidth + disBtwnDotAndTooltip)}, ${-tooltipHeight})`);
-                                    }else tooltipGroup.attr("transform", `translate(0, ${-tooltipHeight})`);
-                                }
-                                else if (transX + tooltipWidth + disBtwnDotAndTooltip > graphWidth) {
-                                    tooltipGroup.attr("transform", `translate(${graphWidth 
-                                        - (transX + tooltipWidth + disBtwnDotAndTooltip)}, ${disBtwnDotAndTooltip})`);
-                                }
-                                else tooltipGroup.attr("transform", undefined);
+                                if (x < 0) x = 0;
+                                if (x > xScale.domain()[1]) x = xScale.domain()[1];
+                                txt.text(`idx: ${x},  #: `);
+
+                                let y = d.cellCountAcrossIdx[x];
+                                tooltipDot
+                                    .attr("cx", xScale(x))
+                                    .attr("cy", yScale(y));
+                                txt.append("tspan")
+                                    .text(`${y}`)
                             }
+                            
                             window.addEventListener('resize', () => {
                                 const rate = this.outerWidth / this.screen.availWidth;
                                 d3.select(`#sVG${d.datasetIdx}`)
