@@ -3,7 +3,6 @@ const dtArr = [4, 1, 2, 8, 12, 16]
 const algArr = ["lap", "rnn", "cnn30", "cnn40"]
 const Overall = "Overall"
 const resolutionSideLength = 2040;
-const sVGSideLength = 300;
 const trkWidth = 10;
 const initView1 = function(dt, alg) {
     localStorage.clear();
@@ -336,19 +335,19 @@ const initView1 = function(dt, alg) {
                             const div = d3.selectAll("#view1").append("div")
                                 .attr("class", "box-content bg-gray-200 rounded-lg p-2 justify-center");
                             const fieldOfView = div.append("div")
+                            const sVGSideLength = 270;
                             const errLinkWindow = fieldOfView
                                 .append("svg")
                                 .attr("id", `sVG${d.datasetIdx}`)
                                 .attr("width", sVGSideLength)
                                 .attr("height", sVGSideLength)
-                                .attr("style", "background-color:white")
-                                .attr("class", "shadow")
+                                .attr("class", "shadow bg-white m-auto")
                                 .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
                                 .on("click", openDialog)
                                 .append("g")
                                 .attr("id", `errorLink${d.datasetIdx}`);
                             const ul = div.append("div")
-                                .attr("class", "box-content p-2 self-center text-center")
+                                .attr("class", "box-content p-2 text-center")
                                 .append("ul")
                                 .attr("class", "list-dic");
     
@@ -364,8 +363,7 @@ const initView1 = function(dt, alg) {
                             const graphHeight = 150;
                             const tooltipHeight = graphHeight * 0.2
                             const cellCountGraphGroup = ul.append("g");
-                            cellCountGraphGroup.append("text").attr("class", "px-2")
-                                .text("Cell Count vs. Image Index")
+                            cellCountGraphGroup.append("text").text("Cell Count vs. Image Index")
                             const cellCountGraph = cellCountGraphGroup.append("svg")
                                                 .attr("width", graphWidth)
                                                 .attr("height", graphHeight)
