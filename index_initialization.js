@@ -361,7 +361,7 @@ const initView1 = function(dt, alg) {
                             
                             const graphWidth = 250;
                             const graphHeight = 150;
-                            const tooltipHeight = graphHeight * 0.2
+                            const tooltipHeight = graphHeight * 0.2;
                             const cellCountGraphGroup = ul.append("g");
                             cellCountGraphGroup.append("text").text("Cell Count vs. Image Index")
                             const cellCountGraph = cellCountGraphGroup.append("svg")
@@ -394,8 +394,8 @@ const initView1 = function(dt, alg) {
                                 count : d
                             }))
                             const line = d3.line()
-                            .x(d => xScale(d.idx))
-                            .y(d => yScale(d.count))
+                                .x(d => xScale(d.idx))
+                                .y(d => yScale(d.count))
                             cellCountGraph.append("path")
                                 .attr("id", "cellCountLine")
                                 .attr("d", line(linearPath))

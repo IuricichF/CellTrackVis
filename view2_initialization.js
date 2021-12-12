@@ -1,4 +1,4 @@
-const sVGSideLength = 600;
+const sVGSideLength = 450;
 const trkWidth = 20;
 const sameTrkColor = "black";
 const resolutionSideLength = +localStorage.getItem("resolutionSideLength");
@@ -162,76 +162,70 @@ const initView2 = function() {
                 item.append("span")
                     .style("color", `${algColorArr[1]}`)
                     .text(`${LinkNum2}`);
-                item = compaList.append("li").text(`Total Cell count (0-${data[0].numImg - 1}) - `);
-                item.append("span")
-                    .style("color", `${algColorArr[0]}`)
-                    .text(`${data[0].cellCountAcrossIdx[0]}-${data[0].cellCountAcrossIdx[data[0].cellCountAcrossIdx.length - 1]}`);
-                item.append("text").text(", ")
-                item.append("span")
-                    .style("color", `${algColorArr[1]}`)
-                    .text(`${data[1].cellCountAcrossIdx[0]}-${data[1].cellCountAcrossIdx[data[1].cellCountAcrossIdx.length - 1]}`);
-                
-                const graphHeight = 100;
-                const graphWidth = 200;
-                const tooltipHeight = graphHeight / 2;
-                const tooltipWidth = graphWidth / 1.4;
-                const cellCountGraph = compaList.append("li").append("svg")
-                    .attr("width", graphWidth + tooltipWidth)
-                    .attr("height", graphHeight)
-                    .attr("viewBox", `0 0 ${graphWidth + tooltipWidth} ${graphHeight}`);
+                                     
+                const graphWidth = 250;
+                const graphHeight = 150;
+                const tooltipHeight = graphHeight * 0.2;
+                const cellCountGraphGroup = compaList.append("li").append("g");
+                cellCountGraphGroup.append("text").text("Cell Count vs. Image Index")
+                const cellCountGraph = cellCountGraphGroup.append("svg")
+                                    .attr("width", graphWidth)
+                                    .attr("height", graphHeight)
+                                    .attr("class", "bg-white m-auto")
+                                    .on("mouseover", () => focus.style("display", null))
+                                    .on("mouseout", () => focus.style("display","none"))
+                                    .on("mousemove", showDetailWhenMousemove);
+                const cellCountGraphRightPadding = graphWidth * 0.07;    
                 const xScale = d3.scaleLinear()
-                    .domain([0, data[0].numImg - 1])
-                    .range([0, graphWidth])
-                const yScale = d3.scaleLinear()
-                    .domain([Math.min(...data[0].cellCountAcrossIdx, ...data[1].cellCountAcrossIdx)
-                        , Math.max(...data[0].cellCountAcrossIdx, ...data[1].cellCountAcrossIdx)])
-                    .range([graphHeight, 0])
-                const pathData = [[]];
-                data[0].cellCountAcrossIdx.forEach((d, i) => pathData[0].push({
-                            idx : i,
-                            count : d
-                        })
-                    )
+                    .domain([0, data[0].numImg - 1]);
+                const xAxis = cellCountGraph.append("g")
+                    .call(d3.axisBottom(xScale));
+                const cellCountGraphBotPadding = xAxis.node().getBoundingClientRect().height;
+                xAxis.attr("transform", `translate(0, ${graphHeight - cellCountGraphBotPadding})`)
+                const yScale = d3.scaleLinear().domain([Math.min(...data[0].cellCountAcrossIdx), Math.max(...data[0].cellCountAcrossIdx)]);
+                const yAxis = cellCountGraph.append("g")
+                    .call(d3.axisLeft(yScale));
+                const cellCountGraphLeftPadding = yAxis.node().getBoundingClientRect().width;
+                yAxis.attr("transform", `translate(${cellCountGraphLeftPadding}, 0)`)
+                xScale.range([cellCountGraphLeftPadding, graphWidth - cellCountGraphRightPadding]);
+                xAxis.call(d3.axisBottom(xScale).ticks(5));
+                yScale.range([graphHeight - cellCountGraphBotPadding, tooltipHeight]);
+                yAxis.call(d3.axisLeft(yScale));
+                                            
+                const linearPath = [];
+                data[0].cellCountAcrossIdx.forEach((d, i) => linearPath.push({
+                    idx : i,
+                    count : d
+                }))
                 const line = d3.line()
-                .x(d => xScale(d.idx))
-                .y(d => yScale(d.count))
-                cellCountGraph.selectAll("path")
-                .data(pathData)
-                .enter()
-                .append("path")
-                .attr('d', d => line(d))
-                .attr("fill", "none")
-                .attr("stroke", sameTrkColor)
-                .attr("stroke-width", 1)
-                const tooltipGroup = cellCountGraph.append("g")
-                    .attr("transform", `translate(${graphWidth}, ${(graphHeight - tooltipHeight) / 2})`)
-                const tooltip = tooltipGroup.append("rect")
-                    .attr("height", tooltipHeight)
-                    .attr("width", tooltipWidth)
-                    .attr("fill", "white");
-                const idxText = tooltipGroup.append("text")
-                    .text("Index: 0");
-                const cellNumText = tooltipGroup.append("text")
-                    .text(`Cell count: ${data[0].cellCountAcrossIdx[0]}`);
-                const textHeight = idxText.node().getBBox().height;
-                idxText.attr('y', textHeight);
-                cellNumText.attr('y', tooltipHeight - textHeight / 2);
-                cellCountGraph.append("rect")
-                .attr("width", graphWidth)
-                .attr("height", graphHeight)
-                .attr("opacity", 0)
-                .on("mousemove", showDetailWhenMousemove);
-                const tooltipIndicator = cellCountGraph.append("rect")
-                    .attr("width", 1)
-                    .attr("height", graphHeight)
+                    .x(d => xScale(d.idx))
+                    .y(d => yScale(d.count))
+                cellCountGraph.append("path")
+                    .attr("id", "cellCountLine")
+                    .attr("d", line(linearPath))
+                    .attr("fill", "none")
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 1)
+                const tooltipDotRadius = 2;
+                const focus = cellCountGraph.append('g')
+                    .style("display", "none");
+                const tooltipDot = focus.append("circle")
+                    .attr('r', tooltipDotRadius);
+                let txt = focus.append("text")
+                    .attr('y', tooltipHeight / 2);
                 function showDetailWhenMousemove() {
                     let x = xScale.invert(d3.pointer(event, this)[0]);
                     x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
-                    tooltipIndicator.attr('x', xScale(x));
-                    idxText.text(`Index: ${x}`);
-                    cellNumText.text(`Cell count: ${data[0].cellCountAcrossIdx[x]}`);
-                    tempWidth = Math.max(idxText.node().getBBox().width, cellNumText.node().getBBox().width);
-                    if (tempWidth > tooltipWidth) tooltip.attr("width", tempWidth);
+                    if (x < 0) x = 0;
+                    if (x > xScale.domain()[1]) x = xScale.domain()[1];
+                    txt.text(`idx: ${x},  #: `);
+
+                    let y = data[0].cellCountAcrossIdx[x];
+                    tooltipDot
+                        .attr("cx", xScale(x))
+                        .attr("cy", yScale(y));
+                    txt.append("tspan")
+                        .text(`${y}`)
                 }
 
                 compareDiv.node().appendChild(compareDiv.node().childNodes[2]);
