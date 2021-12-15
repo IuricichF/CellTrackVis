@@ -127,7 +127,7 @@ const initView2 = function() {
                 // comparison panel
                 const compaList = compareDiv.append("div")
                     .attr("id", "comparisonPanel")
-                    .attr("class", "flex justify-center")
+                    .attr("class", "flex justify-center text-center")
                     .append("ul")
                     .attr("id", "comparisonList")
                     .attr("class", "box-content p-2 self-center");
@@ -138,7 +138,17 @@ const initView2 = function() {
                 let errLinkNum2 = 0;
                 let LinkNum2 = data[1].trkData.length - data[1].idxToTrkIDArr.length;
                 for (const value of data[1].trkIDToErrTrkIDPredMap.values()) errLinkNum2 += value.length - 1;
-                let item = compaList.append("li").text("Linking errors - ");
+                
+                let item = compaList.append("li").attr("class", "text-4xl");
+                item.append("span")
+                    .style("color", `${algColorArr[0]}`)
+                    .text(`${algArr[0]}`);
+                item.append("text").text(" vs. ")
+                item.append("span")
+                    .style("color", `${algColorArr[1]}`)
+                    .text(`${algArr[1]}`);
+                item = compaList.append("li").text(`Total links - ${LinkNum1}`);
+                item = compaList.append("li").text("Linking errors - ");
                 item.append("span")
                     .style("color", `${algColorArr[0]}`)
                     .text(`${errLinkNum1}`);
@@ -154,14 +164,6 @@ const initView2 = function() {
                 item.append("span")
                     .style("color", `${algColorArr[1]}`)
                     .text(`${(errLinkNum2 / LinkNum2 * 100).toFixed(2)}%`);
-                item = compaList.append("li").text("Total links - ");
-                item.append("span")
-                    .style("color", `${algColorArr[0]}`)
-                    .text(`${LinkNum1}`);
-                item.append("text").text(", ")
-                item.append("span")
-                    .style("color", `${algColorArr[1]}`)
-                    .text(`${LinkNum2}`);
                                      
                 const graphWidth = 250;
                 const graphHeight = 150;
