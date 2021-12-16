@@ -130,7 +130,7 @@ const initView1 = function(dt, alg) {
             }
         }
         const colorScale = d3.scaleOrdinal()
-            .domain([0, algArr.length - 1])
+            .domain([...Array(algArr.length).keys()])
             .range(d3.schemeCategory10);
         let dataReadCount = 0;
         if (alg === Overall) {
