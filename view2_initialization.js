@@ -103,6 +103,7 @@ const initView2 = function() {
                     }
                 })
                 // color shared error links from two algorithms
+                let sameErrNUm = 0;
                 d3.select(`#svg-${algArr[0]}`).selectAll("circle").each(function(){
                     const circle = this;
                     const idx = circle.getAttribute("class").split('-')[1];
@@ -112,6 +113,7 @@ const initView2 = function() {
                         if (x === this.getAttribute('cx') && y === this.getAttribute('cy')) {
                             circle.setAttribute("fill", sameTrkColor);
                             this.setAttribute("fill", sameTrkColor);
+                            sameErrNUm++;
                         }
                     })
                 })   
@@ -126,6 +128,7 @@ const initView2 = function() {
                         }
                     })
                 })
+
                 // comparison panel
                 const compaList = compareDiv.append("div")
                     .attr("id", "comparisonPanel")
@@ -158,6 +161,13 @@ const initView2 = function() {
                 item.append("span")
                     .style("color", `${algColorArr[1]}`)
                     .text(`${errLinkNum2}`);
+                item = compaList.append("li").text(`Shared linking errors - ${sameErrNUm}`);
+                item.append("span")
+                    .style("color", `${algColorArr[0]}`)
+                    .text(` (${(sameErrNUm / errLinkNum1 * 100).toFixed(2)}%) `);
+                item.append("span")
+                    .style("color", `${algColorArr[1]}`)
+                    .text(`(${(sameErrNUm / errLinkNum2 * 100).toFixed(2)}%)`);
                 item = compaList.append("li").text("Linking errors (%) - ");
                 item.append("span")
                     .style("color", `${algColorArr[0]}`)
@@ -166,7 +176,8 @@ const initView2 = function() {
                 item.append("span")
                     .style("color", `${algColorArr[1]}`)
                     .text(`${(errLinkNum2 / LinkNum2 * 100).toFixed(2)}%`);
-                                     
+                item.append("text").text(`, ${(sameErrNUm / LinkNum2 * 100).toFixed(2)}%`)
+
                 const graphWidth = 250;
                 const graphHeight = 150;
                 const tooltipHeight = graphHeight * 0.2;
