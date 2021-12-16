@@ -9,11 +9,13 @@ const algArr = JSON.parse(localStorage.getItem("algArr"));
 const algColorArr = JSON.parse(localStorage.getItem("algColorArr"));
 const initView2 = function() {
     let data = [];
+    let dataReadCount = 0;
     for (let i = 0; i < algArr.length; i++) {
         d3.csv(`./src/dataset_${datasetIdx}/${algArr[i]}_dt${dt}.csv`).then(rawData => {
-            data.push(processRawData(datasetIdx, dt, rawData));
-            const compareDiv = d3.select("#compareDiv");
-            if (data.length === algArr.length) {
+            data[i] = processRawData(datasetIdx, dt, rawData);
+            dataReadCount++;
+            if (dataReadCount === algArr.length) {
+                const compareDiv = d3.select("#compareDiv");
                 data.forEach((d, i) => {
                     const errLinkWindow = compareDiv
                     .append("div")

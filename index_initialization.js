@@ -135,7 +135,7 @@ const initView1 = function(dt, alg) {
         let dataReadCount = 0;
         if (alg === Overall) {
             for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
-                let tempArr = [[], []]
+                let tempArr = []
                 for (let algIdx = 0; algIdx < algArr.length; algIdx++) {
                         d3.csv(`./src/dataset_${datasetIdx}/${algArr[algIdx]}_dt${dt}.csv`)
                             .then(rawData => {
