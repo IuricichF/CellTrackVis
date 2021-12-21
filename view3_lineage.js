@@ -1,7 +1,7 @@
 // constants and variables
 const TreeClassNamePrefix = "TreeID";
 const corrTreeBranchColor = "#6ef562";
-const lineageSideLength = 700;
+const lineageSideLength = 575;
 const defNumTreeInAPage = 20;
 const treeHeight = lineageSideLength / defNumTreeInAPage;
 const lineWidth = 3;
@@ -93,7 +93,8 @@ const initLineage = function() {
     
     function selectTreeBranchWhenClickedOn() {
         const trkID = +this.getAttribute("id").slice(errLinkClassNamePrefix.length);
-        if (DoesThisTrackContainsError(trkID)) {
+        console.log("haha")
+        if (DoesThisTrackContainsError(trkID) && !initTracking.isAnErrorLinkSelected()) {
             if (isThisTreeBranchClickedOn(trkID)) {
                 unsetClickedOnTreeBranch();
                 unsetSelectedTreeBranch();

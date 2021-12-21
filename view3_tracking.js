@@ -3,8 +3,8 @@ const defOpacity = 0.2;
 const highlightedOpacity = 1;
 const trkWidth = 10;
 const errLinkCircleRadius = trkWidth * 1.5;
-const correctTrkColorBe4Err = /*"green"*/"#6ef562";
-const correctTrkColorAfterErr = /*"#6ef562"*/"blue";
+const correctTrkColorBe4Err = "#6ef562";
+const correctTrkColorAfterErr = "blue";
 const errLinkClassNamePrefix = "TrackID";
 const errLinkColor = "red";
 
@@ -32,7 +32,7 @@ const initTracking = function() {
     const getSelectedErrorLink = () => classNameOfSelectedErrorLink;
     const updateTracking = (newIdx) => {
         imgIdx = newIdx;
-        img.attr("href", `/DataVis/src/dataset_${datasetIdx}/${imgIdx}.jpg`);
+        img.attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`);
         // set slider
         imageSlider.value = newIdx;
         imgSliderLabel.text(`Image Index: ${imgIdx}`);
@@ -97,9 +97,7 @@ const initTracking = function() {
     const imgSlider = d3.select("#imageSlider")
         .attr("max", numImg - 1);
     const imgSliderLabel = d3.select("#imageSliderLabel");
-    // image info
-    const resolutionSideLength = 2040;
-    const sVGSideLength = 700;
+    const sVGSideLength = 575;
     // set up the svg that will contain image and tracks
     const imgSVG = d3.select("#trackingSVG")
         .attr("width", sVGSideLength)
@@ -107,7 +105,7 @@ const initTracking = function() {
         .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`);
     // image
     const img = d3.select("#image")
-        .attr("href", `/DataVis/src/dataset_${datasetIdx}/${imgIdx}.jpg`)
+        .attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`)
         .attr("width", resolutionSideLength)
         .attr("height", resolutionSideLength);
     // error track 

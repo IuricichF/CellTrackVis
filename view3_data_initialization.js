@@ -1,5 +1,6 @@
-const datasetIdx = localStorage.getItem("datasetIdx");
-const numImg = localStorage.getItem("numImg");
+const datasetIdx = +localStorage.getItem("datasetIdx");
+const numImg = +localStorage.getItem("numImg");
+const resolutionSideLength = +localStorage.getItem("resolutionSideLength");
 const trkIDToErrPathMap = new Map(JSON.parse(localStorage.getItem("trkIDToErrPathMap")));
 const trkIDToErrImgIdxMap = new Map(JSON.parse(localStorage.getItem("trkIDToErrImgIdxMap")));
 const idxToTrkIDWithErrArr = JSON.parse(localStorage.getItem("idxToTrkIDWithErrArr"));
