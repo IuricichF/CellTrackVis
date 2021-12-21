@@ -131,7 +131,7 @@ const initView1 = function(dt, alg) {
         }
         const colorScale = d3.scaleOrdinal()
             .domain([...Array(algArr.length).keys()])
-            .range(d3.schemeCategory10);
+            .range(d3.schemeSet2);
         let dataReadCount = 0;
         if (alg === Overall) {
             for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
@@ -146,8 +146,14 @@ const initView1 = function(dt, alg) {
                                     datasetArr.sort((a, b) => (b[0].numErrLink + b[1].numErrLink) - (a[0].numErrLink + a[1].numErrLink));
                                     datasetArr.forEach(d => {
                                         const div = d3.selectAll("#view1").append("div")
-                                            .attr("class", "box-content rounded-lg p-2 text-center text-lg relative");
-                                        const styleDivBackgroundColor = (() => {
+                                            .attr("class", "box-content rounded-lg p-4 text-base relative bg-gray-900");
+                                        const fovid = div.append("div")
+                                            .text(`${d[0].datasetIdx}`)
+                                            .attr("id", "name-fov")
+                                            .attr("class", "absolute -inset-x-1/2 -top-2 bg-gray-100 rounded-full " +  
+                                                "h-12 w-12 flex items-center justify-center m-auto font-sans text-3xl")
+                                        
+                                            const styleDivBackgroundColor = (() => {
                                                 let min = Number.MAX_SAFE_INTEGER;
                                                 let minIdxArr = [];
                                                 d.forEach((dd, ii) => {
@@ -170,16 +176,16 @@ const initView1 = function(dt, alg) {
                                                             `rgba(0, 0, 0, 0) ${(i + 1) * pct}%), `);
                                                     }
                                                 } else bg = `${colorScale(minIdxArr[0])}`
-                                                div.style("background", bg);
+
+                                                console.log(bg)
+                                                fovid.style("background", bg);
                                         })()
-                                        div.append("div")
-                                            .text(`${d[0].datasetIdx}`)
-                                            .attr("class", "absolute -inset-x-1/2 -top-2 bg-gray-100 rounded-full " +  
-                                                "h-12 w-12 flex items-center justify-center m-auto font-sans text-3xl")
-                                        div.append("br");
-                                        const graph1Group = div.append('g');
-                                        graph1Group.append("tspan").attr("class", "bg-white px-2")
-                                        .append("text").text("Error Link #");
+
+                                        div.append("div").attr("class", "pt-10")
+                                        const barchartdiv = div.append("div").attr("class", "border-t pb-6");
+                                        const graph1Group = barchartdiv.append('g');
+                                        graph1Group.append("tspan").attr("class", "text-gray-400")
+                                        .append("text").text("Total linking errors per algorithm");
                                         const graphWidth = 250;
                                         const graphHeight = 150;
                                         const tooltipHeight = graphHeight * 0.2
@@ -187,7 +193,7 @@ const initView1 = function(dt, alg) {
                                         const graph1 = graph1Group.append("svg")
                                             .attr("width", graphWidth)
                                             .attr("height", graphHeight)
-                                            .attr("class", "bg-white m-auto");
+                                            .attr("class", "bg-gray-900 m-auto")
                                         const containNoErrorLinkInArray = (arr) => {
                                             for (const data of arr) {
                                                 if (data.numErrLink !== 0) return false;
@@ -201,48 +207,63 @@ const initView1 = function(dt, alg) {
                                                 .attr('y', "50%")
                                                 .attr('dominant-baseline', "middle")
                                                 .attr('text-anchor', "middle")
+                                                .attr("fill", "#9ca3af");
                                         } else {
                                             let xScale = d3.scaleBand()
                                                 .domain(algArr)
                                                 .range([0, graphWidth])
                                                 .padding(0.1);
-                                            const yScale = d3.scaleLinear()
+                                            const yScaleBars = d3.scaleLinear()
                                                 // 0.0000001 is for when input is 0, then the output should 0 as well
                                                 .domain([0, Math.max(d[0].numErrLink, d[1].numErrLink) + 0.0000001])
                                                 .range([0, graphHeight - tooltipHeight - graphFooterHeight])
+                                            
+                                            const myBars = []
+                                            const myText = []
                                             d.forEach((dd, ii) => {
-                                                graph1.append("rect")
-                                                    .attr('x', xScale(algArr[ii]))
-                                                    .attr('y', graphHeight - yScale(dd.numErrLink) - graphFooterHeight)
-                                                    .attr("width", xScale.bandwidth())
-                                                    .attr("height", yScale(dd.numErrLink))
-                                                    .attr("fill", colorScale(ii))
-                                                let text = graph1.append("text")
-                                                    .text(`${dd.numErrLink}`);
-                                                text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
-                                                    .attr('y', graphHeight - yScale(dd.numErrLink) - graphFooterHeight - tooltipHeight / 6);
-                                                text = graph1.append("text")
-                                                    .text(algArr[ii]);
-                                                text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
-                                                .attr('y', graphHeight - text.node().getBBox().height / 3);
-                                            })
-                                            graph1Group.append("br");
+                                                console.log(ii, dd)
+                                                myBars.push(
+                                                    graph1.append("rect")
+                                                        .attr('x', xScale(algArr[ii]))
+                                                        .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight)
+                                                        .attr("width", xScale.bandwidth())
+                                                        .attr("height", yScaleBars(dd.numErrLink))
+                                                        .attr("class","bars-"+dd.datasetIdx)
+                                                        .attr("fill", colorScale(ii))
+                                                )
+                                                    let text = graph1.append("text")
+                                                        .text(`${dd.numErrLink}`);
+                                                    text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
+                                                        .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight - tooltipHeight / 6)
+                                                        .attr("fill", "#9ca3af");
+                                                    myText.push(text)
+                                                    
+                                                    text = graph1.append("text")
+                                                        .text(algArr[ii]);
+                                                    text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
+                                                        .attr('y', graphHeight - text.node().getBBox().height / 3)
+                                                        .attr("fill", "#9ca3af");
 
-                                            const graph2Group = div.append('g');
-                                            graph2Group.append("tspan").attr("class", "bg-white px-2")
-                                            .append("text").text("Error Link # vs. Image Index")
+                                                    
+                                            })
+
+                                            const linechartdiv = div.append("div").attr("class", "border-t");
+                                            const graph2Group = linechartdiv.append('g');
+                                            graph2Group.append("tspan").attr("class", "px-2 text-gray-400")
+                                            .append("text").text("Linking errors over time")
                                             const graph2 = graph2Group.append("svg")
                                                 .attr("width", graphWidth)
                                                 .attr("height", graphHeight)
-                                                .attr("class", "bg-white m-auto")
-                                                .on("mouseover", () => focus.style("display", null))
-                                                .on("mouseout", () => focus.style("display","none"))
+                                                .attr("class", "bg-gray-900 m-auto")
+                                                .on("mouseover", showDetailWhenMousemove)
+                                                .on("mouseout",  resetCard)
                                                 .on("mousemove", showDetailWhenMousemove);
                                             const graph2RightPadding = graphWidth * 0.07;
                                             xScale =  d3.scaleLinear()
                                                 .domain([0, d[0].numImg - 1]);
                                             const xAxis = graph2.append("g")
-                                                .call(d3.axisBottom(xScale));
+                                                .call(d3.axisBottom(xScale))
+                                                .attr("stroke", "#9ca3af");
                                             const graph2BotPadding = xAxis.node().getBoundingClientRect().height;
                                             xAxis.attr("transform", `translate(0, ${graphHeight - graph2BotPadding})`)
                                             const maxTotalErrorLink = (d) => {
@@ -253,15 +274,17 @@ const initView1 = function(dt, alg) {
                                                 }
                                                 return max;
                                             }
-                                            yScale.domain([0, maxTotalErrorLink(d)]);
+                                            const yScale = d3.scaleLinear()
+                                                    .domain([0, maxTotalErrorLink(d)]);
                                             const yAxis = graph2.append("g")
-                                                .call(d3.axisLeft(yScale));
+                                                .call(d3.axisLeft(yScale))
+                                                .attr("stroke", "#9ca3af");;
                                             const graph2LeftPadding = yAxis.node().getBoundingClientRect().width;
                                             yAxis.attr("transform", `translate(${graph2LeftPadding}, 0)`)
                                             xScale.range([graph2LeftPadding, graphWidth - graph2RightPadding]);
-                                            xAxis.call(d3.axisBottom(xScale).ticks(5));
+                                            xAxis.call(d3.axisBottom(xScale).ticks(5)).attr("stroke", "#9ca3af");;
                                             yScale.range([graphHeight - graph2BotPadding, tooltipHeight]);
-                                            yAxis.call(d3.axisLeft(yScale));
+                                            yAxis.call(d3.axisLeft(yScale).ticks(8)).attr("stroke", "#9ca3af");;
 
                                             const line = d3.line()
                                                 .x(d => xScale(d.x))
@@ -287,36 +310,58 @@ const initView1 = function(dt, alg) {
                                                 .attr("stroke-width", 1);
                                             const tooltipDotRadius = 2;
                                             const focus = graph2.append('g')
-                                                .style("display", "none");
                                             const tooltipDotArr = [];
                                             d.forEach((dd, ii) => {
                                                 tooltipDotArr.push(
                                                     focus.append("circle")
                                                         .attr('r', tooltipDotRadius)
+                                                        .attr("opacity", 0)
                                                         .attr("fill", colorScale(ii))
                                                 );
                                             })
                                             let txt = focus.append("text")
-                                                .attr('y', tooltipHeight / 2);
+                                                .attr('y', tooltipHeight / 2)
+                                                .attr("fill", "#9ca3af");
+
+                                            function resetCard() {
+                                                d.forEach((dd, ii) => {
+                                                    tooltipDotArr[ii]
+                                                        .attr("opacity", 0)
+
+                                                    myBars[ii]
+                                                        .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight)
+                                                        .attr("height", yScaleBars(dd.numErrLink))
+
+                                                    myText[ii]
+                                                        .text(`${dd.numErrLink}`)
+                                                        .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight - tooltipHeight / 6)
+                                                })
+                                            }
+
                                             function showDetailWhenMousemove() {
                                                 let x = xScale.invert(d3.pointer(event, this)[0]);
                                                 x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
                                                 if (x < 0) x = 0;
                                                 if (x > xScale.domain()[1]) x = xScale.domain()[1];
-                                                txt.text(`idx: ${x},  #: `);
+                                                
                                                 d.forEach((dd, ii) => {
                                                     let y = dd.errCountAcrossIdx[x];
                                                     tooltipDotArr[ii]
+                                                        .attr("opacity", 1)
                                                         .attr("cx", xScale(x))
                                                         .attr("cy", yScale(y));
-                                                    txt.append("tspan")
+
+                                                    myBars[ii]
+                                                        .attr('y', graphHeight - yScaleBars(y) - graphFooterHeight)
+                                                        .attr("height", yScaleBars(y))
+
+                                                    myText[ii]
                                                         .text(`${y}`)
-                                                        .style("fill", colorScale(ii));
-                                                    if (ii !== d.length - 1) {
-                                                        txt.append("tspan")
-                                                            .text(", ");
-                                                    }
+                                                        .attr('y', graphHeight - yScaleBars(y) - graphFooterHeight - tooltipHeight / 6)
+
                                                 })
+
+
                                             }
                                         }
                                     })
