@@ -235,14 +235,14 @@ const initView1 = function(dt, alg) {
                                                         .text(`${dd.numErrLink}`);
                                                     text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
                                                         .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight - tooltipHeight / 6)
-                                                        .attr("fill", "#9ca3af");
+                                                        .attr("fill", colorScale(ii));
                                                     myText.push(text)
                                                     
                                                     text = graph1.append("text")
                                                         .text(algArr[ii]);
                                                     text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
                                                         .attr('y', graphHeight - text.node().getBBox().height / 3)
-                                                        .attr("fill", "#9ca3af");
+                                                        .attr("fill", colorScale(ii));
 
                                                     
                                             })
