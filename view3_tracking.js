@@ -1,7 +1,6 @@
 // constants and variables
 const defOpacity = 0.2;
 const highlightedOpacity = 1;
-const trkWidth = 10;
 const errLinkCircleRadius = trkWidth * 1.5;
 const correctTrkColorBe4Err = "#6ef562";
 const correctTrkColorAfterErr = "blue";

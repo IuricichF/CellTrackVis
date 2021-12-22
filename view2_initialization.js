@@ -36,7 +36,6 @@ function compareView() {
                         .attr("id", `errorLink-${algArr[i]}`);
                         
                         function transferDataToView3() {
-                            const index = algArr.indexOf(this.getAttribute("id").split('-')[1]);
                             localStorage.setItem("datasetIdx", data[index].datasetIdx);
                             localStorage.setItem("numImg", data[index].numImg);
                             localStorage.setItem("numTree", data[index].idxToTreeIDArr.length);

@@ -10,7 +10,7 @@
     <title>Cell Tracking Visualization</title>
 </head>
 <body class="min-h-screen">
-
+    <div id="single_fov"></div>
     <div class="flex min-h-screen">
        
         
@@ -59,7 +59,6 @@
 
                     </span>
 					<script>
-						let view1 = initView1(dtArr[0], algArr[0]);
 						const dtOption = d3.select("#dtOption");
 						for (const dt of dtArr) {
 							dtOption.append("option")
@@ -73,7 +72,20 @@
                 <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
 
                     <span class="ml-2 text-sm font-medium text-left">Study FOV - 
-                        <select id="fovOption" name="fovOption" oninput="view1 = initView1(view1.getDt(), this.value)"></select>
+                        <select id="fovOption" name="fovOption" oninput="
+                            if (compareTo.value === 'None') {
+                                d3.select('#compareDiv').text(' ');
+                                view1 = initView1(view1.getDt(), this.value);
+                            } else {
+                                view1.transferDataToView2(fovOption.value, algorithmOption.value, compareTo.value); 
+                                d3.select('#view1').text('');
+                                d3.select('#compareDiv').text(' ');
+                                compareView();
+                            }
+                            updateCompareToOptions();
+                        
+                        
+                        "></select>
                     </span>
                     <script>
                         const fovSelect = d3.select("#fovOption");
@@ -107,6 +119,7 @@
                             algorithmSelect.append("option")
                                 .text(`${alg}`);
                         }
+                        let view1 = initView1(dtArr[0], algArr[0]);
                     </script>
 				</a>
 
@@ -184,9 +197,50 @@
     </div>
 
 
+    <div class="box-content p-8 space-y-2">
+        <h3 class="text-3xl"> Field of View Visualizer</h3>
+
+        <div class="flex items-stretch gap-4 place-content-start bg-gray-200 rounded-lg p-2">
+            <div id="imageSliderContainer">
+                <label for="#imageSlider" id="imageSliderLabel">Image Index: 0</label><br>
+                <input type="range" min="0" max="288" value="0" class="slider" id="imageSlider" oninput="initTracking.updateTracking(+this.value)">
+            </div>
+
+            <div>
+                <button type="button" class="w-24 ring-0 bg-blue-400 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50"
+                        onclick="initTracking.reset();">
+                    Reset
+                </button>
+                <button type="button" class="w-24 ring-0 bg-blue-400 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50"
+                        onclick="initTracking.showAll();">
+                    Show all
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 justify-items-center gap-4 p-4 border-2 border-gray-200 rounded-lg">
+            <div>
+                <svg id="trackingSVG">
+                    <image id="image"></image>
+                    <g id="errorLink"></g>
+                    <g id="trueTrack"></g>
+                </svg>
+            </div>
+            <div style="width: 575; height: 700px; overflow-y: scroll">
+                <svg id="lineageSVG">
+                    <g id="lineage">
+
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+    </div>
     </div>
 
-
+    <script src="view3_data_initialization.js"></script>
+    <script src="view3_tracking.js"></script>
+    <script src="view3_lineage.js"></script>
 
 
 
