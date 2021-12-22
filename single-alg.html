@@ -50,7 +50,25 @@
 
                     <span class="ml-2 text-sm font-bold">Options</span>
                 </a>
-                
+
+                <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
+
+                    <span class="ml-2 text-sm font-medium text-left">Frame rate - 
+                        <select id="dtOption" name="dtOption" oninput="view1 = initView1(this.value, view1.getAlg())"></select>
+
+                    </span>
+					<script>
+						let view1 = initView1(dtArr[0], algArr[0]);
+						const dtOption = d3.select("#dtOption");
+						for (const dt of dtArr) {
+							dtOption.append("option")
+								.text(`${dt}`);
+						}
+					</script>
+
+
+				</a>
+
 				<a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
 
                     <span class="ml-2 text-sm font-medium text-left">Algorithm - 

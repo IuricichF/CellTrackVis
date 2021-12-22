@@ -5,10 +5,10 @@ const Overall = "Overall"
 const resolutionSideLength = 2040;
 const trkWidth = 10;
 const initView1 = function(dt, alg) {
-    localStorage.clear();
     let datasetArr;
     const getDt = () => dt;
     const getAlg = () => alg;
+    let transferDataToView2;
     const initToDt = (dt, alg) => {
         d3.select("#view1").selectAll("*").remove();
         datasetArr = [];
@@ -128,6 +128,14 @@ const initView1 = function(dt, alg) {
                 cellCountAcrossIdx: cellCountAcrossIdx,
                 errCountAcrossIdx: errCountAcrossIdx
             }
+        }
+        transferDataToView2 = (datasetIdx, alg1, alg2) => {
+            localStorage.setItem("resolutionSideLength", resolutionSideLength);
+            localStorage.setItem("datasetIdx", datasetIdx);
+            localStorage.setItem("dt", dt);
+            localStorage.setItem("processRawData", processRawData.toString());
+            localStorage.setItem("algArr", JSON.stringify([alg1, alg2]));
+            localStorage.setItem("algColorArr", JSON.stringify([colorScale(algArr.indexOf(alg1)), colorScale(algArr.indexOf(alg2))]));
         }
         const colorScale = d3.scaleOrdinal()
             .domain([...Array(algArr.length).keys()])
@@ -513,15 +521,6 @@ const initView1 = function(dt, alg) {
                                     .attr("stroke", colorScale(algArr.indexOf(alg)))
                                     .attr("stroke-width", trkWidth);
                             }
-                            function transferDataToView2(element, alg1, alg2) {
-                                const offset = 3;
-                                localStorage.setItem("resolutionSideLength", resolutionSideLength);
-                                localStorage.setItem("datasetIdx", +element.getAttribute("id").slice(offset));
-                                localStorage.setItem("dt", dt);
-                                localStorage.setItem("processRawData", processRawData.toString());
-                                localStorage.setItem("algArr", JSON.stringify([alg1, alg2]));
-                                localStorage.setItem("algColorArr", JSON.stringify([colorScale(algArr.indexOf(alg1)), colorScale(algArr.indexOf(alg2))]));
-                            }
                             function openDialog() {
                                 const currAlg = view1.getAlg();
                                 const select = d3.select("#algToCompareSelect");
@@ -548,9 +547,7 @@ const initView1 = function(dt, alg) {
         initToDt: initToDt,
         getDt: getDt,
         getAlg: getAlg,
+        transferDataToView2: transferDataToView2,
         datasetArr: datasetArr
     }
 }
-var view1 = initView1(dtArr[0], Overall);
-
-
