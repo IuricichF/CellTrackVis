@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="tailwind.css">
     <meta charset="utf-8">
     <script src="index_initialization.js"></script>
+    <script src="view2_initialization.js"></script>
     <title>Cell Tracking Visualization</title>
 </head>
 <body class="min-h-screen">
@@ -53,15 +54,32 @@
 
                 <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
 
-                    <span class="ml-2 text-sm font-medium text-left">Study FOV - 
-                        <select id="fovOption" name="fovOption" oninput="view1 = initView1(view1.getDt(), this.value)"></select>
+                    <span class="ml-2 text-sm font-medium text-left">Frame rate - 
+                        <select id="dtOption" name="dtOption" oninput="view1 = initView1(this.value, view1.getAlg())"></select>
 
                     </span>
+					<script>
+						let view1 = initView1(dtArr[0], algArr[0]);
+						const dtOption = d3.select("#dtOption");
+						for (const dt of dtArr) {
+							dtOption.append("option")
+								.text(`${dt}`);
+						}
+					</script>
+
+
+				</a>
+
+                <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
+
+                    <span class="ml-2 text-sm font-medium text-left">Study FOV - 
+                        <select id="fovOption" name="fovOption" oninput="view1 = initView1(view1.getDt(), this.value)"></select>
+                    </span>
                     <script>
-                        const fovOption = d3.select("#fovOption");
-                        for (const alg of algArr) {
-                            fovOption.append("option")
-                                .text(`${alg}`);
+                        const fovSelect = d3.select("#fovOption");
+                        for (let i = 1; i <= datasetNum; i++) {
+                            fovSelect.append("option")
+                                .text(`${i}`);
                         }
                     </script>
 				</a>
@@ -69,13 +87,24 @@
 				<a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
 
                     <span class="ml-2 text-sm font-medium text-left">with algorithm - 
-                        <select id="algorithmOption" name="algorithmOption" oninput="view1 = initView1(view1.getDt(), this.value)"></select>
-
+                        <select id="algorithmOption" name="algorithmOption" oninput="
+                            if (compareTo.value === 'None') {
+                                d3.select('#compareDiv').text(' ');
+                                view1 = initView1(view1.getDt(), this.value);
+                            } else {
+                                view1.transferDataToView2(fovOption.value, algorithmOption.value, compareTo.value); 
+                                d3.select('#view1').text('');
+                                d3.select('#compareDiv').text(' ');
+                                compareView();
+                            }
+                            updateCompareToOptions();
+                        ">
+                        </select>
                     </span>
                     <script>
-                        const algorithmOption = d3.select("#algorithmOption");
+                        const algorithmSelect = d3.select("#algorithmOption");
                         for (const alg of algArr) {
-                            algorithmOption.append("option")
+                            algorithmSelect.append("option")
                                 .text(`${alg}`);
                         }
                     </script>
@@ -84,15 +113,49 @@
                 <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
 
                     <span class="ml-2 text-sm font-medium text-left">comparing to - 
-                        <select id="compareTo" name="compareTo" oninput="view1 = initView1(view1.getDt(), this.value)"></select>
+                        <select id="compareTo" name="compareTo" oninput="
+                            if (compareTo.value === 'None') {
+                                d3.select('#compareDiv').text(' ');
+                                view1 = initView1(view1.getDt(), algorithmOption.value);
+                            } else {
+                                view1.transferDataToView2(fovOption.value, algorithmOption.value, compareTo.value); 
+                                d3.select('#view1').text('');
+                                d3.select('#compareDiv').text(' ');
+                                compareView();
+                            }
+                            updateAlgorithmOptions();
+                        "></select>
 
                     </span>
                     <script>
-                        const compareTo = d3.select("#compareTo");
-                        compareTo.append("option").text("None");
-                        for (const alg of algArr) {
-                            compareTo.append("option")
-                                .text(`${alg}`);
+                        function updateCompareToOptions() {
+                            const compareToSelect = d3.select("#compareTo");
+                            const initAlg = compareTo.value;
+                            compareToSelect.selectAll("option").remove();
+                            compareToSelect.append("option").text("None");
+                            const currAlg = algorithmOption.value;
+                            for (const alg of algArr) {
+                                if (alg !== currAlg) {
+                                    compareToSelect.append("option")
+                                        .text(`${alg}`);
+                                }
+                            }
+                            compareTo.value = initAlg ? initAlg : "None";
+                        }
+                        updateCompareToOptions();
+                        function updateAlgorithmOptions() {
+                            const algorithmSelect = d3.select("#algorithmOption");
+                            const initAlg = algorithmOption.value;
+                            algorithmSelect.selectAll("option").remove();
+                            const currAlg = compareTo.value;
+                            for (const alg of algArr) {
+                                if (alg !== currAlg) {
+                                    algorithmSelect.append("option")
+                                        .text(`${alg}`);
+                                }
+                            }
+                            algorithmOption.value = initAlg;
+
                         }
                     </script>
 				</a>
@@ -115,6 +178,10 @@
         </div>
     </div>
 
+    <div id="view2Div" class="box-content p-8">
+        <div id="compareDiv" class="grid grid-cols-3 gap-2 place-content-start bg-gray-200">
+        </div>
+    </div>
 
 
     </div>
