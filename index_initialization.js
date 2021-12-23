@@ -138,8 +138,6 @@ const initialization = (dt) => {
                     dataReadCount++;
                     if (dataReadCount === datasetNum * algArr.length) {
                         d3.select("#dashboard_view").style("display", null);
-                        buildOverallView();
-                        singleFOV = buildSingleFOVView(single_fov_alg_select.value, +single_fov_idx_select.value);
                     }
                 })
             }
@@ -277,10 +275,10 @@ const initialization = (dt) => {
                         .attr("fill", colorScale(ii));
                 })
                     const lineChartDiv = div.append("div").attr("class", "border-t");
-                    const graph2Group = lineChartDiv.append('g');
-                    graph2Group.append("tspan").attr("class", "px-2 text-gray-400")
+                    const lineChartGroup = lineChartDiv.append('g');
+                    lineChartGroup.append("tspan").attr("class", "px-2 text-gray-400")
                         .append("text").text("Linking errors over time");
-                    const lineChart = graph2Group.append("svg")
+                    const lineChart = lineChartGroup.append("svg")
                         .attr("width", graphWidth)
                         .attr("height", graphHeight)
                         .attr("class", "bg-gray-900 m-auto")
@@ -288,14 +286,14 @@ const initialization = (dt) => {
                         .on("mouseout",  resetCard)
                         .on("mousemove", showDetailWhenMousemove);
                     
-                    const graph2RightPadding = graphWidth * 0.07;
+                    const lineChartRightPadding = graphWidth * 0.07;
                     xScale =  d3.scaleLinear()
                         .domain([0, d[0].numImg - 1]);
                     const xAxis = lineChart.append("g")
                         .call(d3.axisBottom(xScale))
                         .attr("stroke", "#9ca3af");
-                    const graph2BotPadding = xAxis.node().getBoundingClientRect().height;
-                    xAxis.attr("transform", `translate(0, ${graphHeight - graph2BotPadding})`)
+                    const lineChartBotPadding = xAxis.node().getBoundingClientRect().height;
+                    xAxis.attr("transform", `translate(0, ${graphHeight - lineChartBotPadding})`)
                     const maxTotalErrorLink = (d) => {
                         let max = 0;
                         for (const data of d) {
@@ -309,17 +307,17 @@ const initialization = (dt) => {
                     const yAxis = lineChart.append("g")
                         .call(d3.axisLeft(yScale))
                         .attr("stroke", "#9ca3af");;
-                    const graph2LeftPadding = yAxis.node().getBoundingClientRect().width;
-                    yAxis.attr("transform", `translate(${graph2LeftPadding}, 0)`)
-                    xScale.range([graph2LeftPadding, graphWidth - graph2RightPadding]);
+                    const lineChartLeftPadding = yAxis.node().getBoundingClientRect().width;
+                    yAxis.attr("transform", `translate(${lineChartLeftPadding}, 0)`)
+                    xScale.range([lineChartLeftPadding, graphWidth - lineChartRightPadding]);
                     xAxis.call(d3.axisBottom(xScale).ticks(5)).attr("stroke", "#9ca3af");;
-                    yScale.range([graphHeight - graph2BotPadding, tooltipHeight]);
+                    yScale.range([graphHeight - lineChartBotPadding, tooltipHeight]);
                     yAxis.call(d3.axisLeft(yScale).ticks(8)).attr("stroke", "#9ca3af");;
 
                     const line = d3.line()
                         .x(d => xScale(d.x))
                         .y(d => yScale(d.y));
-                    const graph2PathData = [];
+                    const lineChartPathData = [];
                     d.forEach(dd => {
                         let temp = [];
                         dd.errCountAcrossIdx.forEach((ddd, iii) => {
@@ -328,10 +326,10 @@ const initialization = (dt) => {
                                 y : ddd
                             })
                         })
-                        graph2PathData.push(temp);
+                        lineChartPathData.push(temp);
                     })
                     lineChart.append('g').selectAll("path")
-                        .data(graph2PathData)
+                        .data(lineChartPathData)
                         .enter()
                         .append("path")
                         .attr("d", dd => line(dd))
@@ -1338,15 +1336,33 @@ const initialization = (dt) => {
         }
         compareDiv.node().appendChild(compareDiv.node().childNodes[2]);
     }
+    const initializeAndBuildComparisonView = (datasetIdx, alg1, alg2) => {
+        // for some reason it have be ' ' instead of '' in order to
+        // have comparison panel placing correctly
+        compareDiv.innerHTML = ' ';
+        buildComparisonView(datasetIdx, alg1, alg2);
+    }
+    const displaySingleFOVAndHideComparison = () => {
+        d3.select('#single_fov_display').style('display', null);
+        d3.select('#single_fov_compare_display').style('display', 'none');
+    }
+    const displayComparisonAndHideSingleFOV = () => {
+        d3.select('#single_fov_display').style('display', 'none');
+        d3.select('#single_fov_compare_display').style('display', null);
+    }
     return {
         data: data,
         displayOneViewAndHideOthers: displayOneViewAndHideOthers,
         buildOverallView: buildOverallView,
         buildSingleAlgView: buildSingleAlgView,
-        initializeAndBuildSingleFOVView: initializeAndBuildSingleFOVView,
         buildSingleFOVView: buildSingleFOVView,
-        buildComparisonView: buildComparisonView
+        initializeAndBuildSingleFOVView: initializeAndBuildSingleFOVView,
+        buildComparisonView: buildComparisonView,
+        initializeAndBuildComparisonView: initializeAndBuildComparisonView,
+        displaySingleFOVAndHideComparison: displaySingleFOVAndHideComparison,
+        displayComparisonAndHideSingleFOV: displayComparisonAndHideSingleFOV
     }
+
 }
 let initView = initialization(dtArr[0]);
 let singleFOV;
