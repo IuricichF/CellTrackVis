@@ -392,6 +392,10 @@ const initialization = (dt) => {
             }
         })
     }
+    const initializeAndBuildOverallView = () => {
+        overall_div.innerHTML = '';
+        buildOverallView();
+    }
     const buildSingleAlgView = (alg) => {
         const singleAlgViewData = data.map(d => d.find(dd => dd.algorithm === alg));
         singleAlgViewData.sort((a, b) => b.numErrLink - a.numErrLink);
@@ -534,6 +538,10 @@ const initialization = (dt) => {
                     .attr("stroke-width", trkWidth);
             }
         })
+    }
+    const initializeAndBuildSingleAlgView = (alg) => {
+        single_alg_div.innerHTML = '';
+        buildSingleAlgView(alg);
     }
     const buildSingleFOVView = (alg, datasetIdx) => {
         const singleFOVViewData = data.find(d => d[0].datasetIdx === datasetIdx).find(d => d.algorithm === alg)
@@ -1355,7 +1363,9 @@ const initialization = (dt) => {
         data: data,
         displayOneViewAndHideOthers: displayOneViewAndHideOthers,
         buildOverallView: buildOverallView,
+        initializeAndBuildOverallView: initializeAndBuildOverallView,
         buildSingleAlgView: buildSingleAlgView,
+        initializeAndBuildSingleAlgView: initializeAndBuildSingleAlgView,
         buildSingleFOVView: buildSingleFOVView,
         initializeAndBuildSingleFOVView: initializeAndBuildSingleFOVView,
         buildComparisonView: buildComparisonView,
