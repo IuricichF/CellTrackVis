@@ -138,6 +138,8 @@ const initialization = (dt) => {
                     dataReadCount++;
                     if (dataReadCount === datasetNum * algArr.length) {
                         d3.select("#dashboard_view").style("display", null);
+                        displaySingleFOVAndHideComparison();
+                        singleFOV = buildSingleFOVView(single_fov_alg_select.value, +single_fov_idx_select.value);
                     }
                 })
             }
@@ -165,7 +167,6 @@ const initialization = (dt) => {
             }
         }
 
-        d3.select("#single_fov_compare_display").style("display", "none");
         for (const display of displays) {
             const d3Display = d3.select(`#${display}_display`);
             if (display === view) {
@@ -1343,11 +1344,11 @@ const initialization = (dt) => {
         buildComparisonView(datasetIdx, alg1, alg2);
     }
     const displaySingleFOVAndHideComparison = () => {
-        d3.select('#single_fov_display').style('display', null);
+        d3.select('#single_fov_visualizer_display').style('display', null);
         d3.select('#single_fov_compare_display').style('display', 'none');
     }
     const displayComparisonAndHideSingleFOV = () => {
-        d3.select('#single_fov_display').style('display', 'none');
+        d3.select('#single_fov_visualizer_display').style('display', 'none');
         d3.select('#single_fov_compare_display').style('display', null);
     }
     return {
