@@ -163,7 +163,7 @@ const initialization = (dt) => {
                             }
                         })();
                         displaySingleFOVAndHideComparison();
-                        singleFOV = initializeAndBuildSingleFOVView(single_fov_alg_select.value, +single_fov_idx_select.value);
+                        initializeAndBuildSingleFOVView(single_fov_alg_select.value, +single_fov_idx_select.value);
                         // when initialize the page by changing the frame rate at overview
                         if (d3.select("#selected_view_span").node() !== null) {
                             displayOneViewAndHideOthers(views[1]);
@@ -1147,21 +1147,28 @@ const initialization = (dt) => {
     }
     const initializeAndBuildSingleFOVView = (alg, datasetIdx) => {
         // initialize
-        d3.select('#image_slider').attr('max', null);
-        image_slider_label.innerHTML = '';
-        d3.select('#tracking_svg')
-            .attr('width', null)
-            .attr('height', null)
-            .attr('viewBox', null);
-        d3.select('#image')
-            .attr('href', null)
-            .attr('width', null)
-            .attr('height', null);
+        d3.select("#image_slider").remove();
+        d3.select("#image_slider_div").append("input")
+            .attr("type", "range")
+            .attr("min", 0)
+            .attr("value", 0)
+            .attr("class", "slider")
+            .attr("id", "image_slider")
+            .attr("oninput", "singleFOV.initTracking.updateTracking(+this.value)");
+        image_slider_label.innerHTML = "Image Index: 0";
+        d3.select("#tracking_svg")
+            .attr("width", null)
+            .attr("height", null)
+            .attr("viewBox", null);
+        d3.select("#image")
+            .attr("href", null)
+            .attr("width", null)
+            .attr("height", null);
         error_link.innerHTML = '';
         true_track.innerHTML = '';
-        d3.select('#lineage_svg')
-            .attr('width', null)
-            .attr('height', null);
+        d3.select("#lineage_svg")
+            .attr("width", null)
+            .attr("height", null);
         lineage.innerHTML = '';
         // build
         singleFOV = buildSingleFOVView(alg, datasetIdx);
