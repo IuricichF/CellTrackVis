@@ -1,12 +1,14 @@
 const datasetNum = 12;
 const dtArr = [4, 1, 2, 8, 12, 16];
-const algArr = ["lap", "rnn", "cnn30", "cnn40"];
+const allAlgArr = ["lap", "rnn", "cnn30", "cnn40"];
+let algArr = [];
 const colorScale = d3.scaleOrdinal()
-    .domain([...Array(algArr.length).keys()])
+    .domain([...Array(allAlgArr.length).keys()])
     .range(d3.schemeSet2);
 const views = ["index", "overall", "single_alg", "single_fov"];
 const resolutionSideLength = 2040;
 const trkWidth = 10;
+let ini
 const initialization = (dt) => {
     const data = []
     const processRawData = (datasetIdx, dt, alg, rawData) => {
@@ -132,15 +134,45 @@ const initialization = (dt) => {
         dataReadCount = 0;
         for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
             let tempData = [];
-            for (let algIdx = 0; algIdx < algArr.length; algIdx++) {
-                d3.csv(`./src/dataset_${datasetIdx}/${algArr[algIdx]}_dt${dt}.csv`).then(rawData => {
-                    tempData[algIdx] = processRawData(datasetIdx, dt, algArr[algIdx], rawData);
+            for (let algIdx = 0; algIdx < allAlgArr.length; algIdx++) {
+                d3.csv(`./src/dataset_${datasetIdx}/${allAlgArr[algIdx]}_dt${dt}.csv`).then(rawData => {
+                    if (algArr.findIndex(d => d === allAlgArr[algIdx]) === -1) algArr.push(allAlgArr[algIdx]);
+                    tempData[algIdx] = processRawData(datasetIdx, dt, allAlgArr[algIdx], rawData);
                     dataReadCount++;
                     if (dataReadCount === datasetNum * algArr.length) {
-                        d3.select("#dashboard_view").style("display", null);
+                        const initializeAlgSelect = ((id) => {
+                            single_alg_alg_select.innerHTML = '';
+                            for (const alg of algArr) {
+                                d3_single_alg_alg_select.append("option")
+                                    .text(`${alg}`);
+                            }
+
+                            single_fov_alg_select.innerHTML = '';
+                            for (const alg of algArr) {
+                                d3_single_fov_alg_select.append("option")
+                                    .text(`${alg}`);
+                            }
+
+                            single_fov_alg2_select.innerHTML = '';
+                            d3_single_fov_alg2_select.append("option").text("none");
+                            for (const alg of algArr) {
+                                if (alg !== single_fov_alg_select.value) {
+                                    d3_single_fov_alg2_select.append("option")
+                                    .text(`${alg}`);
+                                }
+                            }
+                        })();
                         displaySingleFOVAndHideComparison();
-                        singleFOV = buildSingleFOVView(single_fov_alg_select.value, +single_fov_idx_select.value);
+                        singleFOV = initializeAndBuildSingleFOVView(single_fov_alg_select.value, +single_fov_idx_select.value);
+                        // when initialize the page by changing the frame rate at overview
+                        if (d3.select("#selected_view_span").node() !== null) {
+                            displayOneViewAndHideOthers(views[1]);
+                            initializeAndBuildOverallView();
+                        }
+                        d3.select("#dashboard_view").style("display", null);
                     }
+                }, (error) => {
+                    console.log(`dataset_${datasetIdx} does not have ${allAlgArr[algIdx]}_dt${dt}.csv`);
                 })
             }
             data[datasetIdx - 1] = tempData;
@@ -247,7 +279,7 @@ const initialization = (dt) => {
                     .padding(0.1);
                 const yScaleBars = d3.scaleLinear()
                     // 0.0000001 is for when input is 0, then the output should 0 as well
-                    .domain([0, Math.max(d[0].numErrLink, d[1].numErrLink) + 0.0000001])
+                    .domain([0, Math.max.apply(Math, d.map(dd => dd.numErrLink)) + 0.0000001])
                     .range([0, graphHeight - tooltipHeight - graphFooterHeight])
                 
                 const myBars = []

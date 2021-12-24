@@ -48,7 +48,11 @@
                 <div id="overall_option" style="display: none">
                     <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
                         <span class="ml-2 text-sm font-medium text-left">Frame rate - 
-                            <select id="overall_dt_select" oninput="initView = initialization(+this.value);"></select>
+                            <select id="overall_dt_select" oninput="
+                                algArr = []; 
+                                d3.select('#dashboard_view').style('display', 'none');
+                                d3.select('#overall_display').style('display', 'none');
+                                initView = initialization(+this.value);"></select>
                         </span>
                         <script>
                             const d3_overall_dt_select = d3.select("#overall_dt_select");
@@ -80,10 +84,6 @@
                         </span>
                         <script>
                             const d3_single_alg_alg_select = d3.select("#single_alg_alg_select");
-                            for (const alg of algArr) {
-                                d3_single_alg_alg_select.append("option")
-                                    .text(`${alg}`);
-                            }
                         </script>
                     </a>
                 </div>
@@ -144,10 +144,6 @@
                         </span>
                         <script>
                             const d3_single_fov_alg_select = d3.select("#single_fov_alg_select");
-                            for (const alg of algArr) {
-                                d3_single_fov_alg_select.append("option")
-                                    .text(`${alg}`);
-                            }
                         </script>
                     </a>
     
@@ -174,13 +170,6 @@
                         </span>
                         <script>
                             const d3_single_fov_alg2_select = d3.select("#single_fov_alg2_select");
-                            d3_single_fov_alg2_select.append("option").text("none");
-                            for (const alg of algArr) {
-                                if (alg !== single_fov_alg_select.value) {
-                                    d3_single_fov_alg2_select.append("option")
-                                    .text(`${alg}`);
-                                }
-                            }
                         </script>
                     </a>
                 </div>
