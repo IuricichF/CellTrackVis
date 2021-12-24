@@ -1224,9 +1224,9 @@ const initialization = (dt) => {
                     .data(errLinkPathData)
                     .enter()
                     .append("circle")
-                    .attr("class", d => `${d.algorithm}-${d[0][2]}`)
-                    .attr("cx", d => d[0][0])
-                    .attr("cy", d => d[0][1])
+                    .attr("class", dd => `${d.algorithm}-${dd[0][2]}`)
+                    .attr("cx", dd => dd[0][0])
+                    .attr("cy", dd => dd[0][1])
                     .attr("r", trkWidth * 1.5)
                     .attr("fill", algColorArr[i]);
 
@@ -1234,8 +1234,8 @@ const initialization = (dt) => {
                     .data(errLinkPathData)
                     .enter()
                     .append("path")
-                    .attr("class", d => `${d.algorithm}-${d[0][2]}`)
-                    .attr("d", d => d3.line()(d))
+                    .attr("class", dd => `${d.algorithm}-${dd[0][2]}`)
+                    .attr("d", dd => d3.line()(dd))
                     .attr("fill", "none")
                     .attr("stroke", algColorArr[i])
                     .attr("stroke-width", trkWidth);
