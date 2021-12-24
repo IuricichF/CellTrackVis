@@ -19,4 +19,5 @@ User Guide - How to input data
     datasetNum is the total number of datasets. It should equal to the max number of dataset_* in the src folder.
 
     dtArr is avaliable frame rate options. dtArr[0] is the default frame rate.
+    
     allAlgArr is avaliable algorithm options.
