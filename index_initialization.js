@@ -1,6 +1,8 @@
 const datasetNum = 12;
 const dtArr = [4, 1, 2, 8, 12, 16];
 const allAlgArr = ["lap", "rnn", "cnn30", "cnn40"];
+// const dtArr = [4];
+// const allAlgArr = ["lap"];
 let algArr = [];
 const colorScale = d3.scaleOrdinal()
     .domain([...Array(allAlgArr.length).keys()])
@@ -9,6 +11,8 @@ const views = ["index", "overall", "single_alg", "single_fov"];
 const resolutionSideLength = 2040;
 const trkWidth = 10;
 let ini
+
+//INITIALIZATION OF DATASET STRUCTURE
 const initialization = (dt) => {
     const data = []
     const processRawData = (datasetIdx, dt, alg, rawData) => {
@@ -339,13 +343,13 @@ const initialization = (dt) => {
                             .domain([0, maxTotalErrorLink(d)]);
                     const yAxis = lineChart.append("g")
                         .call(d3.axisLeft(yScale))
-                        .attr("stroke", "#9ca3af");;
+                        .attr("stroke", "#9ca3af");
                     const lineChartLeftPadding = yAxis.node().getBoundingClientRect().width;
                     yAxis.attr("transform", `translate(${lineChartLeftPadding}, 0)`)
                     xScale.range([lineChartLeftPadding, graphWidth - lineChartRightPadding]);
-                    xAxis.call(d3.axisBottom(xScale).ticks(5)).attr("stroke", "#9ca3af");;
+                    xAxis.call(d3.axisBottom(xScale).ticks(5)).attr("stroke", "#9ca3af");
                     yScale.range([graphHeight - lineChartBotPadding, tooltipHeight]);
-                    yAxis.call(d3.axisLeft(yScale).ticks(8)).attr("stroke", "#9ca3af");;
+                    yAxis.call(d3.axisLeft(yScale).ticks(8)).attr("stroke", "#9ca3af");
 
                     const line = d3.line()
                         .x(d => xScale(d.x))
@@ -428,66 +432,90 @@ const initialization = (dt) => {
         overall_div.innerHTML = '';
         buildOverallView();
     }
+
+
+    //SINGLE ALGORITHM VIEW
     const buildSingleAlgView = (alg) => {
         const singleAlgViewData = data.map(d => d.find(dd => dd.algorithm === alg));
         singleAlgViewData.sort((a, b) => b.numErrLink - a.numErrLink);
         const d3_single_alg_div = d3.selectAll("#single_alg_div")
         singleAlgViewData.forEach(d => {
-            const div = d3_single_alg_div.append("div")
-                .attr("class", "box-content bg-gray-200 rounded-lg p-2 justify-center");
-            const fieldOfView = div.append("div")
-            const sVGSideLength = 270;
-            const errLinkWindow = fieldOfView
-                .append("svg")
-                .attr("id", `sVG${d.datasetIdx}`)
-                .attr("width", sVGSideLength)
-                .attr("height", sVGSideLength)
-                .attr("class", "shadow bg-white m-auto")
-                .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
-                .append("g")
-                .attr("id", `error_link${d.datasetIdx}`);
-            const ul = div.append("div")
-                .attr("class", "box-content p-2 text-center")
-                .append("ul")
-                .attr("class", "list-dic");
 
             let numlinkErr = 0;
             for (const value of d.trkIDToErrTrkIDPredMap.values()) numlinkErr += value.length - 1;
             let numlink = d.trkData.length - d.idxToTrkIDArr.length;
-            ul.append("li").text(`Field of view - #${d.datasetIdx}`);
-            ul.append("li").text(`Linking errors - ${numlinkErr}`);
-            ul.append("li").text(`Linking errors (%) - ${(numlinkErr / numlink * 100).toFixed(2)}%`);
-            ul.append("li").text(`Total links - ${numlink}`);
+
+
+            const div = d3_single_alg_div.append("div")
+                .attr("class", "box-content rounded-lg pt-4 pl-2 pr-2 text-base relative bg-gray-900");
+
+            const fovid = div.append("div")
+                .text(`${d.datasetIdx}`)
+                .attr("id", "name-fov")
+                .attr("class", "absolute -inset-x-1/2 -top-2 bg-gray-100 rounded-full " +  
+                    "h-12 w-12 flex items-center justify-center m-auto font-sans text-3xl")
+                .style("background", colorScale(algArr.indexOf(alg)))
+
+            const fieldOfView = div.append("div").attr("class", "pt-4")
+
+            const fieldOfViewErrors = div.append("div").attr("class", "pb-2");
+            const fieldOfViewGroup = fieldOfViewErrors.append('g');
+            fieldOfViewGroup.append("tspan").attr("class", "text-gray-400")
+                .append("text").text("Linking errors");
+
+            const sVGSideLength = 270;
+            const errLinkWindow = fieldOfViewGroup
+                .append("svg")
+                .attr("id", `sVG${d.datasetIdx}`)
+                .attr("width", sVGSideLength)
+                .attr("height", sVGSideLength)
+                .attr("class", "shadow border m-auto")
+                .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
+                .append("g")
+                .attr("id", `error_link${d.datasetIdx}`);
+
+            fieldOfViewGroup.append("p").attr("class", "text-sm mr-4 text-right text-gray-400")
+                .append("text").text(`Total errors - `)
+                .append("text").text(` ${numlinkErr}`).style("color", colorScale(algArr.indexOf(alg)));
+            fieldOfViewGroup.append("p").attr("class", "text-sm mr-4 text-right text-gray-400")
+                .append("text").text(`Total links  - ${numlink}`)
+                
+
+            const fieldOfViewInfo = div.append("div");
             
-            const graphWidth = 250;
-            const graphHeight = 150;
-            const tooltipHeight = graphHeight * 0.2;
-            const cellCountGraphGroup = ul.append("g");
-            cellCountGraphGroup.append("text").text("Cell Count vs. Image Index")
-            const cellCountGraph = cellCountGraphGroup.append("svg")
-                                .attr("width", graphWidth)
-                                .attr("height", graphHeight)
-                                .attr("class", "bg-white m-auto")
-                                .on("mouseover", () => focus.style("display", null))
-                                .on("mouseout", () => focus.style("display","none"))
+            const fieldOfViewInfoGroup = fieldOfViewInfo.append('g');
+            fieldOfViewInfoGroup.append("tspan").attr("class", "text-gray-400")
+                .append("text").text("Cells number");
+
+            const gridCellInfo = fieldOfViewInfoGroup.append("div").attr("class","border-t")
+                
+            
+            const linechart = gridCellInfo.append("div").attr("class","pt-2")
+            const cellCountGraph = linechart.append("svg")
+                                .attr("class", "m-auto")
+                                .on("mouseover", showDetailWhenMousemove)
+                                .on("mouseout", resetLine)
                                 .on("mousemove", showDetailWhenMousemove);
-            const cellCountGraphRightPadding = graphWidth * 0.07; 
+
+            const graphWidth = parseInt(cellCountGraph.style('width'));
+            const graphHeight = parseInt(cellCountGraph.style('height'));
+            
+            const leftPadding = 30
+            const bottomPadding = 30
+
+            console.log(graphWidth,graphHeight)
 
             const xScale = d3.scaleLinear()
-                .domain([0, d.numImg - 1]);
-            const xAxis = cellCountGraph.append("g")
-                .call(d3.axisBottom(xScale));
-            const cellCountGraphBotPadding = xAxis.node().getBoundingClientRect().height;
-            xAxis.attr("transform", `translate(0, ${graphHeight - cellCountGraphBotPadding})`)
-            const yScale = d3.scaleLinear().domain([Math.min(...d.cellCountAcrossIdx), Math.max(...d.cellCountAcrossIdx)]);
-            const yAxis = cellCountGraph.append("g")
-                .call(d3.axisLeft(yScale));
-            const cellCountGraphLeftPadding = yAxis.node().getBoundingClientRect().width;
-            yAxis.attr("transform", `translate(${cellCountGraphLeftPadding}, 0)`)
-            xScale.range([cellCountGraphLeftPadding, graphWidth - cellCountGraphRightPadding]);
-            xAxis.call(d3.axisBottom(xScale).ticks(5));
-            yScale.range([graphHeight - cellCountGraphBotPadding, tooltipHeight]);
-            yAxis.call(d3.axisLeft(yScale));
+                .domain([0, d.numImg - 1])
+                .range([leftPadding, graphWidth - leftPadding]);
+            
+            
+            console.log(d3.extent([...d.cellCountAcrossIdx]))
+
+            const yScale = d3.scaleLinear()
+                            .domain(d3.extent([...d.cellCountAcrossIdx]))
+                            .range([graphHeight - bottomPadding, 2]);
+            
                                         
             const linearPath = [];
             d.cellCountAcrossIdx.forEach((d, i) => linearPath.push({
@@ -501,29 +529,67 @@ const initialization = (dt) => {
                 .attr("id", "cellCountLine")
                 .attr("d", line(linearPath))
                 .attr("fill", "none")
-                .attr("stroke", "black")
+                .attr("stroke", colorScale(algArr.indexOf(alg)))
                 .attr("stroke-width", 1)
+            
+            
+            const xAxis = cellCountGraph.append("g")
+                        .attr("transform", `translate(0, ${graphHeight-bottomPadding})`)
+                        .call(d3.axisBottom(xScale).ticks(8))
+                        .attr("stroke", "#9ca3af");
+
+            const yAxis = cellCountGraph.append("g")
+                          .attr("transform", `translate(${leftPadding}, 0)`)
+                          .call(d3.axisLeft(yScale))
+                          .attr("stroke", "#9ca3af");
+            
+            
+            
             const tooltipDotRadius = 2;
-            const focus = cellCountGraph.append('g')
-                .style("display", "none");
-            const tooltipDot = focus.append("circle")
-                .attr('r', tooltipDotRadius);
-            let txt = focus.append("text")
-                .attr('y', tooltipHeight / 2);
+            const tooltipDot = cellCountGraph. append("circle")
+                .attr('opacity', 0)
+                .attr('r', tooltipDotRadius)
+                .attr('fill', colorScale(algArr.indexOf(alg)));
+
+            const tooltipLine = cellCountGraph. append("line")
+                .attr('opacity', 0)
+                .attr('x1', leftPadding)
+                .attr('y1', 0)
+                .attr('x2', graphWidth - leftPadding)
+                .attr('y2', 0)
+                .attr('stroke', colorScale(algArr.indexOf(alg)));
+            
+            
             function showDetailWhenMousemove() {
                 let x = xScale.invert(d3.pointer(event, this)[0]);
                 x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
                 if (x < 0) x = 0;
                 if (x > xScale.domain()[1]) x = xScale.domain()[1];
-                txt.text(`idx: ${x},  #: `);
 
                 let y = d.cellCountAcrossIdx[x];
                 tooltipDot
+                    .attr('opacity', 1)
                     .attr("cx", xScale(x))
                     .attr("cy", yScale(y));
-                txt.append("tspan")
-                    .text(`${y}`)
+
+                tooltipLine
+                    .attr('opacity', 0.3)
+                    .attr('y1', yScale(y))
+                    .attr('y2', yScale(y))
+
             }
+
+            function resetLine() {
+                
+                tooltipDot
+                    .attr('opacity', 0)
+
+                tooltipLine
+                    .attr('opacity', 0)
+            }
+
+
+
             
             window.addEventListener('resize', () => {
                 const rate = this.outerWidth / this.screen.availWidth;
@@ -546,7 +612,8 @@ const initialization = (dt) => {
                     .attr("id", `noErrorText${d.datasetIdx}`)
                     .attr("y", resolutionSideLength / 2)
                     .attr("style", "font: 100px sans-serif")
-                    .text("Congratulation, this dataset has no error!");
+                    .text("Congratulation, this dataset has no error!")
+                    .attr("fill", "#9ca3af");
                 const tempWidth = document.getElementById(`noErrorText${d.datasetIdx}`).getBBox().width
                 text.attr("x", (resolutionSideLength - tempWidth) / 2)
             }
