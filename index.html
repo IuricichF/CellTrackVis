@@ -265,7 +265,7 @@
             </p>
         </div>
         
-        <div id="overall_display" style="display: none" class="box-content p-8 text-xl">
+        <div id="overall_display" style="display: none" class="box-content w-4/5 p-8 text-xl">
             <div class="box-content p-4 ">
                 <div class="grid grid-cols-4 gap-3 place-content-start" id="overall_div"></div>
             </div>
@@ -277,46 +277,74 @@
             </div>
         </div>
 
-        <div id="single_fov_display" style="display: none">
-            <div id="single_fov_visualizer_display" style="display: none" class="box-content p-8 space-y-2">
-                <h3 class="text-3xl"> Field of View Visualizer</h3>
-                <div class="flex items-stretch gap-4 place-content-start bg-gray-200 rounded-lg p-2">
-                    <div id="image_slider_div">
-                        <label for="#image_slider" id="image_slider_label">Image Index: 0</label><br>
-                        <input type="range" min="0" value="0" class="slider" id="image_slider" oninput="singleFOV.initTracking.updateTracking(+this.value)">
-                    </div>
-        
-                    <div>
-                        <button type="button" class="w-24 ring-0 bg-blue-400 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50"
+        <div id="single_fov_display" style="display: none" class="w-4/5 p-10 bg-gray-900 rounded-md h-full mt-10 container mx-auto shadow-md">
+            <div id="single_fov_visualizer_display" style="display: none" class="grid grid-cols-2 gap-4">
+                
+                <div class="text-gray-300 text-base border-b">
+                    Microscopy Images
+                </div>
+                <div class="text-gray-300 text-base border-b">
+                    Lineage Tree
+                </div>
+
+                <div>
+                    <svg id="tracking_svg" class="pt-2">
+                        <image id="image"></image>
+                        <g id="error_link"></g>
+                        <g id="true_track"></g>
+                    </svg>
+                </div>
+
+                <div style="height: 575px; overflow-y: scroll">
+                    
+                    <svg id="lineage_svg" class="pt-2">
+                        <g id="lineage">
+                        </g>
+                    </svg>
+                </div>
+
+                <div class="text-gray-300 text-base border-b">
+                    Slide selection
+                </div>
+                <div class="text-gray-300 text-base border-b">
+                    Information
+                </div>
+                
+
+                <div class="grid grid-cols-2 ">
+                    <div class="relative">
+                        <button type="button" class="bg-gray-300 text-gray-900 absolute bottom-0 left-0 w-20 focus:outline-none "
                                 onclick="singleFOV.initTracking.reset();">
                             Reset
                         </button>
-                        <button type="button" class="w-24 ring-0 bg-blue-400 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50"
+                        <button type="button" class="bg-gray-300 text-gray-900 absolute bottom-0 left-24 w-20 object-bottom focus:outline-none "
                                 onclick="singleFOV.initTracking.showAll();">
                             Show all
                         </button>
                     </div>
-                </div>
-        
-                <div class="grid grid-cols-2 justify-items-center gap-4 p-4 border-2 border-gray-200 rounded-lg">
-                    <div>
-                        <svg id="tracking_svg">
-                            <image id="image"></image>
-                            <g id="error_link"></g>
-                            <g id="true_track"></g>
-                        </svg>
-                    </div>
-                    <div style="width: 575; height: 700px; overflow-y: scroll">
-                        <svg id="lineage_svg">
-                            <g id="lineage">
-                            </g>
-                        </svg>
+                    <div id="image_slider_div" class="text-gray-300">
+                        <div>
+                            Image Index
+                        </div>
+                        <div>
+                            <input class="form-range appearance-none bg-transparent" type="range" min="0" value="0" class="slider" id="image_slider" oninput="singleFOV.initTracking.updateTracking(+this.value)">
+                            <label for="#image_slider" id="image_slider_label"> 0</label>
+                        </div>
                     </div>
                 </div>
+
+                <div>
+                    
+                </div>
+
             </div>
+<!-- 
+            <div class="flex items-stretch gap-4 place-content-start bg-gray-900 text-gray-300 rounded-lg p-2">
+                
+            </div> -->
     
             <div id="single_fov_compare_display" style="display: none" class="box-content p-8">
-                <div id="compareDiv" class="grid grid-cols-3 gap-2 place-content-start bg-gray-200">
+                <div id="compareDiv" class="grid grid-cols-3 gap-2 place-content-start">
                 </div>
             </div>
         </div>

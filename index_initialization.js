@@ -1,8 +1,8 @@
-const datasetNum = 12;
-const dtArr = [4, 1, 2, 8, 12, 16];
-const allAlgArr = ["lap", "rnn", "cnn30", "cnn40"];
-// const dtArr = [4];
-// const allAlgArr = ["lap"];
+const datasetNum = 2;
+// const dtArr = [4, 1, 2, 8, 12, 16];
+// const allAlgArr = ["lap", "rnn", "cnn30", "cnn40"];
+const dtArr = [4];
+const allAlgArr = ["lap"];
 let algArr = [];
 const colorScale = d3.scaleOrdinal()
     .domain([...Array(allAlgArr.length).keys()])
@@ -642,6 +642,9 @@ const initialization = (dt) => {
         single_alg_div.innerHTML = '';
         buildSingleAlgView(alg);
     }
+
+
+    //SINGLE FOV VIEW
     const buildSingleFOVView = (alg, datasetIdx) => {
         const singleFOVViewData = data.find(d => d[0].datasetIdx === datasetIdx).find(d => d.algorithm === alg)
 
@@ -669,13 +672,13 @@ const initialization = (dt) => {
         const numTreeNoErr = idxToTreeIDNoErrArr.length;
         const numTree = numTreeWithErr + numTreeNoErr;
 
-        const defOpacity = 0.2;
+        const defOpacity = 0.5;
         const highlightedOpacity = 1;
         const errLinkCircleRadius = trkWidth * 1.5;
         const correctTrkColorBe4Err = "#6ef562";
         const correctTrkColorAfterErr = "blue";
         const errLinkClassNamePrefix = "TrackID";
-        const errLinkColor = "red";
+        const errLinkColor = colorScale(algArr.indexOf(alg));
         const initTracking = function() {
             let classNameOfSelectedErrorLink = undefined;
             let imgIdxBe4SelectErrLink = undefined;
@@ -703,7 +706,7 @@ const initialization = (dt) => {
                 img.attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`);
                 // set slider
                 image_slider.value = newIdx;
-                imgSliderLabel.text(`Image Index: ${imgIdx}`);
+                imgSliderLabel.text(`${imgIdx}`);
                 // set error links and tracks
                 drawErrorLinksAndTracks();
             }
@@ -899,7 +902,7 @@ const initialization = (dt) => {
         }();
 
         const TreeClassNamePrefix = "TreeID";
-        const corrTreeBranchColor = "#6ef562";
+        const corrTreeBranchColor = "white";//"#6ef562";
         const lineageSideLength = 575;
         const defNumTreeInAPage = 20;
         const treeHeight = lineageSideLength / defNumTreeInAPage;
@@ -1214,15 +1217,15 @@ const initialization = (dt) => {
     }
     const initializeAndBuildSingleFOVView = (alg, datasetIdx) => {
         // initialize
-        d3.select("#image_slider").remove();
-        d3.select("#image_slider_div").append("input")
-            .attr("type", "range")
-            .attr("min", 0)
-            .attr("value", 0)
-            .attr("class", "slider")
-            .attr("id", "image_slider")
-            .attr("oninput", "singleFOV.initTracking.updateTracking(+this.value)");
-        image_slider_label.innerHTML = "Image Index: 0";
+        // d3.select("#image_slider").remove();
+        // d3.select("#image_slider_div").append("input")
+        //     .attr("type", "range")
+        //     .attr("min", 0)
+        //     .attr("value", 0)
+        //     .attr("class", "slider")
+        //     .attr("id", "image_slider")
+        //     .attr("oninput", "singleFOV.initTracking.updateTracking(+this.value)");
+        // image_slider_label.innerHTML = "Image Index: 0";
         d3.select("#tracking_svg")
             .attr("width", null)
             .attr("height", null)
