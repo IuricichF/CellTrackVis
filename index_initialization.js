@@ -646,575 +646,996 @@ const initialization = (dt) => {
 
     //SINGLE FOV VIEW
     const buildSingleFOVView = (alg, datasetIdx) => {
+        
         const singleFOVViewData = data.find(d => d[0].datasetIdx === datasetIdx).find(d => d.algorithm === alg)
-
         const numImg = singleFOVViewData.numImg;
         const trkIDToErrPathMap = singleFOVViewData.trkIDToErrPathMap;
         const trkIDToErrImgIdxMap = singleFOVViewData.trkIDToErrImgIdxMap;
-        const trkDataSortedByTrkID = singleFOVViewData.trkDataSortedByTrkID;
-        const trkData = singleFOVViewData.trkData;
+        
+        var trkData = {}
 
-        let idxToTreeIDWithErrArr = [];
-        for (const key of trkIDToErrImgIdxMap.keys()) {
-            let tempTreeID = trkData.find(d => d.trkID === key).treeID;
-            if (!idxToTreeIDWithErrArr.includes(tempTreeID)) idxToTreeIDWithErrArr.push(tempTreeID);
+        console.log(trkIDToErrPathMap)
+
+        for(const key of trkIDToErrPathMap.keys()){
+            trkData[key] = {}
+            trkData[key]["ErrCoords"] = d3.map(trkIDToErrPathMap.get(key), d => d.flat())
+            trkData[key]["ErrTime"] = trkIDToErrImgIdxMap.get(key)
         }
         
-        const idxToTrkIDWithErrArr = singleFOVViewData.idxToTrkIDArr.filter((d => idxToTreeIDWithErrArr.includes(trkData.find(d2 => d2.trkID === d).treeID)));
-        const idxToErrTrkIDArr = singleFOVViewData.idxToTrkIDArr.filter(d => trkIDToErrImgIdxMap.has(d));
-        idxToTreeIDWithErrArr = idxToTreeIDWithErrArr.filter(d => d !== undefined);
-        const idxToTreeIDNoErrArr = singleFOVViewData.idxToTreeIDArr.filter(d => !idxToTreeIDWithErrArr.includes(d));
-        const idxToTrkIDNoErrArr = singleFOVViewData.idxToTrkIDArr.filter(d => !idxToTrkIDWithErrArr.includes(d))
+        const colorTrack = "black";
+        const colorError = colorScale(algArr.indexOf(alg))
+        const errorOpacity = 0.5;
+        const errLinkCircleRadius = 10;
 
-        const numTrkWithErr = idxToTrkIDWithErrArr.length;
-        const numTrkNoErr = idxToTrkIDNoErrArr.length;
-        const numTreeWithErr = idxToTreeIDWithErrArr.length;
-        const numTreeNoErr = idxToTreeIDNoErrArr.length;
-        const numTree = numTreeWithErr + numTreeNoErr;
+        var selectedTrack = -1
 
-        const defOpacity = 0.5;
-        const highlightedOpacity = 1;
-        const errLinkCircleRadius = trkWidth * 1.5;
-        const correctTrkColorBe4Err = "#6ef562";
-        const correctTrkColorAfterErr = "blue";
-        const errLinkClassNamePrefix = "TrackID";
-        const errLinkColor = colorScale(algArr.indexOf(alg));
-        const initTracking = function() {
-            let classNameOfSelectedErrorLink = undefined;
-            let imgIdxBe4SelectErrLink = undefined;
-            let imgIdx = 0;
-            // functions
-            const getImageIndex = () => imgIdx;
-            const setCollectionToDefaultOpacity = (htmlCollection) => {
-                for (const item of htmlCollection) {
-                    item.setAttribute("opacity", defOpacity);
-                }
-            }
-            const setCollectionToHighlightedOpacity = (htmlCollection) => {
-                for (const item of htmlCollection) {
-                    item.setAttribute("opacity", highlightedOpacity);
-                }
-            }
-            const getCollectionByClassName = (className) => document.getElementsByClassName(className);
-            const isAnErrorLinkSelected = () => classNameOfSelectedErrorLink !== undefined;
-            const isThisErrorLinkSelected = (className) => classNameOfSelectedErrorLink === className;
-            const setSelectedErrorLink = (className) => classNameOfSelectedErrorLink = className;
-            const unsetSelectedErrorLink = () => classNameOfSelectedErrorLink = undefined;
-            const getSelectedErrorLink = () => classNameOfSelectedErrorLink;
-            const updateTracking = (newIdx) => {
-                imgIdx = newIdx;
-                img.attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`);
-                // set slider
-                image_slider.value = newIdx;
-                imgSliderLabel.text(`${imgIdx}`);
-                // set error links and tracks
-                drawErrorLinksAndTracks();
-            }
-            const removeTrueTrack = () => trueTrkGroup.selectAll("path").remove();
-            const reset = () => {
-                if (isAnErrorLinkSelected()) {
-                    setCollectionToDefaultOpacity(getCollectionByClassName(classNameOfSelectedErrorLink))
-                    initLineage.unsetColorOfTreeBranchToUnselected(+classNameOfSelectedErrorLink.split("-")[0]);
-                    unsetSelectedErrorLink();
-                }
-                if (initLineage.isATreeBranchSelected()) {
-                    initLineage.unsetColorOfTreeBranchToUnselected(initLineage.getSelectedTreeBranch());
-                    initLineage.unsetSelectedTreeBranch();
-                    initLineage.unsetClickedOnTreeBranch();
-                }
-                removeTrueTrack();
-                updateTracking(0);
-            }
-            const showAll = () => {
-                reset();
-                updateTracking(numImg - 1);
-            }
-            ////////////////// Selection ////////////////////
-            function highlightErrorLinkWhenMouseover() {
-                const className = this.getAttribute("class");
-                if (!isThisErrorLinkSelected(className)) {
-                    setCollectionToHighlightedOpacity(getCollectionByClassName(className))
-                    initLineage.setColorOfTreeBranchToSelected(+className.split("-")[0])
-                }
-            }
-            function unhighlightErrorLinkWhenMouseout() {
-                const className = this.getAttribute("class");
-                if (!isThisErrorLinkSelected(className)) {
-                    setCollectionToDefaultOpacity(getCollectionByClassName(className))
-                    const trkID = +className.split("-")[0]
-                    if (!initLineage.isThisTreeBranchClickedOn(trkID)) initLineage.unsetColorOfTreeBranchToUnselected(trkID)
-                }
-            }
-            function selectErrorLinkWhenClick() {
-                const className = this.getAttribute("class");
-                const collection = getCollectionByClassName(className);
-                const trkID = +className.split("-")[0];
-                const secID = +className.split("-")[1];
-                if (isThisErrorLinkSelected(className)) {
-                    unsetSelectedErrorLink();
-                    removeTrueTrack();
-                    if (initLineage.isATreeBranchClickedOn()) initLineage.setColorOfTreeBranchToSelected(initLineage.getClickedOnTreeBranch());
-                    else initLineage.unsetColorOfTreeBranchToUnselected(trkID);
-                    updateTracking(imgIdxBe4SelectErrLink);
-                } else {
-                    setSelectedErrorLink(className)
-                    setCollectionToHighlightedOpacity(collection)
-                    imgIdxBe4SelectErrLink = imgIdx;
-                    updateTracking(+trkIDToErrImgIdxMap.get(trkID)[secID][1]);
-                    initLineage.colorTreeBranch(trkID, secID);
-                }
-            }
-            ////////////////// tracking ////////////////////
-            const imgSlider = d3.select("#image_slider")
-                .attr("max", numImg - 1);
-            const imgSliderLabel = d3.select("#image_slider_label");
-            const sVGSideLength = 575;
-            // set up the svg that will contain image and tracks
-            const imgSVG = d3.select("#tracking_svg")
-                .attr("width", sVGSideLength)
-                .attr("height", sVGSideLength)
-                .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`);
-            // image
-            const img = d3.select("#image")
-                .attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`)
-                .attr("width", resolutionSideLength)
-                .attr("height", resolutionSideLength);
-            // error track 
-            const errLinkGroup = d3.select("#error_link");
-            const trueTrkGroup = d3.select("#true_track");
-            const drawErrorLinksAndTracks = () => {
-                const pathData = [];
-                if (initLineage.isATreeBranchSelected()) {
-                    for (const key of trkIDToErrImgIdxMap.keys()) {
-                        let i = 0;
-                        const tempPathData = [];
-                        if (key === initLineage.getSelectedTreeBranch()) {
-                            for (const value of trkIDToErrImgIdxMap.get(key)) {
-                                const temp = value.filter(d => d <= imgIdx);
-                                if (temp.length > 0) {
-                                    temp.length === 1 ? tempPathData.push([trkIDToErrPathMap.get(key)[i][0]])
-                                        : tempPathData.push(trkIDToErrPathMap.get(key)[i])
-                                }
-                                i++;
-                            }
-                        }
-                        pathData.push(tempPathData);
-                    }
-                }
-                else {
-                    for (const key of trkIDToErrImgIdxMap.keys()) {
-                        let i = 0;
-                        const tempPathData = [];
-                        for (const value of trkIDToErrImgIdxMap.get(key)) {
-                            const temp = value.filter(d => d <= imgIdx);
-                            if (temp.length > 0) {
-                                temp.length === 1 ? tempPathData.push([trkIDToErrPathMap.get(key)[i][0]])
-                                    : tempPathData.push(trkIDToErrPathMap.get(key)[i])
-                            }
-                            i++;
-                        }
-                        pathData.push(tempPathData);
-                    }
-                }
-                for (let i = 0; i < pathData.length; i++) {
-                    let group = errLinkGroup.select(`#TrackID${idxToErrTrkIDArr[i]}`);
-                    if (group.empty()) group = errLinkGroup.append("g").attr("id", `TrackID${idxToErrTrkIDArr[i]}`);
-                    const circles = group.selectAll("circle")
-                        .data(pathData[i])
-                        .attr("cx", d => d[0] ? d[0][0] : undefined)
-                        .attr("cy", d => d[0] ? d[0][1] : undefined)
-                        .attr("r", d => d[0] ? errLinkCircleRadius : undefined)
-                        .attr("fill", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
-                            ? "none" : errLinkColor);
-                    circles.exit()
-                        .attr("r", undefined);
-                    circles.enter()
-                        .append("circle")
-                        .attr("class", (d, ii) => `${idxToErrTrkIDArr[i]}-${ii}`)
-                        .attr("cx", d => d[0] ? d[0][0] : undefined)
-                        .attr("cy", d => d[0] ? d[0][1] : undefined)
-                        .attr("r", d => d[0] ? errLinkCircleRadius : undefined)
-                        .attr("opacity", defOpacity)
-                        .attr("fill", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
-                            ? "none" : errLinkColor)
-                        .on("mouseover", highlightErrorLinkWhenMouseover)
-                        .on("mouseout", unhighlightErrorLinkWhenMouseout)
-                        .on("click", selectErrorLinkWhenClick);
-                    const paths = group.selectAll("path")
-                        .data(pathData[i])
-                        .attr("d", d => d3.line()(d))
-                        .attr("stroke", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
-                            ? undefined : errLinkColor);
-                    paths.exit()
-                        .attr("d", undefined);
-                    paths.enter()
-                        .append("path")
-                        .attr("class", (d, ii) => `${idxToErrTrkIDArr[i]}-${ii}`)
-                        .attr("d", d => d3.line()(d))
-                        .attr("fill", "none")
-                        .attr("stroke", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
-                            ? undefined : errLinkColor)
-                        .attr("opacity", defOpacity)
-                        .attr("stroke-width", trkWidth)
-                        .on("mouseover", highlightErrorLinkWhenMouseover)
-                        .on("mouseout", unhighlightErrorLinkWhenMouseout)
-                        .on("click", selectErrorLinkWhenClick);
-                }
-            
-                if (isAnErrorLinkSelected()) {
-                    const classInfo = getCollectionByClassName(classNameOfSelectedErrorLink)[0].attributes.class.value.split("-");
-                    const tempID = +classInfo[0];
-                    const tempTrk = trkDataSortedByTrkID.find(d => d[0].trkID === tempID).filter(d => d.imgIdx <= imgIdx)
-                    const tempPathData = [[], []];
-                    for (const point of tempTrk) {
-                        point.imgIdx <= trkIDToErrImgIdxMap.get(tempID)[classInfo[1]][0] ? tempPathData[0].push([point.x, point.y])
-                            : tempPathData[1].push([point.x, point.y])
-                    }
-                    tempPathData[1].unshift(trkIDToErrPathMap.get(tempID)[classInfo[1]][0]);
-                    const tempPath = trueTrkGroup.selectAll("path")
-                        .data(tempPathData)
-                        .attr("d", d => d3.line()(d))
-                    tempPath.exit()
-                        .attr("d", undefined)
-                    tempPath.enter()
-                        .append("path")
-                        .attr("d", d => d3.line()(d))
-                        .attr("fill", "none")
-                        .attr("stroke", (d, i) => i === 0 ? correctTrkColorBe4Err : correctTrkColorAfterErr)
-                        .attr("stroke-width", trkWidth)
-                }
-            }
-            return {
-                getImageIndex: getImageIndex,
-                setCollectionToDefaultOpacity: setCollectionToDefaultOpacity,
-                setCollectionToHighlightedOpacity: setCollectionToHighlightedOpacity,
-                getCollectionByClassName: getCollectionByClassName,
-                isAnErrorLinkSelected: isAnErrorLinkSelected,
-                isThisErrorLinkSelected : isThisErrorLinkSelected,
-                setSelectedErrorLink: setSelectedErrorLink,
-                unsetSelectedErrorLink: unsetSelectedErrorLink,
-                getSelectedErrorLink : getSelectedErrorLink,
-                updateTracking: updateTracking,
-                drawErrorLinksAndTracks: drawErrorLinksAndTracks,
-                reset: reset,
-                showAll: showAll
-            }
-        }();
+        var imgIdx = numImg-1
+        const imgSlider = d3.select("#image_slider")
+        .attr("max", numImg - 1);
 
-        const TreeClassNamePrefix = "TreeID";
-        const corrTreeBranchColor = "white";//"#6ef562";
-        const lineageSideLength = 575;
-        const defNumTreeInAPage = 20;
-        const treeHeight = lineageSideLength / defNumTreeInAPage;
-        const lineWidth = 3;
-        const initLineage = function() {
-            let trackIDOfClickedOnTreeBranch = undefined;
-            let trackIDOfSelectedTreeBranch = undefined;
-            let newTreeHeight;
-            let zmK;
-            let lineageZm = d3.zoom()
-                .on("zoom", d => strechTree(d));
-            lineageZm.scaleExtent([1, lineageSideLength / treeHeight / 2]);
-            const scaleZmTolineWidth = d3.scaleLinear()
-                .domain(lineageZm.scaleExtent());
-            const scaleIMGIdxToLineageWidth = d3.scaleLinear()
-                .domain([0, numImg - 1])
-                .range([0, lineageSideLength]);
-            scaleZmTolineWidth.range([lineWidth, Math.log(scaleZmTolineWidth.domain()[1] * lineWidth)]);
-            // function
-            const isATreeBranchSelected = () => trackIDOfSelectedTreeBranch !== undefined;
-            const isATreeBranchClickedOn = () => trackIDOfClickedOnTreeBranch !== undefined;
-            const isThisTreeBranchClickedOn = (trkID) => trackIDOfClickedOnTreeBranch === trkID;
-            const getErrorLinksByTrackID = (trkID) => document.querySelectorAll(`[class^="${trkID}-"]`);
-            const DoesThisTrackContainsError = (trkID) => trkIDToErrImgIdxMap.has(trkID);
-            const getNumberOfErrorInThisTrack = (trkID) => trkIDToErrImgIdxMap.get(trkID).length;
-            const setColorOfTreeBranchToSelected = (trkID) => {
-                treeGroup.select(`#${errLinkClassNamePrefix}${trkID}`).attr("stroke", errLinkColor);
-                // remove colored branch
-                treeGroup.select(`[stroke="${correctTrkColorAfterErr}"]`).remove();
-            }
-            const unsetColorOfTreeBranchToUnselected = (trkID) => {
-                treeGroup.select(`#${errLinkClassNamePrefix}${trkID}`)
-                    .attr("stroke", scaleColorByErrNum(getNumberOfErrorInThisTrack(trkID)));
-                // remove colored branch
-                treeGroup.select(`[stroke="${correctTrkColorAfterErr}"]`).remove();
-            }
-            const setSelectedTreeBranch = (trkID) => trackIDOfSelectedTreeBranch = trkID;
-            const unsetSelectedTreeBranch = () => trackIDOfSelectedTreeBranch = undefined;
-            const getSelectedTreeBranch = () => trackIDOfSelectedTreeBranch;
-            const setClickedOnTreeBranch = (trkID) => trackIDOfClickedOnTreeBranch = trkID;
-            const unsetClickedOnTreeBranch = () => trackIDOfClickedOnTreeBranch = undefined;
-            const getClickedOnTreeBranch = () => trackIDOfClickedOnTreeBranch;
-            const colorTreeBranch = (trkID, secID) => {
-                const path = treeGroup.select(`#TrackID${trkID}`)
-                    .attr("stroke", correctTrkColorBe4Err);
-                let pathD = path.attr("d")
-                pathD = pathD.split(",");
-                pathD[0] = pathD[0].replace("M", "");
-                pathD[1] = pathD[1].split("C");
-                const startPoint = [[+pathD[0]], [+pathD[1][0]]];
-                const endPoint = [[+pathD[pathD.length - 2]], [+pathD[pathD.length - 1]]];
-                const tempTrk = trkDataSortedByTrkID.find(d => d[0].trkID === trkID);
-                const percent = (trkIDToErrImgIdxMap.get(trkID)[secID][0] - tempTrk[0].imgIdx)
-                    / (tempTrk[tempTrk.length - 1].imgIdx - tempTrk[0].imgIdx);
-                const midPoint = [[(endPoint[0] - startPoint[0]) * percent + +startPoint[0]],
-                [(endPoint[1] - startPoint[1]) * percent + +startPoint[1]]];
-                d3.select(path.node().parentNode).append("path")
-                    .attr("d", d => d3.line()([midPoint, endPoint]))
-                    .attr("fill", "none")
-                    .attr("stroke", correctTrkColorAfterErr)
-                    .attr("stroke-width", lineWidth)
-            }
-            ////////////////// Selection ////////////////////
-            function selectTreeBranchWhenMouseover() {
-                if (!initTracking.isAnErrorLinkSelected()) {
-                    const trkID = +this.getAttribute("id").slice(errLinkClassNamePrefix.length);
-                    if (DoesThisTrackContainsError(trkID)) {
-                        setSelectedTreeBranch(trkID);
-                        setColorOfTreeBranchToSelected(trkID);
-                        if (isATreeBranchClickedOn() && !isThisTreeBranchClickedOn(trkID)) {
-                            unsetColorOfTreeBranchToUnselected(trackIDOfClickedOnTreeBranch);
-                        } 
-                        initTracking.drawErrorLinksAndTracks();
-                    }
+        const imgSliderLabel = d3.select("#image_slider_label");    
+        image_slider.value = imgIdx;
+        imgSliderLabel.text(`${imgIdx}`);
+
+        const size = 575;
+            
+        //Draw errors on top of the image
+        // set up the svg that will contain image and tracks
+        const imgSVG = d3.select("#tracking_svg")
+            .attr("width", size)
+            .attr("height", size)
+            .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`);
+
+        const plotSVG = d3.select("#errors_svg")
+            .attr("width", size)
+            .attr("height", size)
+        // image
+        const img = d3.select("#image")
+            .attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`)
+            .attr("width", resolutionSideLength)
+            .attr("height", resolutionSideLength);
+
+
+
+        function updateTracksOnImage(track, id, obj){
+            //update errors in image
+
+            if(id == -1){
+                //here we have selected a full track and we visualize all the errors commited in such track
+                //update plotSVG
+                imgSVG.attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`);
+                plotSVG.select(`#Track-${selectedTrack}`).attr('opacity', '0')
+                            
+                if(selectedTrack == track){
+                    selectedTrack = -1
+                    const circles = imgSVG.selectAll("circle")
+                                        .remove()
+
+                    const paths = imgSVG.selectAll("line")
+                                        .remove()
                 }
+                else{
+                    selectedTrack = track
+                    d3.select(obj).attr('opacity', '0.3')
+                }    
+
+                var circles = imgSVG.selectAll("circle")
+                                .data(trkData[selectedTrack]["ErrCoords"])
+                                .attr("cx", d => d[0])
+                                .attr("cy", d => d[1])
+
+                                circles.enter()
+                                    .append("circle")
+                                    .attr("cx", d => d[0])
+                                    .attr("cy", d => d[1])
+                                    .attr("r", d => errLinkCircleRadius)
+                                    .attr("fill", d => colorError);
+                                
+                                circles.exit()
+                                    .remove()
+                                
+                                var paths = imgSVG.selectAll("line")
+                                    .data(trkData[selectedTrack]["ErrCoords"])
+                                    .attr("x1", d => d[0])
+                                    .attr("y1", d => d[1])
+                                    .attr("x2", d => d[2])
+                                    .attr("y2", d => d[3])
+
+                                paths.enter()
+                                        .append("line")
+                                        .attr("x1", d => d[0])
+                                        .attr("y1", d => d[1])
+                                        .attr("x2", d => d[2])
+                                        .attr("y2", d => d[3])
+                                        .attr("stroke", colorError)
+                                        .attr("stroke-width", trkWidth)
+                                
+                                paths.exit()
+                                        .remove();
+
+            }
+            else{
+                //here we have selected a single error and we visualize the specific problem
+                console.log("id", id,"track", track)
+                console.log(trkData[track]["ErrCoords"].filter((d,i)=> i == id))
+                
+                var coords = trkData[track]["ErrCoords"].filter((d,i)=> i == id)[0]
+                var shift = 250
+                imgSVG.attr("viewBox", `${coords[0]-shift} ${coords[1]-shift} 500 500`);
+                
+                var circles = imgSVG.selectAll("circle")
+                                .data(trkData[track]["ErrCoords"].filter((d,i)=> i == id))
+                                .attr("cx", d => d[0])
+                                .attr("cy", d => d[1])
+
+                                circles.enter()
+                                    .append("circle")
+                                    .attr("cx", d => d[0])
+                                    .attr("cy", d => d[1])
+                                    .attr("r", d => errLinkCircleRadius)
+                                    .attr("fill", d => colorError);
+
+                                circles.exit()
+                                    .remove()
+
+
+                var paths = imgSVG.selectAll("line")
+                                    .data(trkData[track]["ErrCoords"].filter((d,i)=> i == id))
+                                    .attr("x1", d => d[0])
+                                    .attr("y1", d => d[1])
+                                    .attr("x2", d => d[2])
+                                    .attr("y2", d => d[3])
+
+                                paths.enter()
+                                        .append("line")
+                                        .attr("x1", d => d[0])
+                                        .attr("y1", d => d[1])
+                                        .attr("x2", d => d[2])
+                                        .attr("y2", d => d[3])
+                                        .attr("stroke", colorError)
+                                        .attr("stroke-width", trkWidth)
+                                
+                                paths.exit()
+                                        .remove();
+
+                //YOUR OLD CODE
+                // const classInfo = getCollectionByClassName(classNameOfSelectedErrorLink)[0].attributes.class.value.split("-");
+                // const tempID = +classInfo[0];
+                // const tempTrk = trkDataSortedByTrkID.find(d => d[0].trkID === tempID).filter(d => d.imgIdx <= imgIdx)
+                // const tempPathData = [[], []];
+                // for (const point of tempTrk) {
+                //     point.imgIdx <= trkIDToErrImgIdxMap.get(tempID)[classInfo[1]][0] ? tempPathData[0].push([point.x, point.y])
+                //         : tempPathData[1].push([point.x, point.y])
+                // }
+                // tempPathData[1].unshift(trkIDToErrPathMap.get(tempID)[classInfo[1]][0]);
+                // const tempPath = trueTrkGroup.selectAll("path")
+                //     .data(tempPathData)
+                //     .attr("d", d => d3.line()(d))
+                // tempPath.exit()
+                //     .attr("d", undefined)
+                // tempPath.enter()
+                //     .append("path")
+                //     .attr("d", d => d3.line()(d))
+                //     .attr("fill", "none")
+                //     .attr("stroke", colorTrackInImage)
+                //     .style("stroke-dasharray", (d, i) => i === 0 ? ("14, 10") : "none")
+                //     .attr("stroke-width", trkWidth)
+
             }
             
-            function unselectTreeBranchWhenMouseout() {
-                if (!initTracking.isAnErrorLinkSelected()) {
-                    const trkID = +this.getAttribute("id").slice(errLinkClassNamePrefix.length);
-                    if (DoesThisTrackContainsError(trkID)) {
-                        setSelectedTreeBranch(trackIDOfClickedOnTreeBranch);
-                        if (isATreeBranchClickedOn()) setColorOfTreeBranchToSelected(trackIDOfClickedOnTreeBranch);
-                        if (!isThisTreeBranchClickedOn(trkID)) unsetColorOfTreeBranchToUnselected(trkID);
-                        initTracking.drawErrorLinksAndTracks();
-                    }
-                }
-            }
-            
-            function selectTreeBranchWhenClickedOn() {
-                const trkID = +this.getAttribute("id").slice(errLinkClassNamePrefix.length);
-                if (DoesThisTrackContainsError(trkID) && !initTracking.isAnErrorLinkSelected()) {
-                    if (isThisTreeBranchClickedOn(trkID)) {
-                        unsetClickedOnTreeBranch();
-                        unsetSelectedTreeBranch();
-                        unsetColorOfTreeBranchToUnselected(trkID);
-                        initTracking.updateTracking(initTracking.getImageIndex());
-                    } else {
-                        setSelectedTreeBranch(trkID)
-                        setClickedOnTreeBranch(trkID);
-                        setColorOfTreeBranchToSelected(trkID);
-                        // once clicked, jump to the image index that all the error links in the tree branch have occured
-                        // if it greater than current image index
-                        const tempIdx = +trkIDToErrImgIdxMap.get(trkID)[trkIDToErrImgIdxMap.get(trkID).length - 1][1];
-                        initTracking.updateTracking(tempIdx > initTracking.getImageIndex() ? tempIdx : initTracking.getImageIndex());
-                    }
-                }
-            }
-            ///////////////// lineage tree zoom ////////////////
-            function strechTree(zm) {
-                if (zm.transform.k != zmK) {
-                    zmK = zm.transform.k;
-                    for (let i = 0; i < numTree; i++) {
-                        newTreeHeight = zm.transform.k * treeHeight;
-                        links[i] = d3.tree().size([newTreeHeight, treeWidthArr[i]])(roots[i]).links();
-                        treeGroupArr[i].attr("transform", `translate(0, ${i * newTreeHeight})`);
-                        treeGroupArr[i]
-                            .selectAll("path")
-                            .data(links[i])
-                            .attr("d", linkHorizontal)
-                            .attr("stroke-width", scaleZmTolineWidth(zm.transform.k));
-                    }
-                    // zooming the colored tree branch
-                    if (initTracking.isAnErrorLinkSelected()) {
-                        treeGroup.select(`[stroke="${correctTrkColorAfterErr}"]`).remove();
-                        const classInfo = initTracking.getSelectedErrorLink().split("-");
-                        colorTreeBranch(+classInfo[0], +classInfo[1]);
-                    }
-            
-                    lineageSVG.attr("height", newTreeHeight * numTree)
-                }
-            }
-            ////////////////// lineage ////////////////////
-            const findMaxNumberOfErrorLink = () => {
-                let tempArr = [];
-                for (const value of trkIDToErrImgIdxMap.values()) {
-                    tempArr.push(value.length)
-                }
-                return Math.max(...tempArr)
-            }
-            const scaleColorByErrNum = d3.scaleLinear()
-                .domain([0, findMaxNumberOfErrorLink()])
-                .range(["white", "black"]);
-            const lineageSVG = d3.select("#lineage_svg")
-                .attr("width", lineageSideLength)
-                .attr("height", treeHeight * numTree);
-            /*    .call(lineageZm);*/
-            const treeGroup = d3.select("#lineage");
-            const links = [];
-            const roots = [];
-            const getLastAppearIdx = (root) => {
-                last = root.intvlOfExist[1];
-                let temp = [];
-                root.children[0].children
-                    .forEach(d => {
-                        temp.push(getLastAppearIdx(d));
-                    })
-                last = Math.max(last, ...temp);
-                return last;
-            }
-            // function that customize the tree by changing depth value
-            const setRootDepth = (root) => {
-                root.depth = inheritanceData.find(d => d.trkID === root.data.trkID).intvlOfExist[0];
-                root.children[0].depth = inheritanceData.find(d => d.trkID === root.data.trkID).intvlOfExist[1] + 1;
-                root.children[0].children
-                    ?.forEach(d => {
-                        setRootDepth(d);
-                    })
-            }
-            
-            const getInheritanceData = (idxToTrkIDArr) => {
-                const retData = [];
-                for (let i = 0; i < idxToTrkIDArr.length; i++) {
-                    let tempTrk = trkData.filter(d => d.trkID === idxToTrkIDArr[i]);
-                    retData[i] = new Object();
-                    // ID
-                    retData[i].treeID = tempTrk[0].treeID;
-                    retData[i].trkID = tempTrk[0].trkID;
-                    retData[i].parentTrkID = tempTrk[0].parentTrkID;
-                    // it is done to prevent the tree from branching at the very start
-                    retData[i].children = [new Object()];
-                    retData[i].children[0].children = [];
-                    // interval of existence
-                    retData[i].intvlOfExist = [tempTrk[0].imgIdx, tempTrk[tempTrk.length - 1].imgIdx];
-                    // if tempTrk is a child of other trk, assign tempTrk as a child to its parent track
-                    try {
-                        if (tempTrk[0].parentTrkID > 0) {
-                            let temp = idxToTrkIDArr.indexOf(tempTrk[0].parentTrkID);
-                            // check if tempTrk is already a child of its parent track
-                            if (!retData[temp].children[0].children.includes(retData[i])) {
-                                retData[temp].children[0].children.push(retData[i]);
-                            }
-                        }
-                    } catch {
-                        console.log(`The track ${tempTrk[0].trkID} ` + 
-                            `has a non-exist parent track of ${tempTrk[0].parentTrkID} ` +
-                            `(tree id: ${tempTrk[0].treeID})`);
-                    }
-                }
-                return retData;
-            }
-            let tempInheritanceData = getInheritanceData(idxToTrkIDWithErrArr);
-            const inheritanceData = tempInheritanceData.concat(getInheritanceData(idxToTrkIDNoErrArr));
-            // sort the trees by the number of error links each contains
-            idxToTreeIDWithErrArr.sort((a, b) => {
-                const tree1 = trkData.filter(d => d.treeID === a);
-                const trkIDArrOfT1 = [];
-                tree1.forEach(d => {
-                    if (!trkIDArrOfT1.includes(d.trkID)) trkIDArrOfT1.push(d.trkID);
-                })
-                const tree2 = trkData.filter(d => d.treeID === b);
-                const trkIDArrOfT2 = [];
-                tree2.forEach(d => {
-                    if (!trkIDArrOfT2.includes(d.trkID)) trkIDArrOfT2.push(d.trkID);
-                })
-                let val1 = 0;
-                trkIDArrOfT1.forEach(d => val1 += DoesThisTrackContainsError(d) ? getNumberOfErrorInThisTrack(d) : 0);
-                let val2 = 0;
-                trkIDArrOfT2.forEach(d => val2 += DoesThisTrackContainsError(d) ? getNumberOfErrorInThisTrack(d) : 0);
-            
-                return val2 - val1;
+        }
+
+
+
+
+        const xScale = d3.scaleBand()
+                         .domain([...Array(numImg).keys()])
+                         .range([0,size])
+                         .padding(0.1)
+
+        const yScale = d3.scaleBand()
+                         .domain(Object.keys(trkData))
+                         .range([size,0])
+                         .padding(0.1)
+
+        plotSVG.append("line")
+                .attr("id", "indexRef")
+                .attr("x1", d => xScale(imgIdx))
+                .attr("y1", d => 0)
+                .attr("x2", d => xScale(imgIdx))
+                .attr("y2", d => size)
+                .attr("stroke", d => colorError)
+                .attr("opacity", 0.3)
+                .attr("stroke-width", 1);
+
+
+        plotSVG.selectAll("rect")
+            .data(Object.keys(trkData))
+            .enter()
+            .append("rect")
+            .attr("id", d => `Track-${d}`)
+            .attr("x", d => 0)
+            .attr("y", d => yScale(d))
+            .attr("width", size)
+            .attr("height", xScale.bandwidth()*3.5)
+            .attr("opacity", 0)
+            .attr("fill", "#69b3a2")
+            .on("mouseover", function (event, d) {d3.select(this).attr('opacity', '0.3')})
+            .on("mouseout", function (event, d) {if(selectedTrack!=d) d3.select(this).attr('opacity', '0')})
+            .on("click", function (event, track) {
+                            
+                            updateTracksOnImage(track, -1, this)
+
             })
-            // set up roots and links
-            const treeWidthArr = [];
-            for (let i = 0; i < numTreeWithErr; i++) {
-                try {
-                    // get root track info
-                    let tempTrack = inheritanceData.find(d => d.treeID === idxToTreeIDWithErrArr[i] && d.parentTrkID === 0);
-                    // set width of the tree to the lineage point of last appear frame
-                    treeWidthArr[i] = scaleIMGIdxToLineageWidth(getLastAppearIdx(tempTrack));
-                    let treeLayout = d3.tree().size([treeHeight, treeWidthArr[i]]);
-                    // set root
-                    roots[i] = d3.hierarchy(tempTrack);
-                    // customize the tree
-                    setRootDepth(roots[i]);
-                    // generate link
-                    links[i] = treeLayout(roots[i]).links();
-                } catch {
-                    console.log(`Failed to compute tree ${idxToTreeIDWithErrArr[i]}`)
-                }
-            }
-            for (let i = numTreeWithErr; i < numTree; i++) {
-                try {
-                    // get root track info
-                    let tempTrack = inheritanceData.find(d => d.treeID === idxToTreeIDNoErrArr[i - numTreeWithErr] && d.parentTrkID === 0);
-                    // set width of the tree to the lineage point of last appear frame
-                    treeWidthArr[i] = scaleIMGIdxToLineageWidth(getLastAppearIdx(tempTrack));
-                    let treeLayout = d3.tree().size([treeHeight, treeWidthArr[i]]);
-                    // set root
-                    roots[i] = d3.hierarchy(tempTrack);
-                    // customize the tree
-                    setRootDepth(roots[i]);
-                    // generate link
-                    links[i] = treeLayout(roots[i]).links();
-                } catch {
-                    console.log(`Failed to compute tree ${idxToTreeIDNoErrArr[i - numTreeWithErr]}`)
-                }
-            }
-            const linkHorizontal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
-            const treeGroupArr = [];
-            // draw trees using information from links
-            const drawTrees = function() {
-                for (let i = 0; i < links.length; i++) {
-                    try {
-                        treeGroupArr[i] = treeGroup.append("g")
-                            .attr("id", `TreeID${links[i][0].source.data.treeID}`)
-                            .attr("transform", `translate(0, ${i * treeHeight})`);
-                        treeGroupArr[i]
-                            .selectAll("path")
-                            .data(links[i])
-                            .enter()
-                            .append("path")
-                            .attr("id", d => `TrackID${d.source.data.trkID}`)
-                            .attr("d", linkHorizontal)
-                            .attr("fill", "none")
-                            .attr("stroke", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ?
-                                scaleColorByErrNum(trkIDToErrImgIdxMap.get(+d.source.data.trkID)?.length)
-                                : corrTreeBranchColor)
-                            .attr("stroke-width", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ? lineWidth : 2)
-                            .style("stroke-dasharray", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ? "none" : ("5,2"))
-                            .on("mouseover", selectTreeBranchWhenMouseover)
-                            .on("mouseout", unselectTreeBranchWhenMouseout)
-                            .on("click", selectTreeBranchWhenClickedOn);
-                    } catch {
-                        console.log("Failed to build tree " + 
-                        `${(i < numTreeWithErr) ? idxToTreeIDWithErrArr[i] : idxToTreeIDNoErrArr[i - numTreeWithErr]}`);
-                    }
-                }
-            }()
-            return {
-                isATreeBranchSelected: isATreeBranchSelected,
-                isATreeBranchClickedOn: isATreeBranchClickedOn,
-                isThisTreeBranchClickedOn: isThisTreeBranchClickedOn,
-                getErrorLinksByTrackID: getErrorLinksByTrackID,
-                DoesThisTrackContainsError: DoesThisTrackContainsError,
-                getNumberOfErrorInThisTrack: getNumberOfErrorInThisTrack,
-                setColorOfTreeBranchToSelected: setColorOfTreeBranchToSelected,
-                unsetColorOfTreeBranchToUnselected: unsetColorOfTreeBranchToUnselected,
-                setSelectedTreeBranch: setSelectedTreeBranch,
-                unsetSelectedTreeBranch: unsetSelectedTreeBranch,
-                getSelectedTreeBranch: getSelectedTreeBranch,
-                setClickedOnTreeBranch: setClickedOnTreeBranch,
-                unsetClickedOnTreeBranch: unsetClickedOnTreeBranch,
-                getClickedOnTreeBranch: getClickedOnTreeBranch,
-                colorTreeBranch: colorTreeBranch
-            }
-        }()
-        
+
+    
+        for (const key of Object.keys(trkData)) {
+            
+            var gPlot = plotSVG.append("g").attr("id",`plotErr-${key}`)
+            const boxes = gPlot.selectAll("rect")
+                                .data(trkData[key]["ErrTime"])
+                                .enter()
+                                .append("rect")
+                                .attr("id",(d,i) => `${key}-${i}`)
+                                .attr("x", d => xScale(d[0]))
+                                .attr("y", d => yScale(key))
+                                .attr("width", xScale.bandwidth()*3)
+                                .attr("height", xScale.bandwidth()*3)
+                                .attr('stroke', 'red')
+                                .attr('stroke-width', 0)
+                                .attr("fill", "#69b3a2")
+                                .on("mouseover", function (event, d) {d3.select(this).attr('stroke-width', 1)})
+                                .on("mouseout", function (event, d) {if(selectedTrack!=d) d3.select(this).attr('stroke-width', 0)})
+                                .on("click", function (event, time) {
+                                    var idStr = this.id.split("-")
+                                    var track = +idStr[0]
+                                    var id = +idStr[1]
+
+                                    updateTracking(+time[1])
+                                    updateTracksOnImage(track, id)
+
+                                })
+        }
+
+
+
+
+        const updateTracking = (newIdx) => {
+            imgIdx = newIdx;
+            img.attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`);
+            
+            // set slider
+            image_slider.value = newIdx;
+            imgSliderLabel.text(`${imgIdx}`);
+
+            plotSVG.select("line")
+                    .attr("x1", d => xScale(imgIdx))
+                    .attr("x2", d => xScale(imgIdx))
+
+            imgSVG.selectAll("circle")
+            
+        }
+
         return {
-            initTracking: initTracking,
+            // getImageIndex: getImageIndex,
+            // setCollectionToDefaultOpacity: setCollectionToDefaultOpacity,
+            // setCollectionToHighlightedOpacity: setCollectionToHighlightedOpacity,
+            // getCollectionByClassName: getCollectionByClassName,
+            // isAnErrorLinkSelected: isAnErrorLinkSelected,
+            // isThisErrorLinkSelected : isThisErrorLinkSelected,
+            // setSelectedErrorLink: setSelectedErrorLink,
+            // unsetSelectedErrorLink: unsetSelectedErrorLink,
+            // getSelectedErrorLink : getSelectedErrorLink,
+            updateTracking: updateTracking,
+            // drawErrorLinksAndTracks: drawErrorLinksAndTracks,
+            // reset: reset,
+            // showAll: showAll
         }
     }
+
+
+
+        
+                
+            
+                // for (let i = 0; i < pathData.length; i++) {
+                //                 let group = errLinkGroup.select(`#TrackID${idxToErrTrkIDArr[i]}`);
+                //                 if (group.empty()) group = errLinkGroup.append("g").attr("id", `TrackID${idxToErrTrkIDArr[i]}`);
+                                
+                //                 const circles = group.selectAll("circle")
+                //                     .data(pathData[i])
+                //                     .attr("cx", d => d[0][0])
+                //                     .attr("cy", d => d[0][1])
+                //                     .attr("r", d => errLinkCircleRadius)
+                //                     .attr("fill", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
+                //                         ? "none" : colorError);
+                                
+                //                 circles.exit()
+                //                     .attr("opacity", 0);
+                                
+                //                 circles.enter()
+                //                     .append("circle")
+                //                     .attr("class", (d, ii) => `TrackId-${idxToErrTrkIDArr[i]}`)
+                //                     .attr("cx", d => d[0][0])
+                //                     .attr("cy", d => d[0][1])
+                //                     .attr("r", d => errLinkCircleRadius)
+                //                     .attr("opacity", defOpacity)
+                //                     .attr("fill", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
+                //                         ? "none" : colorError)
+                //                     .on("mouseover", highlightErrorLinkWhenMouseover)
+                //                     .on("mouseout",  unhighlightErrorLinkWhenMouseout)
+                //                     .on("click", selectErrorLinkWhenClick);
+                                
+                //                 const paths = group.selectAll("path")
+                //                     .data(pathData[i])
+                //                     .attr("d", d => d3.line()(d))
+                //                     .attr("stroke", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
+                //                         ? undefined : colorError);
+                                
+                //                 paths.exit()
+                //                     .attr("opacity", 0);
+                                
+                //                 paths.enter()
+                //                     .append("path")
+                //                     .attr("class", (d, ii) => `TrackId-${idxToErrTrkIDArr[i]}`)
+                //                     .attr("d", d => d3.line()(d))
+                //                     .attr("fill", "none")
+                //                     .attr("stroke", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
+                //                         ? undefined : colorError)
+                //                     .attr("opacity", defOpacity)
+                //                     .attr("stroke-width", trkWidth)
+                //                     .on("mouseover", highlightErrorLinkWhenMouseover)
+                //                     .on("mouseout", unhighlightErrorLinkWhenMouseout)
+                //                     .on("click", selectErrorLinkWhenClick);
+        
+        // 
+
+        // 
+        // const trkDataSortedByTrkID = singleFOVViewData.trkDataSortedByTrkID;
+        
+        // const trkData = singleFOVViewData.trkData;
+
+        // let idxToTreeIDWithErrArr = [];
+        // for (const key of trkIDToErrImgIdxMap.keys()) {
+        //     let tempTreeID = trkData.find(d => d.trkID === key).treeID;
+        //     if (!idxToTreeIDWithErrArr.includes(tempTreeID)) idxToTreeIDWithErrArr.push(tempTreeID);
+        // }
+        
+        // const idxToTrkIDWithErrArr = singleFOVViewData.idxToTrkIDArr.filter((d => idxToTreeIDWithErrArr.includes(trkData.find(d2 => d2.trkID === d).treeID)));
+        // const idxToErrTrkIDArr = singleFOVViewData.idxToTrkIDArr.filter(d => trkIDToErrImgIdxMap.has(d));
+        // idxToTreeIDWithErrArr = idxToTreeIDWithErrArr.filter(d => d !== undefined);
+        // const idxToTreeIDNoErrArr = singleFOVViewData.idxToTreeIDArr.filter(d => !idxToTreeIDWithErrArr.includes(d));
+        // const idxToTrkIDNoErrArr = singleFOVViewData.idxToTrkIDArr.filter(d => !idxToTrkIDWithErrArr.includes(d))
+
+        // const numTrkWithErr = idxToTrkIDWithErrArr.length;
+        // const numTrkNoErr = idxToTrkIDNoErrArr.length;
+        // const numTreeWithErr = idxToTreeIDWithErrArr.length;
+        // const numTreeNoErr = idxToTreeIDNoErrArr.length;
+        // const numTree = numTreeWithErr + numTreeNoErr;
+
+        // const colorTrackInImage = "black";
+        // const colorTrackInLinage = "black";
+        // const colorError = colorScale(algArr.indexOf(alg));
+
+        // const defOpacity = 0.5;
+        // const highlightedOpacity = 1;
+        // const errLinkCircleRadius = trkWidth * 1.5;
+        // // const correctTrkColorBe4Err = "black";//#6ef562";
+        // // const correctTrkColorAfterErr = "black";
+        // const errLinkClassNamePrefix = "TrackID";
+        // // const errLinkColor = colorScale(algArr.indexOf(alg));
+        // const initTracking = function() {
+        //     let classNameOfSelectedErrorLink = undefined;
+        //     let imgIdxBe4SelectErrLink = undefined;
+        //     let imgIdx = 0;
+        //     // functions
+        //     const getImageIndex = () => imgIdx;
+        //     const setCollectionToDefaultOpacity = (htmlCollection) => {
+        //         for (const item of htmlCollection) {
+        //             item.setAttribute("opacity", defOpacity);
+        //         }
+        //     }
+        //     const setCollectionToHighlightedOpacity = (htmlCollection) => {
+        //         for (const item of htmlCollection) {
+        //             item.setAttribute("opacity", highlightedOpacity);
+        //         }
+        //     }
+        //     const getCollectionByClassName = (className) => document.getElementsByClassName(className);
+        //     const isAnErrorLinkSelected = () => classNameOfSelectedErrorLink !== undefined;
+        //     const isThisErrorLinkSelected = (className) => classNameOfSelectedErrorLink === className;
+        //     const setSelectedErrorLink = (className) => classNameOfSelectedErrorLink = className;
+        //     const unsetSelectedErrorLink = () => classNameOfSelectedErrorLink = undefined;
+        //     const getSelectedErrorLink = () => classNameOfSelectedErrorLink;
+        //     const updateTracking = (newIdx) => {
+        //         imgIdx = newIdx;
+        //         img.attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`);
+        //         // set slider
+        //         image_slider.value = newIdx;
+        //         imgSliderLabel.text(`${imgIdx}`);
+        //         // set error links and tracks
+        //         drawErrorLinksAndTracks();
+        //     }
+        //     const removeTrueTrack = () => trueTrkGroup.selectAll("path").remove();
+        //     const reset = () => {
+        //         if (isAnErrorLinkSelected()) {
+        //             setCollectionToDefaultOpacity(getCollectionByClassName(classNameOfSelectedErrorLink))
+        //             initLineage.unsetColorOfTreeBranchToUnselected(+classNameOfSelectedErrorLink.split("-")[0]);
+        //             unsetSelectedErrorLink();
+        //         }
+        //         if (initLineage.isATreeBranchSelected()) {
+        //             initLineage.unsetColorOfTreeBranchToUnselected(initLineage.getSelectedTreeBranch());
+        //             initLineage.unsetSelectedTreeBranch();
+        //             initLineage.unsetClickedOnTreeBranch();
+        //         }
+        //         removeTrueTrack();
+        //         updateTracking(0);
+        //     }
+        //     const showAll = () => {
+        //         reset();
+        //         updateTracking(numImg - 1);
+        //     }
+        //     ////////////////// Selection ////////////////////
+        //     function highlightErrorLinkWhenMouseover() {
+        //         const className = this.getAttribute("class");
+        //         if (!isThisErrorLinkSelected(className)) {
+        //             setCollectionToHighlightedOpacity(getCollectionByClassName(className))
+        //             initLineage.setColorOfTreeBranchToSelected(+className.split("-")[0])
+        //         }
+        //     }
+        //     function unhighlightErrorLinkWhenMouseout() {
+        //         const className = this.getAttribute("class");
+        //         if (!isThisErrorLinkSelected(className)) {
+        //             setCollectionToDefaultOpacity(getCollectionByClassName(className))
+        //             const trkID = +className.split("-")[0]
+        //             if (!initLineage.isThisTreeBranchClickedOn(trkID)) initLineage.unsetColorOfTreeBranchToUnselected(trkID)
+        //         }
+        //     }
+        //     function selectErrorLinkWhenClick() {
+        //         const className = this.getAttribute("class");
+        //         const collection = getCollectionByClassName(className);
+        //         const trkID = +className.split("-")[0];
+        //         const secID = +className.split("-")[1];
+        //         if (isThisErrorLinkSelected(className)) {
+        //             unsetSelectedErrorLink();
+        //             removeTrueTrack();
+        //             if (initLineage.isATreeBranchClickedOn()) initLineage.setColorOfTreeBranchToSelected(initLineage.getClickedOnTreeBranch());
+        //             else initLineage.unsetColorOfTreeBranchToUnselected(trkID);
+        //             updateTracking(imgIdxBe4SelectErrLink);
+        //         } else {
+        //             setSelectedErrorLink(className)
+        //             setCollectionToHighlightedOpacity(collection)
+        //             imgIdxBe4SelectErrLink = imgIdx;
+        //             updateTracking(+trkIDToErrImgIdxMap.get(trkID)[secID][1]);
+        //             initLineage.colorTreeBranch(trkID, secID);
+        //         }
+        //     }
+        //     ////////////////// tracking ////////////////////
+        //     const imgSlider = d3.select("#image_slider")
+        //         .attr("max", numImg - 1);
+        //     const imgSliderLabel = d3.select("#image_slider_label");
+        //     const sVGSideLength = 575;
+        //     // set up the svg that will contain image and tracks
+        //     const imgSVG = d3.select("#tracking_svg")
+        //         .attr("width", sVGSideLength)
+        //         .attr("height", sVGSideLength)
+        //         .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`);
+        //     // image
+        //     const img = d3.select("#image")
+        //         .attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`)
+        //         .attr("width", resolutionSideLength)
+        //         .attr("height", resolutionSideLength);
+        //     // error track 
+        //     const errLinkGroup = d3.select("#error_link");
+        //     const trueTrkGroup = d3.select("#true_track");
+
+        //     console.log(trkIDToErrImgIdxMap)
+        //     console.log(trkIDToErrPathMap)
+
+        //     const errByTrack = {}
+
+
+
+
+        //     const drawErrorLinksAndTracks = () => {
+                
+        //     const pathData = [];
+        //         // if (initLineage.isATreeBranchSelected()) {
+        //         //     for (const key of trkIDToErrImgIdxMap.keys()) {
+        //         //         let i = 0;
+        //         //         const tempPathData = [];
+        //         //         if (key === initLineage.getSelectedTreeBranch()) {
+        //         //             for (const value of trkIDToErrImgIdxMap.get(key)) {
+        //         //                 const temp = value.filter(d => d <= imgIdx);
+        //         //                 if (temp.length > 0) {
+        //         //                     temp.length === 1 ? tempPathData.push([trkIDToErrPathMap.get(key)[i][0]])
+        //         //                         : tempPathData.push(trkIDToErrPathMap.get(key)[i])
+        //         //                 }
+        //         //                 i++;
+        //         //             }
+        //         //         }
+        //         //         pathData.push(tempPathData);
+        //         //     }
+        //         // }
+        //         // else {
+        //             for (const key of trkIDToErrImgIdxMap.keys()) {
+        //                 let i = 0;
+        //                 const tempPathData = [];
+        //                 for (const value of trkIDToErrImgIdxMap.get(key)) {
+        //                     const temp = value.filter(d => d <= imgIdx);
+        //                     if (temp.length > 0) {
+        //                         temp.length === 1 ? tempPathData.push([trkIDToErrPathMap.get(key)[i][0]])
+        //                             : tempPathData.push(trkIDToErrPathMap.get(key)[i])
+        //                     }
+        //                     i++;
+        //                 }
+        //                 pathData.push(tempPathData);
+        //             // }
+        //         }
+                
+        //         console.log("oko", pathData)
+
+        //         for (let i = 0; i < pathData.length; i++) {
+        //             let group = errLinkGroup.select(`#TrackID${idxToErrTrkIDArr[i]}`);
+        //             if (group.empty()) group = errLinkGroup.append("g").attr("id", `TrackID${idxToErrTrkIDArr[i]}`);
+                    
+        //             const circles = group.selectAll("circle")
+        //                 .data(pathData[i])
+        //                 .attr("cx", d => d[0][0])
+        //                 .attr("cy", d => d[0][1])
+        //                 .attr("r", d => errLinkCircleRadius)
+        //                 .attr("fill", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
+        //                     ? "none" : colorError);
+                    
+        //             circles.exit()
+        //                 .attr("opacity", 0);
+                    
+        //             circles.enter()
+        //                 .append("circle")
+        //                 .attr("class", (d, ii) => `TrackId-${idxToErrTrkIDArr[i]}`)
+        //                 .attr("cx", d => d[0][0])
+        //                 .attr("cy", d => d[0][1])
+        //                 .attr("r", d => errLinkCircleRadius)
+        //                 .attr("opacity", defOpacity)
+        //                 .attr("fill", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
+        //                     ? "none" : colorError)
+        //                 .on("mouseover", highlightErrorLinkWhenMouseover)
+        //                 .on("mouseout",  unhighlightErrorLinkWhenMouseout)
+        //                 .on("click", selectErrorLinkWhenClick);
+                    
+        //             const paths = group.selectAll("path")
+        //                 .data(pathData[i])
+        //                 .attr("d", d => d3.line()(d))
+        //                 .attr("stroke", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
+        //                     ? undefined : colorError);
+                    
+        //             paths.exit()
+        //                 .attr("opacity", 0);
+                    
+        //             paths.enter()
+        //                 .append("path")
+        //                 .attr("class", (d, ii) => `TrackId-${idxToErrTrkIDArr[i]}`)
+        //                 .attr("d", d => d3.line()(d))
+        //                 .attr("fill", "none")
+        //                 .attr("stroke", (d, ii) => isAnErrorLinkSelected() && !isThisErrorLinkSelected(`${idxToErrTrkIDArr[i]}-${ii}`)
+        //                     ? undefined : colorError)
+        //                 .attr("opacity", defOpacity)
+        //                 .attr("stroke-width", trkWidth)
+        //                 .on("mouseover", highlightErrorLinkWhenMouseover)
+        //                 .on("mouseout", unhighlightErrorLinkWhenMouseout)
+        //                 .on("click", selectErrorLinkWhenClick);
+        //         }
+            
+        //         if (isAnErrorLinkSelected()) {
+        //             const classInfo = getCollectionByClassName(classNameOfSelectedErrorLink)[0].attributes.class.value.split("-");
+        //             const tempID = +classInfo[0];
+        //             const tempTrk = trkDataSortedByTrkID.find(d => d[0].trkID === tempID).filter(d => d.imgIdx <= imgIdx)
+        //             const tempPathData = [[], []];
+        //             for (const point of tempTrk) {
+        //                 point.imgIdx <= trkIDToErrImgIdxMap.get(tempID)[classInfo[1]][0] ? tempPathData[0].push([point.x, point.y])
+        //                     : tempPathData[1].push([point.x, point.y])
+        //             }
+        //             tempPathData[1].unshift(trkIDToErrPathMap.get(tempID)[classInfo[1]][0]);
+        //             const tempPath = trueTrkGroup.selectAll("path")
+        //                 .data(tempPathData)
+        //                 .attr("d", d => d3.line()(d))
+        //             tempPath.exit()
+        //                 .attr("d", undefined)
+        //             tempPath.enter()
+        //                 .append("path")
+        //                 .attr("d", d => d3.line()(d))
+        //                 .attr("fill", "none")
+        //                 .attr("stroke", colorTrackInImage)
+        //                 .style("stroke-dasharray", (d, i) => i === 0 ? ("14, 10") : "none")
+        //                 .attr("stroke-width", trkWidth)
+        //         }
+        //     }
+            
+        //     const size = 575;
+        //     const barSVG = d3.select("#lineage_svg")
+        //                     .attr("width", size)
+        //                     .attr("height", size);  
+            
+        //     const maxErrorPerTrack = d3.max(trkIDToErrImgIdxMap.values(), d => d.length)
+
+        //     var xScale = d3.scaleBand()
+        //                    .domain(trkIDToErrImgIdxMap.keys())
+        //                    .range([0,size])
+        //                    .padding(0.2)
+            
+        //     var yScale = d3.scaleLinear()
+        //                     .domain([0, maxErrorPerTrack])
+        //                     .range([size, 0])
+            
+        //     console.log(trkIDToErrImgIdxMap.size)
+        //     console.log(maxErrorPerTrack)
+        //     console.log(trkIDToErrImgIdxMap)
+
+        //     barSVG.append("g")
+        //         .selectAll("rect")
+        //         .data(trkIDToErrImgIdxMap)
+        //         .enter()
+        //         .append("rect")
+        //         .attr("x", d => xScale(d[0]))
+        //         .attr("y", d => yScale(d[1].length))
+        //         .attr("width", xScale.bandwidth())
+        //         .attr("height", d => size - yScale(d[1].length))
+        //         .attr("fill", "#69b3a2")
+        //         .on("mouseover", function (event, d) {
+        //                             console.log(this, d)
+        //                             d3.select(this).attr('fill', 'white')
+        //                             imgSVG.selectAll(`circle`).attr('opacity', 0)
+        //                             imgSVG.selectAll(`path`).attr('opacity', 0)
+        //                             imgSVG.selectAll(`.TrackId-${d[0]}`).attr('opacity', 0.5)
+        //                         })
+        //         .on("mouseout", function (d) {d3.select(this).attr('fill', '#69b3a2')})
+        //         .on("click", selectErrorLinkWhenClick);
+
+
+
+        //     return {
+        //         getImageIndex: getImageIndex,
+        //         setCollectionToDefaultOpacity: setCollectionToDefaultOpacity,
+        //         setCollectionToHighlightedOpacity: setCollectionToHighlightedOpacity,
+        //         getCollectionByClassName: getCollectionByClassName,
+        //         isAnErrorLinkSelected: isAnErrorLinkSelected,
+        //         isThisErrorLinkSelected : isThisErrorLinkSelected,
+        //         setSelectedErrorLink: setSelectedErrorLink,
+        //         unsetSelectedErrorLink: unsetSelectedErrorLink,
+        //         getSelectedErrorLink : getSelectedErrorLink,
+        //         updateTracking: updateTracking,
+        //         drawErrorLinksAndTracks: drawErrorLinksAndTracks,
+        //         reset: reset,
+        //         showAll: showAll
+        //     }
+        // }();
+
+
+        // const initTrackBarchart = function() {
+
+
+
+        // }
+
+
+
+
+
+        // const TreeClassNamePrefix = "TreeID";
+        // const corrTreeBranchColor = "white";//"#6ef562";
+        // const lineageSideLength = 575;
+        // const defNumTreeInAPage = 20;
+        // const treeHeight = lineageSideLength / defNumTreeInAPage;
+        // const lineWidth = 3;
+        // const initLineage = function() {
+        //     let trackIDOfClickedOnTreeBranch = undefined;
+        //     let trackIDOfSelectedTreeBranch = undefined;
+        //     let newTreeHeight;
+        //     let zmK;
+        //     let lineageZm = d3.zoom()
+        //         .on("zoom", d => strechTree(d));
+        //     lineageZm.scaleExtent([1, lineageSideLength / treeHeight / 2]);
+        //     const scaleZmTolineWidth = d3.scaleLinear()
+        //         .domain(lineageZm.scaleExtent());
+        //     const scaleIMGIdxToLineageWidth = d3.scaleLinear()
+        //         .domain([0, numImg - 1])
+        //         .range([0, lineageSideLength]);
+        //     scaleZmTolineWidth.range([lineWidth, Math.log(scaleZmTolineWidth.domain()[1] * lineWidth)]);
+        //     // function
+        //     const isATreeBranchSelected = () => trackIDOfSelectedTreeBranch !== undefined;
+        //     const isATreeBranchClickedOn = () => trackIDOfClickedOnTreeBranch !== undefined;
+        //     const isThisTreeBranchClickedOn = (trkID) => trackIDOfClickedOnTreeBranch === trkID;
+        //     const getErrorLinksByTrackID = (trkID) => document.querySelectorAll(`[class^="${trkID}-"]`);
+        //     const DoesThisTrackContainsError = (trkID) => trkIDToErrImgIdxMap.has(trkID);
+        //     const getNumberOfErrorInThisTrack = (trkID) => trkIDToErrImgIdxMap.get(trkID).length;
+        //     const setColorOfTreeBranchToSelected = (trkID) => {
+        //         treeGroup.select(`#${errLinkClassNamePrefix}${trkID}`).attr("stroke", "red");
+        //         // remove colored branch
+        //         treeGroup.select(`[stroke="${correctTrkColorAfterErr}"]`).remove();
+        //     }
+        //     const unsetColorOfTreeBranchToUnselected = (trkID) => {
+        //         treeGroup.select(`#${errLinkClassNamePrefix}${trkID}`)
+        //             .attr("stroke", colorScale(algArr.indexOf(alg)));
+        //         // remove colored branch
+        //         treeGroup.select(`[stroke="${correctTrkColorAfterErr}"]`).remove();
+        //     }
+        //     const setSelectedTreeBranch = (trkID) => trackIDOfSelectedTreeBranch = trkID;
+        //     const unsetSelectedTreeBranch = () => trackIDOfSelectedTreeBranch = undefined;
+        //     const getSelectedTreeBranch = () => trackIDOfSelectedTreeBranch;
+        //     const setClickedOnTreeBranch = (trkID) => trackIDOfClickedOnTreeBranch = trkID;
+        //     const unsetClickedOnTreeBranch = () => trackIDOfClickedOnTreeBranch = undefined;
+        //     const getClickedOnTreeBranch = () => trackIDOfClickedOnTreeBranch;
+        //     const colorTreeBranch = (trkID, secID) => {
+        //         const path = treeGroup.select(`#TrackID${trkID}`)
+        //             .attr("stroke", colorTrackInLinage);
+        //         let pathD = path.attr("d")
+        //         pathD = pathD.split(",");
+        //         pathD[0] = pathD[0].replace("M", "");
+        //         pathD[1] = pathD[1].split("C");
+        //         const startPoint = [[+pathD[0]], [+pathD[1][0]]];
+        //         const endPoint = [[+pathD[pathD.length - 2]], [+pathD[pathD.length - 1]]];
+        //         const tempTrk = trkDataSortedByTrkID.find(d => d[0].trkID === trkID);
+        //         const percent = (trkIDToErrImgIdxMap.get(trkID)[secID][0] - tempTrk[0].imgIdx)
+        //             / (tempTrk[tempTrk.length - 1].imgIdx - tempTrk[0].imgIdx);
+        //         const midPoint = [[(endPoint[0] - startPoint[0]) * percent + +startPoint[0]],
+        //         [(endPoint[1] - startPoint[1]) * percent + +startPoint[1]]];
+        //         d3.select(path.node().parentNode).append("path")
+        //             .attr("d", d => d3.line()([midPoint, endPoint]))
+        //             .attr("fill", "none")
+        //             .attr("stroke", colorTrackInLinage)
+        //             .attr("stroke-width", lineWidth)
+        //     }
+        //     ////////////////// Selection ////////////////////
+        //     function selectTreeBranchWhenMouseover() {
+        //         if (!initTracking.isAnErrorLinkSelected()) {
+        //             const trkID = +this.getAttribute("id").slice(errLinkClassNamePrefix.length);
+        //             if (DoesThisTrackContainsError(trkID)) {
+        //                 setSelectedTreeBranch(trkID);
+        //                 setColorOfTreeBranchToSelected(trkID);
+        //                 if (isATreeBranchClickedOn() && !isThisTreeBranchClickedOn(trkID)) {
+        //                     unsetColorOfTreeBranchToUnselected(trackIDOfClickedOnTreeBranch);
+        //                 } 
+        //                 initTracking.drawErrorLinksAndTracks();
+        //             }
+        //         }
+        //     }
+            
+        //     function unselectTreeBranchWhenMouseout() {
+        //         if (!initTracking.isAnErrorLinkSelected()) {
+        //             const trkID = +this.getAttribute("id").slice(errLinkClassNamePrefix.length);
+        //             if (DoesThisTrackContainsError(trkID)) {
+        //                 setSelectedTreeBranch(trackIDOfClickedOnTreeBranch);
+        //                 if (isATreeBranchClickedOn()) setColorOfTreeBranchToSelected(trackIDOfClickedOnTreeBranch);
+        //                 if (!isThisTreeBranchClickedOn(trkID)) unsetColorOfTreeBranchToUnselected(trkID);
+        //                 initTracking.drawErrorLinksAndTracks();
+        //             }
+        //         }
+        //     }
+            
+        //     function selectTreeBranchWhenClickedOn() {
+        //         const trkID = +this.getAttribute("id").slice(errLinkClassNamePrefix.length);
+        //         if (DoesThisTrackContainsError(trkID) && !initTracking.isAnErrorLinkSelected()) {
+        //             if (isThisTreeBranchClickedOn(trkID)) {
+        //                 unsetClickedOnTreeBranch();
+        //                 unsetSelectedTreeBranch();
+        //                 unsetColorOfTreeBranchToUnselected(trkID);
+        //                 initTracking.updateTracking(initTracking.getImageIndex());
+        //             } else {
+        //                 setSelectedTreeBranch(trkID)
+        //                 setClickedOnTreeBranch(trkID);
+        //                 setColorOfTreeBranchToSelected(trkID);
+        //                 // once clicked, jump to the image index that all the error links in the tree branch have occured
+        //                 // if it greater than current image index
+        //                 const tempIdx = +trkIDToErrImgIdxMap.get(trkID)[trkIDToErrImgIdxMap.get(trkID).length - 1][1];
+        //                 initTracking.updateTracking(tempIdx > initTracking.getImageIndex() ? tempIdx : initTracking.getImageIndex());
+        //             }
+        //         }
+        //     }
+        //     ///////////////// lineage tree zoom ////////////////
+        //     function strechTree(zm) {
+        //         if (zm.transform.k != zmK) {
+        //             zmK = zm.transform.k;
+        //             for (let i = 0; i < numTree; i++) {
+        //                 newTreeHeight = zm.transform.k * treeHeight;
+        //                 links[i] = d3.tree().size([newTreeHeight, treeWidthArr[i]])(roots[i]).links();
+        //                 treeGroupArr[i].attr("transform", `translate(0, ${i * newTreeHeight})`);
+        //                 treeGroupArr[i]
+        //                     .selectAll("path")
+        //                     .data(links[i])
+        //                     .attr("d", linkHorizontal)
+        //                     .attr("stroke-width", scaleZmTolineWidth(zm.transform.k));
+        //             }
+        //             // zooming the colored tree branch
+        //             if (initTracking.isAnErrorLinkSelected()) {
+        //                 treeGroup.select(`[stroke="${correctTrkColorAfterErr}"]`).remove();
+        //                 const classInfo = initTracking.getSelectedErrorLink().split("-");
+        //                 colorTreeBranch(+classInfo[0], +classInfo[1]);
+        //             }
+            
+        //             lineageSVG.attr("height", newTreeHeight * numTree)
+        //         }
+        //     }
+        //     ////////////////// lineage ////////////////////
+        //     const findMaxNumberOfErrorLink = () => {
+        //         let tempArr = [];
+        //         for (const value of trkIDToErrImgIdxMap.values()) {
+        //             tempArr.push(value.length)
+        //         }
+        //         return Math.max(...tempArr)
+        //     }
+        //     const scaleColorByErrNum = d3.scaleLinear()
+        //         .domain([0, findMaxNumberOfErrorLink()])
+        //         .range([0.1, 1]);
+
+        //     const lineageSVG = d3.select("#lineage_svg")
+        //         .attr("width", lineageSideLength)
+        //         .attr("height", treeHeight * numTree);
+        //     /*    .call(lineageZm);*/
+        //     const treeGroup = d3.select("#lineage");
+        //     const links = [];
+        //     const roots = [];
+        //     const getLastAppearIdx = (root) => {
+        //         last = root.intvlOfExist[1];
+        //         let temp = [];
+        //         root.children[0].children
+        //             .forEach(d => {
+        //                 temp.push(getLastAppearIdx(d));
+        //             })
+        //         last = Math.max(last, ...temp);
+        //         return last;
+        //     }
+        //     // function that customize the tree by changing depth value
+        //     const setRootDepth = (root) => {
+        //         root.depth = inheritanceData.find(d => d.trkID === root.data.trkID).intvlOfExist[0];
+        //         root.children[0].depth = inheritanceData.find(d => d.trkID === root.data.trkID).intvlOfExist[1] + 1;
+        //         root.children[0].children
+        //             ?.forEach(d => {
+        //                 setRootDepth(d);
+        //             })
+        //     }
+            
+        //     const getInheritanceData = (idxToTrkIDArr) => {
+        //         const retData = [];
+        //         for (let i = 0; i < idxToTrkIDArr.length; i++) {
+        //             let tempTrk = trkData.filter(d => d.trkID === idxToTrkIDArr[i]);
+        //             retData[i] = new Object();
+        //             // ID
+        //             retData[i].treeID = tempTrk[0].treeID;
+        //             retData[i].trkID = tempTrk[0].trkID;
+        //             retData[i].parentTrkID = tempTrk[0].parentTrkID;
+        //             // it is done to prevent the tree from branching at the very start
+        //             retData[i].children = [new Object()];
+        //             retData[i].children[0].children = [];
+        //             // interval of existence
+        //             retData[i].intvlOfExist = [tempTrk[0].imgIdx, tempTrk[tempTrk.length - 1].imgIdx];
+        //             // if tempTrk is a child of other trk, assign tempTrk as a child to its parent track
+        //             try {
+        //                 if (tempTrk[0].parentTrkID > 0) {
+        //                     let temp = idxToTrkIDArr.indexOf(tempTrk[0].parentTrkID);
+        //                     // check if tempTrk is already a child of its parent track
+        //                     if (!retData[temp].children[0].children.includes(retData[i])) {
+        //                         retData[temp].children[0].children.push(retData[i]);
+        //                     }
+        //                 }
+        //             } catch {
+        //                 console.log(`The track ${tempTrk[0].trkID} ` + 
+        //                     `has a non-exist parent track of ${tempTrk[0].parentTrkID} ` +
+        //                     `(tree id: ${tempTrk[0].treeID})`);
+        //             }
+        //         }
+        //         return retData;
+        //     }
+        //     let tempInheritanceData = getInheritanceData(idxToTrkIDWithErrArr);
+        //     const inheritanceData = tempInheritanceData.concat(getInheritanceData(idxToTrkIDNoErrArr));
+        //     // sort the trees by the number of error links each contains
+        //     idxToTreeIDWithErrArr.sort((a, b) => {
+        //         const tree1 = trkData.filter(d => d.treeID === a);
+        //         const trkIDArrOfT1 = [];
+        //         tree1.forEach(d => {
+        //             if (!trkIDArrOfT1.includes(d.trkID)) trkIDArrOfT1.push(d.trkID);
+        //         })
+        //         const tree2 = trkData.filter(d => d.treeID === b);
+        //         const trkIDArrOfT2 = [];
+        //         tree2.forEach(d => {
+        //             if (!trkIDArrOfT2.includes(d.trkID)) trkIDArrOfT2.push(d.trkID);
+        //         })
+        //         let val1 = 0;
+        //         trkIDArrOfT1.forEach(d => val1 += DoesThisTrackContainsError(d) ? getNumberOfErrorInThisTrack(d) : 0);
+        //         let val2 = 0;
+        //         trkIDArrOfT2.forEach(d => val2 += DoesThisTrackContainsError(d) ? getNumberOfErrorInThisTrack(d) : 0);
+            
+        //         return val2 - val1;
+        //     })
+        //     // set up roots and links
+        //     const treeWidthArr = [];
+        //     for (let i = 0; i < numTreeWithErr; i++) {
+        //         try {
+        //             // get root track info
+        //             let tempTrack = inheritanceData.find(d => d.treeID === idxToTreeIDWithErrArr[i] && d.parentTrkID === 0);
+        //             // set width of the tree to the lineage point of last appear frame
+        //             treeWidthArr[i] = scaleIMGIdxToLineageWidth(getLastAppearIdx(tempTrack));
+        //             let treeLayout = d3.tree().size([treeHeight, treeWidthArr[i]]);
+        //             // set root
+        //             roots[i] = d3.hierarchy(tempTrack);
+        //             // customize the tree
+        //             setRootDepth(roots[i]);
+        //             // generate link
+        //             links[i] = treeLayout(roots[i]).links();
+        //         } catch {
+        //             console.log(`Failed to compute tree ${idxToTreeIDWithErrArr[i]}`)
+        //         }
+        //     }
+        //     for (let i = numTreeWithErr; i < numTree; i++) {
+        //         try {
+        //             // get root track info
+        //             let tempTrack = inheritanceData.find(d => d.treeID === idxToTreeIDNoErrArr[i - numTreeWithErr] && d.parentTrkID === 0);
+        //             // set width of the tree to the lineage point of last appear frame
+        //             treeWidthArr[i] = scaleIMGIdxToLineageWidth(getLastAppearIdx(tempTrack));
+        //             let treeLayout = d3.tree().size([treeHeight, treeWidthArr[i]]);
+        //             // set root
+        //             roots[i] = d3.hierarchy(tempTrack);
+        //             // customize the tree
+        //             setRootDepth(roots[i]);
+        //             // generate link
+        //             links[i] = treeLayout(roots[i]).links();
+        //         } catch {
+        //             console.log(`Failed to compute tree ${idxToTreeIDNoErrArr[i - numTreeWithErr]}`)
+        //         }
+        //     }
+        //     const linkHorizontal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
+        //     const treeGroupArr = [];
+        //     // draw trees using information from links
+        //     const drawTrees = function() {
+        //         for (let i = 0; i < links.length; i++) {
+        //             try {
+        //                 treeGroupArr[i] = treeGroup.append("g")
+        //                     .attr("id", `TreeID${links[i][0].source.data.treeID}`)
+        //                     .attr("transform", `translate(0, ${i * treeHeight})`);
+        //                 treeGroupArr[i]
+        //                     .selectAll("path")
+        //                     .data(links[i])
+        //                     .enter()
+        //                     .append("path")
+        //                     .attr("id", d => `TrackID${d.source.data.trkID}`)
+        //                     .attr("d", linkHorizontal)
+        //                     .attr("fill", "none")
+        //                     .attr("opacity", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ?
+        //                     scaleColorByErrNum(trkIDToErrImgIdxMap.get(+d.source.data.trkID).length)
+        //                     : 1)
+        //                     .attr("stroke", d => colorScale(algArr.indexOf(alg)))
+        //                     .attr("stroke-width", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ? lineWidth : 1)
+        //                     .style("stroke-dasharray", d => trkIDToErrImgIdxMap.get(+d.source.data.trkID) ? ("5,2") : "none")
+        //                     .on("mouseover", selectTreeBranchWhenMouseover)
+        //                     .on("mouseout", unselectTreeBranchWhenMouseout)
+        //                     .on("click", selectTreeBranchWhenClickedOn);
+        //             } catch {
+        //                 console.log("Failed to build tree " + 
+        //                 `${(i < numTreeWithErr) ? idxToTreeIDWithErrArr[i] : idxToTreeIDNoErrArr[i - numTreeWithErr]}`);
+        //             }
+        //         }
+        //     }()
+        //     return {
+        //         isATreeBranchSelected: isATreeBranchSelected,
+        //         isATreeBranchClickedOn: isATreeBranchClickedOn,
+        //         isThisTreeBranchClickedOn: isThisTreeBranchClickedOn,
+        //         getErrorLinksByTrackID: getErrorLinksByTrackID,
+        //         DoesThisTrackContainsError: DoesThisTrackContainsError,
+        //         getNumberOfErrorInThisTrack: getNumberOfErrorInThisTrack,
+        //         setColorOfTreeBranchToSelected: setColorOfTreeBranchToSelected,
+        //         unsetColorOfTreeBranchToUnselected: unsetColorOfTreeBranchToUnselected,
+        //         setSelectedTreeBranch: setSelectedTreeBranch,
+        //         unsetSelectedTreeBranch: unsetSelectedTreeBranch,
+        //         getSelectedTreeBranch: getSelectedTreeBranch,
+        //         setClickedOnTreeBranch: setClickedOnTreeBranch,
+        //         unsetClickedOnTreeBranch: unsetClickedOnTreeBranch,
+        //         getClickedOnTreeBranch: getClickedOnTreeBranch,
+        //         colorTreeBranch: colorTreeBranch
+        //     }
+        // }();
+        
+    //     return {
+    //         initTracking: initTracking,
+    //     }
+    // }
     const initializeAndBuildSingleFOVView = (alg, datasetIdx) => {
         // initialize
         // d3.select("#image_slider").remove();

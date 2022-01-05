@@ -297,7 +297,7 @@
 
                 <div style="height: 575px; overflow-y: scroll">
                     
-                    <svg id="lineage_svg" class="pt-2">
+                    <svg id="errors_svg" class="pt-2">
                         <g id="lineage">
                         </g>
                     </svg>
@@ -327,7 +327,7 @@
                             Image Index
                         </div>
                         <div>
-                            <input class="form-range appearance-none bg-transparent" type="range" min="0" value="0" class="slider" id="image_slider" oninput="singleFOV.initTracking.updateTracking(+this.value)">
+                            <input class="form-range appearance-none bg-transparent" type="range" min="0" value="0" class="slider" id="image_slider" oninput="singleFOV.updateTracking(+this.value)">
                             <label for="#image_slider" id="image_slider_label"> 0</label>
                         </div>
                     </div>
