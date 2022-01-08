@@ -799,15 +799,26 @@ const initialization = (dt) => {
                                         .remove();
 
                 //YOUR OLD CODE
-                // const classInfo = getCollectionByClassName(classNameOfSelectedErrorLink)[0].attributes.class.value.split("-");
-                // const tempID = +classInfo[0];
-                // const tempTrk = trkDataSortedByTrkID.find(d => d[0].trkID === tempID).filter(d => d.imgIdx <= imgIdx)
-                // const tempPathData = [[], []];
-                // for (const point of tempTrk) {
-                //     point.imgIdx <= trkIDToErrImgIdxMap.get(tempID)[classInfo[1]][0] ? tempPathData[0].push([point.x, point.y])
-                //         : tempPathData[1].push([point.x, point.y])
-                // }
-                // tempPathData[1].unshift(trkIDToErrPathMap.get(tempID)[classInfo[1]][0]);
+                
+                // testVar is the index of error links in a track. For example, first error link in a track is 0
+                let testVar = 0; // CHANGE REQUIRED! IT IS CURRENTLY HARDCODED TO FIRST ERROR LINKS OF A TRACK
+                // tempTrk is the ground truth data of the track
+                const tempTrk = singleFOVViewData.trkDataSortedByTrkID.find(d => d[0].trkID === track).filter(d => d.imgIdx <= imgIdx);
+
+                const tempPathData = [[], []];
+                // the loop goes through every point of the track to determined if it is before error link happen or after
+                for (const point of tempTrk) {
+                    point.imgIdx <= trkData[track]["ErrTime"][testVar][0] ? tempPathData[0].push([point.x, point.y]) // before
+                        : tempPathData[1].push([point.x, point.y]) // after
+                }
+                tempPathData[1].unshift(tempPathData[0][tempPathData[0].length - 1]);
+                
+                // tempPathData[0] is the ground truth path data before the error link index number ${testVar}
+                // tempPathData[1] is the ground truth path data after the error link index number ${testVar}
+                console.log(tempPathData)
+
+
+
                 // const tempPath = trueTrkGroup.selectAll("path")
                 //     .data(tempPathData)
                 //     .attr("d", d => d3.line()(d))
