@@ -1,8 +1,8 @@
-const datasetNum = 2;
-// const dtArr = [4, 1, 2, 8, 12, 16];
-// const allAlgArr = ["lap", "rnn", "cnn30", "cnn40"];
-const dtArr = [4];
-const allAlgArr = ["lap"];
+const datasetNum = 12;
+const dtArr = [4, 1, 2, 8, 12, 16];
+const allAlgArr = ["lap", "rnn", "cnn30", "cnn40"];
+// const dtArr = [4];
+// const allAlgArr = ["lap"];
 let algArr = [];
 const colorScale = d3.scaleOrdinal()
     .domain([...Array(allAlgArr.length).keys()])
@@ -668,6 +668,7 @@ const initialization = (dt) => {
         const errLinkCircleRadius = 10;
 
         var selectedTrack = -1
+        var selectedId = -1
 
         var imgIdx = numImg-1
         const imgSlider = d3.select("#image_slider")
@@ -689,6 +690,13 @@ const initialization = (dt) => {
         const plotSVG = d3.select("#errors_svg")
             .attr("width", size)
             .attr("height", size)
+
+        plotSVG.selectAll("rect").remove()
+        plotSVG.selectAll("line").remove()
+        plotSVG.selectAll("path").remove()
+        plotSVG.selectAll("circle").remove()
+
+        
         // image
         const img = d3.select("#image")
             .attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`)
@@ -696,119 +704,114 @@ const initialization = (dt) => {
             .attr("height", resolutionSideLength);
 
 
+        function updateBoxPlot(){
+            console.log(selectedTrack, selectedId)
+            plotSVG.selectAll(`.Tracks`).attr('opacity', '0')
+            if(selectedTrack != -1)
+                plotSVG.select(`#Track-${selectedTrack}`).attr('opacity', '0.3')
 
-        function updateTracksOnImage(track, id, obj){
-            //update errors in image
+            plotSVG.selectAll(`.Errors`).attr('stroke-width', '0')
+            plotSVG.selectAll(`.Errors`).attr('fill', colorError)
+            if(selectedId != -1)
+                plotSVG.select(`#Err_${selectedTrack}_${selectedId}`).attr('fill', 'red')
+            
+        }
 
-            if(id == -1){
-                //here we have selected a full track and we visualize all the errors commited in such track
-                //update plotSVG
+        function updateTracksOnImage(){
+            // //update errors in image
+
+            imgSVG.selectAll("circle").remove()
+            imgSVG.selectAll("line").remove()
+            imgSVG.selectAll("path").remove()
+
+            if(selectedTrack == -1)
+                return 
+
+            if(selectedId == -1){
                 imgSVG.attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`);
-                plotSVG.select(`#Track-${selectedTrack}`).attr('opacity', '0')
-                            
-                if(selectedTrack == track){
-                    selectedTrack = -1
-                    const circles = imgSVG.selectAll("circle")
-                                        .remove()
-
-                    const paths = imgSVG.selectAll("line")
-                                        .remove()
-                }
-                else{
-                    selectedTrack = track
-                    d3.select(obj).attr('opacity', '0.3')
-                }    
-
+                
                 var circles = imgSVG.selectAll("circle")
-                                .data(trkData[selectedTrack]["ErrCoords"])
-                                .attr("cx", d => d[0])
-                                .attr("cy", d => d[1])
+                    .data(trkData[selectedTrack]["ErrCoords"])
+                    .attr("cx", d => d[0])
+                    .attr("cy", d => d[1])
 
-                                circles.enter()
-                                    .append("circle")
-                                    .attr("cx", d => d[0])
-                                    .attr("cy", d => d[1])
-                                    .attr("r", d => errLinkCircleRadius)
-                                    .attr("fill", d => colorError);
-                                
-                                circles.exit()
-                                    .remove()
-                                
-                                var paths = imgSVG.selectAll("line")
-                                    .data(trkData[selectedTrack]["ErrCoords"])
-                                    .attr("x1", d => d[0])
-                                    .attr("y1", d => d[1])
-                                    .attr("x2", d => d[2])
-                                    .attr("y2", d => d[3])
+                    circles.enter()
+                        .append("circle")
+                        .attr("cx", d => d[0])
+                        .attr("cy", d => d[1])
+                        .attr("r", d => errLinkCircleRadius)
+                        .attr("fill", d => colorError);
+                    
+                    circles.exit()
+                        .remove()
+                    
+                    var paths = imgSVG.selectAll("line")
+                        .data(trkData[selectedTrack]["ErrCoords"])
+                        .attr("x1", d => d[0])
+                        .attr("y1", d => d[1])
+                        .attr("x2", d => d[2])
+                        .attr("y2", d => d[3])
 
-                                paths.enter()
-                                        .append("line")
-                                        .attr("x1", d => d[0])
-                                        .attr("y1", d => d[1])
-                                        .attr("x2", d => d[2])
-                                        .attr("y2", d => d[3])
-                                        .attr("stroke", colorError)
-                                        .attr("stroke-width", trkWidth)
-                                
-                                paths.exit()
-                                        .remove();
-
+                    paths.enter()
+                            .append("line")
+                            .attr("x1", d => d[0])
+                            .attr("y1", d => d[1])
+                            .attr("x2", d => d[2])
+                            .attr("y2", d => d[3])
+                            .attr("stroke", colorError)
+                            .attr("stroke-width", trkWidth)
+                    
+                    paths.exit()
+                            .remove();
             }
             else{
-                //here we have selected a single error and we visualize the specific problem
-                console.log("id", id,"track", track)
-                console.log(trkData[track]["ErrCoords"].filter((d,i)=> i == id))
-                
-                var coords = trkData[track]["ErrCoords"].filter((d,i)=> i == id)[0]
-                var shift = 250
+                var coords = trkData[selectedTrack]["ErrCoords"].filter((d,i)=> i == selectedId)[0]
+                var shift = 300
                 imgSVG.attr("viewBox", `${coords[0]-shift} ${coords[1]-shift} 500 500`);
-                
+
+                //draw error link
                 var circles = imgSVG.selectAll("circle")
-                                .data(trkData[track]["ErrCoords"].filter((d,i)=> i == id))
-                                .attr("cx", d => d[0])
-                                .attr("cy", d => d[1])
+                    .data(trkData[selectedTrack]["ErrCoords"].filter((d,i)=> i == selectedId))
+                    .attr("cx", d => d[0])
+                    .attr("cy", d => d[1])
 
-                                circles.enter()
-                                    .append("circle")
-                                    .attr("cx", d => d[0])
-                                    .attr("cy", d => d[1])
-                                    .attr("r", d => errLinkCircleRadius)
-                                    .attr("fill", d => colorError);
+                circles.enter()
+                    .append("circle")
+                    .attr("cx", d => d[0])
+                    .attr("cy", d => d[1])
+                    .attr("r", d => errLinkCircleRadius)
+                    .attr("fill", d => colorError);
 
-                                circles.exit()
-                                    .remove()
+                circles.exit()
+                    .remove()
 
 
                 var paths = imgSVG.selectAll("line")
-                                    .data(trkData[track]["ErrCoords"].filter((d,i)=> i == id))
-                                    .attr("x1", d => d[0])
-                                    .attr("y1", d => d[1])
-                                    .attr("x2", d => d[2])
-                                    .attr("y2", d => d[3])
+                    .data(trkData[selectedTrack]["ErrCoords"].filter((d,i)=> i == selectedId))
+                    .attr("x1", d => d[0])
+                    .attr("y1", d => d[1])
+                    .attr("x2", d => d[2])
+                    .attr("y2", d => d[3])
 
-                                paths.enter()
-                                        .append("line")
-                                        .attr("x1", d => d[0])
-                                        .attr("y1", d => d[1])
-                                        .attr("x2", d => d[2])
-                                        .attr("y2", d => d[3])
-                                        .attr("stroke", colorError)
-                                        .attr("stroke-width", trkWidth)
-                                
-                                paths.exit()
-                                        .remove();
-
-                //YOUR OLD CODE
+                paths.enter()
+                        .append("line")
+                        .attr("x1", d => d[0])
+                        .attr("y1", d => d[1])
+                        .attr("x2", d => d[2])
+                        .attr("y2", d => d[3])
+                        .attr("stroke", colorError)
+                        .attr("stroke-width", trkWidth)
                 
-                // testVar is the index of error links in a track. For example, first error link in a track is 0
-                let testVar = 0; // CHANGE REQUIRED! IT IS CURRENTLY HARDCODED TO FIRST ERROR LINKS OF A TRACK
-                // tempTrk is the ground truth data of the track
-                const tempTrk = singleFOVViewData.trkDataSortedByTrkID.find(d => d[0].trkID === track).filter(d => d.imgIdx <= imgIdx);
+                paths.exit()
+                        .remove();
 
+
+                const tempTrk = singleFOVViewData.trkDataSortedByTrkID.find(d => d[0].trkID === selectedTrack).filter(d => d.imgIdx <= imgIdx);
+            
                 const tempPathData = [[], []];
                 // the loop goes through every point of the track to determined if it is before error link happen or after
                 for (const point of tempTrk) {
-                    point.imgIdx <= trkData[track]["ErrTime"][testVar][0] ? tempPathData[0].push([point.x, point.y]) // before
+                    point.imgIdx <= trkData[selectedTrack]["ErrTime"][selectedId][0] ? tempPathData[0].push([point.x, point.y]) // before
                         : tempPathData[1].push([point.x, point.y]) // after
                 }
                 tempPathData[1].unshift(tempPathData[0][tempPathData[0].length - 1]);
@@ -817,22 +820,35 @@ const initialization = (dt) => {
                 // tempPathData[1] is the ground truth path data after the error link index number ${testVar}
                 console.log(tempPathData)
 
-
-
-                // const tempPath = trueTrkGroup.selectAll("path")
-                //     .data(tempPathData)
-                //     .attr("d", d => d3.line()(d))
-                // tempPath.exit()
-                //     .attr("d", undefined)
-                // tempPath.enter()
-                //     .append("path")
-                //     .attr("d", d => d3.line()(d))
-                //     .attr("fill", "none")
-                //     .attr("stroke", colorTrackInImage)
-                //     .style("stroke-dasharray", (d, i) => i === 0 ? ("14, 10") : "none")
-                //     .attr("stroke-width", trkWidth)
-
+                var tempPath = imgSVG.selectAll("#thePath")
+                    .data(tempPathData)
+                    .attr("d", d => d3.line()(d))
+                    
+                tempPath.exit()
+                    .attr("d", undefined)
+                tempPath.enter()
+                    .append("path")
+                    .attr("id", "thePath")
+                    .attr("d", d => d3.line()(d))
+                    .attr("fill", "none")
+                    .attr("stroke", "black")
+                    .style("stroke-dasharray", (d, i) => i === 0 ? ("14, 10") : "none")
+                    .attr("stroke-width", trkWidth)
             }
+
+
+            //     //YOUR OLD CODE
+                
+            //     // testVar is the index of error links in a track. For example, first error link in a track is 0
+            //     let testVar = id; // CHANGE REQUIRED! IT IS CURRENTLY HARDCODED TO FIRST ERROR LINKS OF A TRACK
+            //     // tempTrk is the ground truth data of the track
+            //     
+
+            
+
+
+
+            // }
             
         }
 
@@ -864,18 +880,27 @@ const initialization = (dt) => {
             .data(Object.keys(trkData))
             .enter()
             .append("rect")
+            .attr("class", "Tracks")
             .attr("id", d => `Track-${d}`)
             .attr("x", d => 0)
             .attr("y", d => yScale(d))
             .attr("width", size)
             .attr("height", xScale.bandwidth()*3.5)
             .attr("opacity", 0)
-            .attr("fill", "#69b3a2")
+            .attr("fill", colorError)
             .on("mouseover", function (event, d) {d3.select(this).attr('opacity', '0.3')})
             .on("mouseout", function (event, d) {if(selectedTrack!=d) d3.select(this).attr('opacity', '0')})
             .on("click", function (event, track) {
                             
-                            updateTracksOnImage(track, -1, this)
+                console.log("Query selector", track)
+                if(selectedTrack == +track)
+                    selectedTrack = -1
+                else selectedTrack = +track
+
+                selectedId = -1
+
+                updateBoxPlot()
+                updateTracksOnImage()
 
             })
 
@@ -887,23 +912,37 @@ const initialization = (dt) => {
                                 .data(trkData[key]["ErrTime"])
                                 .enter()
                                 .append("rect")
-                                .attr("id",(d,i) => `${key}-${i}`)
+                                .attr("class", "Errors")
+                                .attr("id",(d,i) => `Err_${key}_${i}`)
                                 .attr("x", d => xScale(d[0]))
                                 .attr("y", d => yScale(key))
                                 .attr("width", xScale.bandwidth()*3)
                                 .attr("height", xScale.bandwidth()*3)
                                 .attr('stroke', 'red')
                                 .attr('stroke-width', 0)
-                                .attr("fill", "#69b3a2")
+                                .attr("fill", colorError)
                                 .on("mouseover", function (event, d) {d3.select(this).attr('stroke-width', 1)})
-                                .on("mouseout", function (event, d) {if(selectedTrack!=d) d3.select(this).attr('stroke-width', 0)})
+                                .on("mouseout", function (event, d) {d3.select(this).attr('stroke-width', 0)})
                                 .on("click", function (event, time) {
-                                    var idStr = this.id.split("-")
-                                    var track = +idStr[0]
-                                    var id = +idStr[1]
+                                    var idStr = this.id.split("_")
+                                    var track = +idStr[1]
+                                    var id = +idStr[2]
 
-                                    updateTracking(+time[1])
-                                    updateTracksOnImage(track, id)
+                                    console.log("query selector",track, id)
+
+                                    if(selectedId == id && track == selectedTrack)
+                                        selectedId = -1
+                                    else selectedId = id
+
+                                    if(selectedTrack != track)
+                                        selectedTrack = track
+
+                                    console.log("query selector",selectedTrack, selectedId)
+
+                                    updateTracking(time[1])
+                                    updateBoxPlot()
+                                    // updateTracksOnImage()
+                                    
 
                                 })
         }
@@ -923,8 +962,8 @@ const initialization = (dt) => {
                     .attr("x1", d => xScale(imgIdx))
                     .attr("x2", d => xScale(imgIdx))
 
-            imgSVG.selectAll("circle")
-            
+            updateTracksOnImage()
+                
         }
 
         return {
