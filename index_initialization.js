@@ -1,11 +1,12 @@
-const datasetNum = 1;
-// const dtArr = [4, 1, 2, 8, 12, 16];
-// const allAlgArr = ["lap", "rnn", "cnn30", "cnn40"];
-const dtArr = [4];
-const allAlgArr = ["lap"];
+const datasetNum = 12;
+const dtArr = [4]//[4, 1, 2, 8, 12, 16];
+const allAlgArr = ["cnn", "lap", "trackmate", "trackpy_base", "trackpy_vel"];
+const fovNames = ["A_01fld01", "A_01fld07", "A_02fld01","A_02fld03","A_02fld05","A_02fld07","A_02fld08","A_02fld09","A_04fld01","A_04fld10","A_07fld04","A_07fld06"]
+// const dtArr = [4];
+// const allAlgArr = ["lap"];
 let algArr = [];
 const colorScale = d3.scaleOrdinal()
-    .domain([...Array(allAlgArr.length).keys()])
+    .domain([...Array(allAlgArr)])
     .range(d3.schemeSet2);
 const views = ["index", "overall", "single_alg", "single_fov"];
 const resolutionSideLength = 2040;
@@ -139,8 +140,9 @@ const initialization = (dt) => {
         for (let datasetIdx = 1; datasetIdx <= datasetNum; datasetIdx++) {
             let tempData = [];
             for (let algIdx = 0; algIdx < allAlgArr.length; algIdx++) {
-                d3.csv(`./src/dataset_${datasetIdx}/${allAlgArr[algIdx]}_dt${dt}.csv`).then(rawData => {
-                    if (algArr.findIndex(d => d === allAlgArr[algIdx]) === -1) algArr.push(allAlgArr[algIdx]);
+                d3.csv(`./src/results/${allAlgArr[algIdx]}_dt${dt}/${fovNames[datasetIdx-1]}.csv`).then(rawData => {
+                    // if (algArr.findIndex(d => d === allAlgArr[algIdx]) === -1) 
+                    algArr.push(allAlgArr[algIdx]);
                     tempData[algIdx] = processRawData(datasetIdx, dt, allAlgArr[algIdx], rawData);
                     dataReadCount++;
                     if (dataReadCount === datasetNum * algArr.length) {
@@ -157,14 +159,6 @@ const initialization = (dt) => {
                                     .text(`${alg}`);
                             }
 
-                            single_fov_alg2_select.innerHTML = '';
-                            d3_single_fov_alg2_select.append("option").text("none");
-                            for (const alg of algArr) {
-                                if (alg !== single_fov_alg_select.value) {
-                                    d3_single_fov_alg2_select.append("option")
-                                    .text(`${alg}`);
-                                }
-                            }
                         })();
                         displaySingleFOVAndHideComparison();
                         initializeAndBuildSingleFOVView(single_fov_alg_select.value, +single_fov_idx_select.value);
@@ -237,14 +231,14 @@ const initialization = (dt) => {
                     let pct = 100 / minIdxArr.length;
                     for (let i = 0; i < minIdxArr.length; i++) {
                         if (minIdxArr.length - i === 2) {
-                            bg = bg.concat(`linear-gradient(${deg}deg, ${colorScale(minIdxArr[i])} ${(i + 1) * pct}%, ` + 
-                                `${colorScale(minIdxArr[i + 1])} ${(i + 1) * pct}%`);
+                            bg = bg.concat(`linear-gradient(${deg}deg, ${colorScale(allAlgArr[minIdxArr[i]])} ${(i + 1) * pct}%, ` + 
+                                `${colorScale(allAlgArr[minIdxArr[i + 1]])} ${(i + 1) * pct}%`);
                             break;
                         }
-                        bg = bg.concat(`linear-gradient(${deg}deg, ${colorScale(minIdxArr[i])} ${(i + 1) * pct}%, ` +
+                        bg = bg.concat(`linear-gradient(${deg}deg, ${colorScale(allAlgArr[minIdxArr[i]])} ${(i + 1) * pct}%, ` +
                             `rgba(0, 0, 0, 0) ${(i + 1) * pct}%), `);
                     }
-                } else bg = `${colorScale(minIdxArr[0])}`
+                } else bg = `${colorScale(allAlgArr[minIdxArr[0]])}`
 
                 fovid.style("background", bg);
             })()
@@ -296,20 +290,20 @@ const initialization = (dt) => {
                             .attr("width", xScale.bandwidth())
                             .attr("height", yScaleBars(dd.numErrLink))
                             .attr("class","bars-"+dd.datasetIdx)
-                            .attr("fill", colorScale(ii))
+                            .attr("fill", colorScale(allAlgArr[ii]))
                     )
                     let text = barChart.append("text")
                         .text(`${dd.numErrLink}`);
                     text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
                         .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight - tooltipHeight / 6)
-                        .attr("fill", colorScale(ii));
+                        .attr("fill", colorScale(allAlgArr[ii]));
                     myText.push(text)
                     
                     text = barChart.append("text")
                         .text(algArr[ii]);
                     text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
                         .attr('y', graphHeight - text.node().getBBox().height / 3)
-                        .attr("fill", colorScale(ii));
+                        .attr("fill", colorScale(allAlgArr[ii]));
                 })
                     const lineChartDiv = div.append("div").attr("class", "border-t");
                     const lineChartGroup = lineChartDiv.append('g');
@@ -371,7 +365,7 @@ const initialization = (dt) => {
                         .append("path")
                         .attr("d", dd => line(dd))
                         .attr("fill", "none")
-                        .attr("stroke", (dd, ii) => colorScale(ii))
+                        .attr("stroke", (dd, ii) => colorScale(allAlgArr[ii]))
                         .attr("stroke-width", 1);
                     const tooltipDotRadius = 2;
                     const focus = lineChart.append('g')
@@ -381,7 +375,7 @@ const initialization = (dt) => {
                             focus.append("circle")
                                 .attr('r', tooltipDotRadius)
                                 .attr("opacity", 0)
-                                .attr("fill", colorScale(ii))
+                                .attr("fill", colorScale(allAlgArr[ii]))
                         );
                     })
                     let txt = focus.append("text")
@@ -436,6 +430,7 @@ const initialization = (dt) => {
 
     //SINGLE ALGORITHM VIEW
     const buildSingleAlgView = (alg) => {
+
         const singleAlgViewData = data.map(d => d.find(dd => dd.algorithm === alg));
         singleAlgViewData.sort((a, b) => b.numErrLink - a.numErrLink);
         const d3_single_alg_div = d3.selectAll("#single_alg_div")
@@ -445,6 +440,7 @@ const initialization = (dt) => {
             for (const value of d.trkIDToErrTrkIDPredMap.values()) numlinkErr += value.length - 1;
             let numlink = d.trkData.length - d.idxToTrkIDArr.length;
 
+            let idxTime = 288
 
             const div = d3_single_alg_div.append("div")
                 .attr("class", "box-content rounded-lg pt-4 pl-2 pr-2 text-base relative bg-gray-900");
@@ -454,7 +450,7 @@ const initialization = (dt) => {
                 .attr("id", "name-fov")
                 .attr("class", "absolute -inset-x-1/2 -top-2 bg-gray-100 rounded-full " +  
                     "h-12 w-12 flex items-center justify-center m-auto font-sans text-3xl")
-                .style("background", colorScale(algArr.indexOf(alg)))
+                .style("background", colorScale(alg))
 
             const fieldOfView = div.append("div").attr("class", "pt-4")
 
@@ -476,7 +472,7 @@ const initialization = (dt) => {
 
             fieldOfViewGroup.append("p").attr("class", "text-sm mr-4 text-right text-gray-400")
                 .append("text").text(`Total errors - `)
-                .append("text").text(` ${numlinkErr}`).style("color", colorScale(algArr.indexOf(alg)));
+                .append("text").text(` ${numlinkErr}`).style("color", colorScale(alg));
             fieldOfViewGroup.append("p").attr("class", "text-sm mr-4 text-right text-gray-400")
                 .append("text").text(`Total links  - ${numlink}`)
                 
@@ -512,12 +508,95 @@ const initialization = (dt) => {
                             .domain(d3.extent([...d.cellCountAcrossIdx]))
                             .range([graphHeight - bottomPadding, 2]);
             
+            //drawing the errors
+            window.addEventListener('resize', () => {
+                const rate = this.outerWidth / this.screen.availWidth;
+                d3.select(`#sVG${d.datasetIdx}`)
+                    .attr("width", sVGSideLength * rate)
+                    .attr("height", sVGSideLength * rate);
+                cellCountGraph
+                    .attr("width", graphWidth * rate)
+                    .attr("height", graphHeight * rate);
+            })
+
+            const errLinkPathData = [];
+            const errLinkPathTime = [];
+            for (const value of d.trkIDToErrPathMap.values()) {
+                for (const point of value) {
+                    errLinkPathData.push(point);
+                }
+            }
+            for (const value of d.trkIDToErrImgIdxMap.values()) {
+                for (const point of value) {
+                    errLinkPathTime.push(point);
+                }
+            }
+
+            console.log(errLinkPathTime)
+
+            var myPoints;
+            var myLines;
+
+            if (errLinkPathData.length === 0) {
+                const text = errLinkWindow.append("text")
+                    .attr("id", `noErrorText${d.datasetIdx}`)
+                    .attr("y", resolutionSideLength / 2)
+                    .attr("style", "font: 100px sans-serif")
+                    .text("Congratulation, this dataset has no error!")
+                    .attr("fill", "#9ca3af");
+                const tempWidth = document.getElementById(`noErrorText${d.datasetIdx}`).getBBox().width
+                text.attr("x", (resolutionSideLength - tempWidth) / 2)
+            }
+            else {
+                myPoints = errLinkWindow.selectAll("circle")
+                    .data(errLinkPathData)
+                    .enter()
+                    .append("circle")
+                    .attr("cx", d => d[0][0])
+                    .attr("cy", d => d[0][1])
+                    .attr("r", trkWidth * 1.5)
+                    .attr("opacity", (d,i) => {
+                        if(errLinkPathTime[i][0] < idxTime)
+                            return 1
+                        return 0; 
+                    })
+                    .attr("fill", colorScale(alg));
+
+                myLines = errLinkWindow.selectAll("path")
+                    .data(errLinkPathData)
+                    .enter()
+                    .append("path")
+                    .attr("d", d => d3.line()(d))
+                    .attr("fill", "none")
+                    .attr("stroke", colorScale(alg))
+                    .attr("opacity", (d,i) => {
+                        if(errLinkPathTime[i][0] < idxTime)
+                            return 1
+                        return 0; 
+                    })
+                    .attr("stroke-width", trkWidth);
+            }
+
+            function updateErrors(){
+                myPoints.attr("opacity", (d,i) => {
+                    if(errLinkPathTime[i][0] < idxTime)
+                        return 1
+                    return 0; 
+                })
+
+                myLines.attr("opacity", (d,i) => {
+                    if(errLinkPathTime[i][0] < idxTime)
+                        return 1
+                    return 0; 
+                })
+            }
                                         
             const linearPath = [];
             d.cellCountAcrossIdx.forEach((d, i) => linearPath.push({
                 idx : i,
                 count : d
             }))
+
             const line = d3.line()
                 .x(d => xScale(d.idx))
                 .y(d => yScale(d.count))
@@ -525,7 +604,7 @@ const initialization = (dt) => {
                 .attr("id", "cellCountLine")
                 .attr("d", line(linearPath))
                 .attr("fill", "none")
-                .attr("stroke", colorScale(algArr.indexOf(alg)))
+                .attr("stroke", colorScale(alg))
                 .attr("stroke-width", 1)
             
             
@@ -545,7 +624,7 @@ const initialization = (dt) => {
             const tooltipDot = cellCountGraph. append("circle")
                 .attr('opacity', 0)
                 .attr('r', tooltipDotRadius)
-                .attr('fill', colorScale(algArr.indexOf(alg)));
+                .attr('fill', colorScale(alg));
 
             const tooltipLine = cellCountGraph. append("line")
                 .attr('opacity', 0)
@@ -553,7 +632,7 @@ const initialization = (dt) => {
                 .attr('y1', 0)
                 .attr('x2', graphWidth - leftPadding)
                 .attr('y2', 0)
-                .attr('stroke', colorScale(algArr.indexOf(alg)));
+                .attr('stroke', colorScale(alg));
             
             
             function showDetailWhenMousemove() {
@@ -561,7 +640,9 @@ const initialization = (dt) => {
                 x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
                 if (x < 0) x = 0;
                 if (x > xScale.domain()[1]) x = xScale.domain()[1];
-
+                
+                idxTime = x
+                
                 let y = d.cellCountAcrossIdx[x];
                 tooltipDot
                     .attr('opacity', 1)
@@ -573,6 +654,7 @@ const initialization = (dt) => {
                     .attr('y1', yScale(y))
                     .attr('y2', yScale(y))
 
+                updateErrors()
             }
 
             function resetLine() {
@@ -582,56 +664,15 @@ const initialization = (dt) => {
 
                 tooltipLine
                     .attr('opacity', 0)
+
+                idxTime = 288
+                updateErrors()
             }
 
 
 
             
-            window.addEventListener('resize', () => {
-                const rate = this.outerWidth / this.screen.availWidth;
-                d3.select(`#sVG${d.datasetIdx}`)
-                    .attr("width", sVGSideLength * rate)
-                    .attr("height", sVGSideLength * rate);
-                cellCountGraph
-                    .attr("width", graphWidth * rate)
-                    .attr("height", graphHeight * rate);
-            })
-
-            const errLinkPathData = [];
-            for (const value of d.trkIDToErrPathMap.values()) {
-                for (const point of value) {
-                    errLinkPathData.push(point);
-                }
-            }
-            if (errLinkPathData.length === 0) {
-                const text = errLinkWindow.append("text")
-                    .attr("id", `noErrorText${d.datasetIdx}`)
-                    .attr("y", resolutionSideLength / 2)
-                    .attr("style", "font: 100px sans-serif")
-                    .text("Congratulation, this dataset has no error!")
-                    .attr("fill", "#9ca3af");
-                const tempWidth = document.getElementById(`noErrorText${d.datasetIdx}`).getBBox().width
-                text.attr("x", (resolutionSideLength - tempWidth) / 2)
-            }
-            else {
-                errLinkWindow.selectAll("circle")
-                    .data(errLinkPathData)
-                    .enter()
-                    .append("circle")
-                    .attr("cx", d => d[0][0])
-                    .attr("cy", d => d[0][1])
-                    .attr("r", trkWidth * 1.5)
-                    .attr("fill", colorScale(algArr.indexOf(alg)));
-
-                errLinkWindow.selectAll("path")
-                    .data(errLinkPathData)
-                    .enter()
-                    .append("path")
-                    .attr("d", d => d3.line()(d))
-                    .attr("fill", "none")
-                    .attr("stroke", colorScale(algArr.indexOf(alg)))
-                    .attr("stroke-width", trkWidth);
-            }
+            
         })
     }
     const initializeAndBuildSingleAlgView = (alg) => {
@@ -642,7 +683,7 @@ const initialization = (dt) => {
 
     //SINGLE FOV VIEW
     const buildSingleFOVView = (alg, datasetIdx) => {
-        
+        console.log(datasetIdx, alg)
         const singleFOVViewData = data.find(d => d[0].datasetIdx === datasetIdx).find(d => d.algorithm === alg)
         const numImg = singleFOVViewData.numImg;
         const trkIDToErrPathMap = singleFOVViewData.trkIDToErrPathMap;
@@ -656,8 +697,10 @@ const initialization = (dt) => {
             trkData[key]["ErrTime"] = trkIDToErrImgIdxMap.get(key)
         }
         
+        console.log(trkData)
+
         const colorTrack = "black";
-        const colorError = colorScale(algArr.indexOf(alg))
+        const colorError = colorScale(alg)
         const errorOpacity = 0.5;
         const errLinkCircleRadius = 10;
 
@@ -693,7 +736,7 @@ const initialization = (dt) => {
         
         // image
         const img = d3.select("#image")
-            .attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`)
+            .attr("href", `./src/${fovNames[datasetIdx-1]}/${imgIdx}.jpg`)
             .attr("width", resolutionSideLength)
             .attr("height", resolutionSideLength);
 
@@ -746,12 +789,10 @@ const initialization = (dt) => {
                 plotSVG.select(`#Err_${selectedTrack}_${selectedId}`).attr('fill', 'red')
             }
 
-            
         }
 
         function updateTracksOnImage(){
             // //update errors in image
-
             imgSVG.selectAll("circle").remove()
             imgSVG.selectAll("line").remove()
             imgSVG.selectAll("path").remove()
@@ -946,7 +987,7 @@ const initialization = (dt) => {
 
         const updateTracking = (newIdx) => {
             imgIdx = newIdx;
-            img.attr("href", `./src/dataset_${datasetIdx}/${imgIdx}.jpg`);
+            img.attr("href", `./src/${fovNames[datasetIdx-1]}/${imgIdx}.jpg`);
             
             // set slider
             image_slider.value = newIdx;
@@ -1007,230 +1048,9 @@ const initialization = (dt) => {
         // // build
         singleFOV = buildSingleFOVView(alg, datasetIdx);
     }
-    const buildComparisonView = (datasetIdx, alg1, alg2) => {
-        const compareViewData = [];
-        compareViewData.push(data.find(d => d[0].datasetIdx === datasetIdx).find(d => d.algorithm === alg1));
-        compareViewData.push(data.find(d => d[0].datasetIdx === datasetIdx).find(d => d.algorithm === alg2));
-        const sVGSideLength = 450;
-        const trkWidth = 20;
-        const sameTrkColor = "black";
-        const algColorArr = [colorScale(algArr.indexOf(alg1)), colorScale(algArr.indexOf(alg2))]
-
-        const compareDiv = d3.select("#compareDiv");
-        compareViewData.forEach((d, i) => {
-            const errLinkWindow = compareDiv
-                .append("div")
-                .attr("id",`div-${d.algorithm}`)
-                .attr("class", "box-content rounded-lg p-2 flex justify-center")
-                .append("svg")
-                .attr("id",`svg-${d.algorithm}`)
-                .attr("width", sVGSideLength)
-                .attr("height", sVGSideLength)
-                .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`)
-                .attr("style", "background-color:white")
-                .append("g")
-                .attr("id", `errorLink-${d.algorithm}`);
-
-            const errLinkPathData = [];
-            for (const key of d.trkIDToErrImgIdxMap.keys()) {
-                const points = d.trkIDToErrPathMap.get(key)
-                const idxs = d.trkIDToErrImgIdxMap.get(key)
-                for (let i = 0; i < idxs.length; i++) {
-                    const temp = []
-                    for (let j = 0; j < idxs[i].length; j++) {
-                        temp.push(points[i][j].concat(idxs[i][j]))
-                    }
-                    errLinkPathData.push(temp);
-                }
-            }
-
-            if (errLinkPathData.length === 0) {
-                const text = errLinkWindow.append("text")
-                    .attr("id", `noErrorText${d.datasetIdx}`)
-                    .attr("y", resolutionSideLength / 2)
-                    .attr("style", "font: 50px sans-serif")
-                    .text("Congratulation, this dataset has no error!");
-                const tempWidth = document.getElementById(`noErrorText${d.datasetIdx}`).getBBox().width
-                text.attr("x", (resolutionSideLength - tempWidth) / 2)
-            }
-            else {
-                errLinkWindow.selectAll("circle")
-                    .data(errLinkPathData)
-                    .enter()
-                    .append("circle")
-                    .attr("class", dd => `${d.algorithm}-${dd[0][2]}`)
-                    .attr("cx", dd => dd[0][0])
-                    .attr("cy", dd => dd[0][1])
-                    .attr("r", trkWidth * 1.5)
-                    .attr("fill", algColorArr[i]);
-
-                errLinkWindow.selectAll("path")
-                    .data(errLinkPathData)
-                    .enter()
-                    .append("path")
-                    .attr("class", dd => `${d.algorithm}-${dd[0][2]}`)
-                    .attr("d", dd => d3.line()(dd))
-                    .attr("fill", "none")
-                    .attr("stroke", algColorArr[i])
-                    .attr("stroke-width", trkWidth);
-            }
-        })
-        // color shared error links from two algorithms
-        let sameErrNUm = 0;
-        d3.select(`#svg-${compareViewData[0].algorithm}`).selectAll("circle").each(function(){
-            const circle = this;
-            const idx = circle.getAttribute("class").split('-')[1];
-            const x = circle.getAttribute('cx')
-            const y = circle.getAttribute('cy')
-            d3.select(`#svg-${compareViewData[1].algorithm}`).selectAll(`circle.${compareViewData[1].algorithm}-${idx}`).each(function(){
-                if (x === this.getAttribute('cx') && y === this.getAttribute('cy')) {
-                    circle.setAttribute("fill", sameTrkColor);
-                    this.setAttribute("fill", sameTrkColor);
-                    sameErrNUm++;
-                }
-            })
-        })   
-        d3.select(`#svg-${compareViewData[0].algorithm}`).selectAll("path").each(function(){
-            const path = this;
-            const idx = path.getAttribute("class").split('-')[1];
-            const d = path.getAttribute('d')
-            d3.select(`#svg-${compareViewData[1].algorithm}`).selectAll(`path.${compareViewData[1].algorithm}-${idx}`).each(function(){
-                if (d === this.getAttribute('d')) {
-                    path.setAttribute("stroke", sameTrkColor);
-                    this.setAttribute("stroke", sameTrkColor);
-                }
-            })
-        })
-
-        // comparison panel
-        const compaList = compareDiv.append("div")
-            .attr("id", "comparisonPanel")
-            .attr("class", "flex justify-center text-center")
-            .append("ul")
-            .attr("id", "comparisonList")
-            .attr("class", "box-content p-2 self-center");
-        compaList.append("li").text(`Field of View - #${datasetIdx}`);
-        let errLinkNum1 = 0;
-        let LinkNum1 = compareViewData[0].trkData.length - compareViewData[0].idxToTrkIDArr.length;
-        for (const value of compareViewData[0].trkIDToErrTrkIDPredMap.values()) errLinkNum1 += value.length - 1;
-        let errLinkNum2 = 0;
-        let LinkNum2 = compareViewData[1].trkData.length - compareViewData[1].idxToTrkIDArr.length;
-        for (const value of compareViewData[1].trkIDToErrTrkIDPredMap.values()) errLinkNum2 += value.length - 1;
-        
-        let item = compaList.append("li").attr("class", "text-4xl");
-        item.append("span")
-            .style("color", `${algColorArr[0]}`)
-            .text(`${compareViewData[0].algorithm}`);
-        item.append("text").text(" vs. ")
-        item.append("span")
-            .style("color", `${algColorArr[1]}`)
-            .text(`${compareViewData[1].algorithm}`);
-        item = compaList.append("li").text(`Total links - ${LinkNum1}`);
-        item = compaList.append("li").text("Linking errors - ");
-        item.append("span")
-            .style("color", `${algColorArr[0]}`)
-            .text(`${errLinkNum1}`);
-        item.append("text").text(", ")
-        item.append("span")
-            .style("color", `${algColorArr[1]}`)
-            .text(`${errLinkNum2}`);
-        item = compaList.append("li").text(`Shared linking errors - ${sameErrNUm}`);
-        item.append("span")
-            .style("color", `${algColorArr[0]}`)
-            .text(` (${(sameErrNUm / errLinkNum1 * 100).toFixed(2)}%) `);
-        item.append("span")
-            .style("color", `${algColorArr[1]}`)
-            .text(`(${(sameErrNUm / errLinkNum2 * 100).toFixed(2)}%)`);
-        item = compaList.append("li").text("Linking errors (%) - ");
-        item.append("span")
-            .style("color", `${algColorArr[0]}`)
-            .text(`${(errLinkNum1 / LinkNum1 * 100).toFixed(2)}%`);
-        item.append("text").text(", ")
-        item.append("span")
-            .style("color", `${algColorArr[1]}`)
-            .text(`${(errLinkNum2 / LinkNum2 * 100).toFixed(2)}%`);
-        item.append("text").text(`, ${(sameErrNUm / LinkNum2 * 100).toFixed(2)}%`)
-
-        const graphWidth = 250;
-        const graphHeight = 150;
-        const tooltipHeight = graphHeight * 0.2;
-        const cellCountGraphGroup = compaList.append("li").append("g");
-        cellCountGraphGroup.append("text").text("Cell Count vs. Image Index")
-        const cellCountGraph = cellCountGraphGroup.append("svg")
-                            .attr("width", graphWidth)
-                            .attr("height", graphHeight)
-                            .attr("class", "bg-white m-auto")
-                            .on("mouseover", () => focus.style("display", null))
-                            .on("mouseout", () => focus.style("display","none"))
-                            .on("mousemove", showDetailWhenMousemove);
-        const cellCountGraphRightPadding = graphWidth * 0.07;    
-        const xScale = d3.scaleLinear()
-            .domain([0, compareViewData[0].numImg - 1]);
-        const xAxis = cellCountGraph.append("g")
-            .call(d3.axisBottom(xScale));
-        const cellCountGraphBotPadding = xAxis.node().getBoundingClientRect().height;
-        xAxis.attr("transform", `translate(0, ${graphHeight - cellCountGraphBotPadding})`)
-        const yScale = d3.scaleLinear().domain([Math.min(...compareViewData[0].cellCountAcrossIdx),
-            Math.max(...compareViewData[0].cellCountAcrossIdx)]);
-        const yAxis = cellCountGraph.append("g")
-            .call(d3.axisLeft(yScale));
-        const cellCountGraphLeftPadding = yAxis.node().getBoundingClientRect().width;
-        yAxis.attr("transform", `translate(${cellCountGraphLeftPadding}, 0)`)
-        xScale.range([cellCountGraphLeftPadding, graphWidth - cellCountGraphRightPadding]);
-        xAxis.call(d3.axisBottom(xScale).ticks(5));
-        yScale.range([graphHeight - cellCountGraphBotPadding, tooltipHeight]);
-        yAxis.call(d3.axisLeft(yScale));
-                                    
-        const linearPath = [];
-        compareViewData[0].cellCountAcrossIdx.forEach((d, i) => linearPath.push({
-            idx : i,
-            count : d
-        }))
-        const line = d3.line()
-            .x(d => xScale(d.idx))
-            .y(d => yScale(d.count))
-        cellCountGraph.append("path")
-            .attr("id", "cellCountLine")
-            .attr("d", line(linearPath))
-            .attr("fill", "none")
-            .attr("stroke", "black")
-            .attr("stroke-width", 1)
-        const tooltipDotRadius = 2;
-        const focus = cellCountGraph.append('g')
-            .style("display", "none");
-        const tooltipDot = focus.append("circle")
-            .attr('r', tooltipDotRadius);
-        let txt = focus.append("text")
-            .attr('y', tooltipHeight / 2);
-        function showDetailWhenMousemove() {
-            let x = xScale.invert(d3.pointer(event, this)[0]);
-            x = (x % 1 > 0.5) ? Math.trunc(x) + 1 : Math.trunc(x)
-            if (x < 0) x = 0;
-            if (x > xScale.domain()[1]) x = xScale.domain()[1];
-            txt.text(`idx: ${x},  #: `);
-
-            let y = compareViewData[0].cellCountAcrossIdx[x];
-            tooltipDot
-                .attr("cx", xScale(x))
-                .attr("cy", yScale(y));
-            txt.append("tspan")
-                .text(`${y}`)
-        }
-        compareDiv.node().appendChild(compareDiv.node().childNodes[2]);
-    }
-    const initializeAndBuildComparisonView = (datasetIdx, alg1, alg2) => {
-        // for some reason it have be ' ' instead of '' in order to
-        // have comparison panel placing correctly
-        compareDiv.innerHTML = ' ';
-        buildComparisonView(datasetIdx, alg1, alg2);
-    }
     const displaySingleFOVAndHideComparison = () => {
         d3.select('#single_fov_visualizer_display').style('display', null);
         d3.select('#single_fov_compare_display').style('display', 'none');
-    }
-    const displayComparisonAndHideSingleFOV = () => {
-        d3.select('#single_fov_visualizer_display').style('display', 'none');
-        d3.select('#single_fov_compare_display').style('display', null);
     }
     return {
         data: data,
@@ -1241,10 +1061,7 @@ const initialization = (dt) => {
         initializeAndBuildSingleAlgView: initializeAndBuildSingleAlgView,
         buildSingleFOVView: buildSingleFOVView,
         initializeAndBuildSingleFOVView: initializeAndBuildSingleFOVView,
-        buildComparisonView: buildComparisonView,
-        initializeAndBuildComparisonView: initializeAndBuildComparisonView,
-        displaySingleFOVAndHideComparison: displaySingleFOVAndHideComparison,
-        displayComparisonAndHideSingleFOV: displayComparisonAndHideSingleFOV
+        displaySingleFOVAndHideComparison: displaySingleFOVAndHideComparison
     }
 
 }
