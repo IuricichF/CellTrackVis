@@ -20,12 +20,22 @@ Inputs consist of two data types, images and CSV files containing the tracking a
 
 Images are contained in folder `src/`. Each folder contains the sequence of images, in `*.jpg` format, composing a specific field of view.
 
-CSV fiels are contained in the folder `src/results`. Each folder contains the results collected with a specific algorith. Inside that folder you can find one CSV file per field of view. For each file, lines indicate `...`. For each line we have
+CSV fiels are contained in the folder `src/results`. Each folder contains the results collected with a specific algorith. Inside that folder you can find one CSV file per field of view. For each file, lines indicate information associated to a cell. For each line we have
 
-- `...`
-- `...`
-- `...`
-- `...`
+- `FRAME`: The frame index, starting from 0.
+- `ID`: The cell index.
+- `track_id_unique`: ground truth track index.
+- `track_id_parent`: ground truth parent track index.
+- `pos_x`: X coordinate of the cell nuclues center.
+- `pos_y`: Y coordinate of the cell nuclues center. 
+- `track_id_unique_pred`: predicted track index.
+- `track_id_parent_pred`: predicted parent track index.
+- `dt10_n0_dx`: ground truth X displacement after 10 frames.
+- `dt10_n0_dy`: ground truth Y displacement after 10 frames.
+- `dist_link`: ground truth displacement after 10 frames.
+- `u_flag`: a flag indicating whether the cell is classified as slow or fast. When applicable, 0 means predicted slow cells while 1 means predicted fast cells. 
+- `ID_next`: When applicable, the index of the future cell linked by the slow classifier.
+- `tid_lap_pred`: The track index predicted by the LAP tracker. When applicable, this serves as a pre-linking process before the final tracker. 
 
 ```
 Unnamed: 0,FRAME,ID,track_id_unique,track_id_parent,pos_x,pos_y,dt10_n0_dx,dt10_n0_dy,tid_lap_pred,ID_next,dist_link,u_flag,track_id_unique_pred,track_id_parent_pred,predicted
