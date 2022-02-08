@@ -6,6 +6,14 @@
     <meta charset="utf-8">
     <script src="index_initialization.js"></script>
     <title>Cell Tracking Visualization</title>
+    <style>
+        #image_slider {
+            background: gray;
+            /* border: solid 1px #82CFD0; */
+            border-radius: 8px;
+            -webkit-appearance: none;
+}
+    </style>
 </head>
 <body class="min-h-screen white">
     <div class="flex min-h-screen ">
@@ -65,19 +73,6 @@
                 </div>
 
                 <div id="single_alg_option" style="display: none">
-                    <!-- <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
-                        <span class="ml-2 text-sm font-medium text-left">Frame rate - 
-                            <select id="single_alg_dt_select" oninput=""></select>
-                        </span>
-                        <script>
-                            const d3_single_alg_dt_select = d3.select("#single_alg_dt_select");
-                            for (const dt of dtArr) {
-                                d3_single_alg_dt_select.append("option")
-                                    .text(`${dt}`);
-                            }
-                        </script>
-                    </a> -->
-    
                     <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
                         <span class="ml-2 text-sm font-medium text-left">Algorithm - 
                             <select id="single_alg_alg_select" oninput="single_alg_div.innerHTML = ''; initView.buildSingleAlgView(this.value);"></select>
@@ -89,21 +84,8 @@
                 </div>
 
                 <div id="single_fov_option" style="display: none">
-                    <!-- <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
-                        <span class="ml-2 text-sm font-medium text-left">Frame rate - 
-                            <select id="single_fov_dt_select" oninput=""></select>
-                        </span>
-                        <script>
-                            const d3_single_fov_dt_select = d3.select("#single_fov_dt_select");
-                            for (const dt of dtArr) {
-                                d3_single_alg_dt_select.append("option")
-                                    .text(`${dt}`);
-                            }
-                        </script>
-                    </a> -->
-    
                     <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
-                        <span class="ml-2 text-sm font-medium text-left">Study FOV - 
+                        <span class="ml-2 text-sm font-medium text-left">FOV - 
                             <select id="single_fov_idx_select" oninput="
                                     initView.initializeAndBuildSingleFOVView(single_fov_alg_select.value, +this.value);
                             "></select>
@@ -118,7 +100,7 @@
                     </a>
                     
                     <a class="flex items-center w-full h-12 px-3 mt-2 rounded hover:bg-gray-700 hover:text-gray-300" href="#">
-                        <span class="ml-2 text-sm font-medium text-left">with algorithm - 
+                        <span class="ml-2 text-sm font-medium text-left">Algorithm - 
                             <select id="single_fov_alg_select" oninput="
                                     initView.initializeAndBuildSingleFOVView(this.value, +single_fov_idx_select.value);
                             "></select>
@@ -130,12 +112,17 @@
                 </div>
 			</div>
 
+            <div id="legend" class="w-full px-2">
+                
+            </div>
+
             <a id="dashboard_github_page"class="flex items-center justify-center w-full h-16 mt-auto bg-gray-800 hover:bg-gray-700 hover:text-gray-300" href="https://github.com/Lygihub/DataVis">
                 <svg class="w-6 h-6 stroke-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
                 <span class="ml-2 text-sm font-medium">Github page</span>
             </a>
+
         </div>
 
 
@@ -233,14 +220,28 @@
         </div>
 
         <div id="single_fov_display" style="display: none" class="w-4/5 p-10 bg-gray-900 rounded-md h-full mt-10 container mx-auto shadow-md">
-            <div id="single_fov_visualizer_display" style="display: none" class="grid grid-cols-2 gap-4">
+            <div id="single_fov_visualizer_display" style="display: none" class="grid grid-cols-2 gap-2">
                 
                 <div class="text-gray-300 text-base border-b">
-                    Microscopy Images
+                    Information
                 </div>
                 <div class="text-gray-300 text-base border-b">
-                    Lineage Tree
+                    Linking errors per track
                 </div>
+
+                <div class="text-gray-400 text-sm " id="infoview">
+                    <span id="infoFOV">FOV name</span><br>
+                    <span id="infoTrack">Number of tracks with error</span><br>                    
+                    <span id="infoErr">Number of errors</span>
+                </div>
+
+                <div id="image_slider_div" class="text-gray-300">
+                    <div>
+                        <input class="form-range" type="range" min="0" value="0" id="image_slider" background="gray" style="width: 93%; background:gray" oninput="singleFOV.updateTracking(+this.value)">
+                        <label for="#image_slider" id="image_slider_label"> 0</label>
+                    </div>
+                </div>
+
 
                 <div>
                     <svg id="tracking_svg" class="pt-2">
@@ -250,7 +251,7 @@
                     </svg>
                 </div>
 
-                <div style="height: 575px; overflow-y: scroll">
+                <div id="error_cont">
                     
                     <svg id="errors_svg" class="pt-2">
                         <g id="lineage">
@@ -258,45 +259,8 @@
                     </svg>
                 </div>
 
-                <div class="text-gray-300 text-base border-b">
-                    Slide selection
-                </div>
-                <div class="text-gray-300 text-base border-b">
-                    Information
-                </div>
                 
-
-                <div class="grid grid-cols-2 ">
-                    <div class="relative">
-                        <button type="button" class="bg-gray-300 text-gray-900 absolute bottom-0 left-0 w-20 focus:outline-none "
-                                onclick="singleFOV.initTracking.reset();">
-                            Reset
-                        </button>
-                        <button type="button" class="bg-gray-300 text-gray-900 absolute bottom-0 left-24 w-20 object-bottom focus:outline-none "
-                                onclick="singleFOV.initTracking.showAll();">
-                            Show all
-                        </button>
-                    </div>
-                    <div id="image_slider_div" class="text-gray-300">
-                        <div>
-                            Image Index
-                        </div>
-                        <div>
-                            <input class="form-range appearance-none bg-transparent" type="range" min="0" value="0" class="slider" id="image_slider" oninput="singleFOV.updateTracking(+this.value)">
-                            <label for="#image_slider" id="image_slider_label"> 0</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    
-                </div>
-
             </div>
-<!-- 
-            <div class="flex items-stretch gap-4 place-content-start bg-gray-900 text-gray-300 rounded-lg p-2">
-                
-            </div> -->
     
             <div id="single_fov_compare_display" style="display: none" class="box-content p-8">
                 <div id="compareDiv" class="grid grid-cols-3 gap-2 place-content-start">

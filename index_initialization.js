@@ -1,10 +1,8 @@
-const datasetNum = 12;
-const dtArr = [4]//[4, 1, 2, 8, 12, 16];
 const allAlgArr = ["cnn", "lap", "trackmate", "trackpy_base", "trackpy_vel"];
 const fovNames = ["A_01fld01", "A_01fld07", "A_02fld01","A_02fld03","A_02fld05","A_02fld07","A_02fld08","A_02fld09","A_04fld01","A_04fld10","A_07fld04","A_07fld06"]
-// const dtArr = [4];
-// const allAlgArr = ["lap"];
-let algArr = [];
+const datasetNum = fovNames.length
+
+const dtArr = [4];
 const colorScale = d3.scaleOrdinal()
     .domain([...Array(allAlgArr)])
     .range(d3.schemeSet2);
@@ -35,6 +33,7 @@ const initialization = (dt) => {
             if (+d.track_id_parent === 0) return +d.track_id_unique;
             return getTreeID(rawData.find(dd => dd.track_id_unique === d.track_id_parent));
         }
+
         rawData.forEach(d => {
             let treeID = getTreeID(d);
             // removes cells with parents that do not exist (error in ground truth)
@@ -62,6 +61,7 @@ const initialization = (dt) => {
                 }
             }
         })
+
         trkData = trkData.filter(d => d.imgIdx < numImg);
         idxToTreeIDArr = idxToTreeIDArr.filter(d => d !== undefined);
         for (let i = 0; i < idxToTrkIDArr.length; i++) {
@@ -117,7 +117,7 @@ const initialization = (dt) => {
             errCountAcrossIdx.push(temp)
         }
         numErrLink = errCountAcrossIdx[errCountAcrossIdx.length - 1];
-        
+
         return {
             datasetIdx: datasetIdx,
             dt: dt,
@@ -141,20 +141,22 @@ const initialization = (dt) => {
             let tempData = [];
             for (let algIdx = 0; algIdx < allAlgArr.length; algIdx++) {
                 d3.csv(`./src/results/${allAlgArr[algIdx]}_dt${dt}/${fovNames[datasetIdx-1]}.csv`).then(rawData => {
-                    // if (algArr.findIndex(d => d === allAlgArr[algIdx]) === -1) 
-                    algArr.push(allAlgArr[algIdx]);
+                    // if (algArr.findIndex(d => {console.log(d, allAlgArr[algIdx], -1); return d === allAlgArr[algIdx]}) === -1){
+                    //     algArr.push(allAlgArr[algIdx]);
+                    // } 
+                        
                     tempData[algIdx] = processRawData(datasetIdx, dt, allAlgArr[algIdx], rawData);
                     dataReadCount++;
-                    if (dataReadCount === datasetNum * algArr.length) {
+                    if (dataReadCount === datasetNum * allAlgArr.length) {
                         const initializeAlgSelect = ((id) => {
                             single_alg_alg_select.innerHTML = '';
-                            for (const alg of algArr) {
+                            for (const alg of allAlgArr) {
                                 d3_single_alg_alg_select.append("option")
                                     .text(`${alg}`);
                             }
 
                             single_fov_alg_select.innerHTML = '';
-                            for (const alg of algArr) {
+                            for (const alg of allAlgArr) {
                                 d3_single_fov_alg_select.append("option")
                                     .text(`${alg}`);
                             }
@@ -208,6 +210,31 @@ const initialization = (dt) => {
     const buildOverallView = () => {
         data.sort((a, b) => (b.reduce((aa, bb) => aa + (bb.numErrLink || 0), 0)) 
             - ((a.reduce((aa, bb) => aa + (bb.numErrLink || 0), 0))));
+        
+        d3.select("#legend").select("div").remove()
+
+        const div = d3.select("#legend")
+                      .append("div")
+                      .attr("class", "mt-3 w-full border-t border-gray-700")
+
+        div.append("a")
+            .attr("class", "items-center w-full px-2 mt-3")
+            .append("span")
+            .attr("class", "ml-2 text-sm font-bold")
+            .text("Name legend")
+            .append("br")
+
+
+
+        for(var i=0; i<allAlgArr.length; i++){
+            div.append("span")
+                .attr("class", "items-center w-full px-20 mt-3")
+            .text(allAlgArr[i])
+            .style("color", colorScale(allAlgArr[i]))
+            .append("br")
+        }
+        
+        
         data.forEach(d => { 
             const div = d3.selectAll("#overall_div").append("div")
             .attr("class", "box-content rounded-lg p-4 text-base relative bg-gray-900");
@@ -272,7 +299,7 @@ const initialization = (dt) => {
                     .attr("fill", "#9ca3af");
             } else {
                 let xScale = d3.scaleBand()
-                    .domain(algArr)
+                    .domain(allAlgArr)
                     .range([0, graphWidth])
                     .padding(0.1);
                 const yScaleBars = d3.scaleLinear()
@@ -285,7 +312,7 @@ const initialization = (dt) => {
                 d.forEach((dd, ii) => {
                     myBars.push(
                         barChart.append("rect")
-                            .attr('x', xScale(algArr[ii]))
+                            .attr('x', xScale(allAlgArr[ii]))
                             .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight)
                             .attr("width", xScale.bandwidth())
                             .attr("height", yScaleBars(dd.numErrLink))
@@ -294,16 +321,24 @@ const initialization = (dt) => {
                     )
                     let text = barChart.append("text")
                         .text(`${dd.numErrLink}`);
-                    text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
+                    text.attr('x', xScale(allAlgArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
                         .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight - tooltipHeight / 6)
                         .attr("fill", colorScale(allAlgArr[ii]));
                     myText.push(text)
                     
-                    text = barChart.append("text")
-                        .text(algArr[ii]);
-                    text.attr('x', xScale(algArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
-                        .attr('y', graphHeight - text.node().getBBox().height / 3)
-                        .attr("fill", colorScale(allAlgArr[ii]));
+
+                    // text = barChart.append("text")
+                    //     .text(allAlgArr[ii]);
+                    
+                    //     text.attr('x', xScale(allAlgArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2 )
+                    //     .attr('y', function(){
+                    //         if(ii%2==0)
+                    //             return graphHeight - text.node().getBBox().height / 3 
+                    //         else 
+                    //         return graphHeight - text.node().getBBox().height / 3 +10})
+                    //     text.attr("fill", colorScale(allAlgArr[ii]))
+                    //     .style("font-size","12px")
+                        // .attr("transform", `translate(${xScale(allAlgArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2},${graphHeight - text.node().getBBox().height / 3})rotate(-45)`);
                 })
                     const lineChartDiv = div.append("div").attr("class", "border-t");
                     const lineChartGroup = lineChartDiv.append('g');
@@ -532,8 +567,6 @@ const initialization = (dt) => {
                 }
             }
 
-            console.log(errLinkPathTime)
-
             var myPoints;
             var myLines;
 
@@ -683,21 +716,26 @@ const initialization = (dt) => {
 
     //SINGLE FOV VIEW
     const buildSingleFOVView = (alg, datasetIdx) => {
-        console.log(datasetIdx, alg)
         const singleFOVViewData = data.find(d => d[0].datasetIdx === datasetIdx).find(d => d.algorithm === alg)
         const numImg = singleFOVViewData.numImg;
         const trkIDToErrPathMap = singleFOVViewData.trkIDToErrPathMap;
         const trkIDToErrImgIdxMap = singleFOVViewData.trkIDToErrImgIdxMap;
-        
-        var trkData = {}
 
+        var trkData = {}
+        var nErrors = 0
         for(const key of trkIDToErrPathMap.keys()){
             trkData[key] = {}
             trkData[key]["ErrCoords"] = d3.map(trkIDToErrPathMap.get(key), d => d.flat())
             trkData[key]["ErrTime"] = trkIDToErrImgIdxMap.get(key)
+            nErrors += trkData[key]["ErrCoords"].length
         }
-        
-        console.log(trkData)
+    
+        var nTracksWithError = Object.keys(trkData).length
+
+
+        d3.select("#infoFOV").text(`Field of View name - ${fovNames[datasetIdx]}`)
+        d3.select("#infoTrack").text(`Tracks with errors - ${nTracksWithError}`)
+        d3.select("#infoErr").text(`Total number of errors - ${nErrors}`)
 
         const colorTrack = "black";
         const colorError = colorScale(alg)
@@ -709,29 +747,21 @@ const initialization = (dt) => {
 
         var imgIdx = numImg-1
         const imgSlider = d3.select("#image_slider")
-        .attr("max", numImg - 1);
+        imgSlider.attr("max", numImg - 1);
 
         const imgSliderLabel = d3.select("#image_slider_label");    
         image_slider.value = imgIdx;
         imgSliderLabel.text(`${imgIdx}`);
 
         const size = 575;
-        const buff = 55
+        const wsize = 720;
+        const buff = 55;
         //Draw errors on top of the image
         // set up the svg that will contain image and tracks
         const imgSVG = d3.select("#tracking_svg")
             .attr("width", size)
             .attr("height", size)
             .attr("viewBox", `0 0 ${resolutionSideLength} ${resolutionSideLength}`);
-
-        const plotSVG = d3.select("#errors_svg")
-            .attr("width", size)
-            .attr("height", size)
-
-        plotSVG.selectAll("rect").remove()
-        plotSVG.selectAll("line").remove()
-        plotSVG.selectAll("path").remove()
-        plotSVG.selectAll("circle").remove()
 
         
         // image
@@ -743,13 +773,29 @@ const initialization = (dt) => {
 
         const xScale = d3.scaleBand()
             .domain([...Array(numImg).keys()])
-            .range([0,size-buff])
+            .range([0,wsize-buff])
             .padding(0.1)
 
+
+
+        const hsize = nTracksWithError*parseInt(xScale.bandwidth()*3)+10
+        console.log(nTracksWithError)
+        console.log(xScale.bandwidth())
+        const plotSVG = d3.select("#errors_svg")
+                        .attr("width", wsize)
+                        .attr("height", hsize)
+
+    
         const yScale = d3.scaleBand()
                 .domain(Object.keys(trkData))
-                .range([size,10])
+                .range([hsize-20,0])
                 .padding(0.1)
+
+
+        plotSVG.selectAll("rect").remove()
+        plotSVG.selectAll("line").remove()
+        plotSVG.selectAll("path").remove()
+        plotSVG.selectAll("circle").remove()
 
 
         function updateBoxPlot(){
@@ -762,7 +808,7 @@ const initialization = (dt) => {
                 .append("text")
                 .attr("id", "labelTime")
                 .attr("x", xScale(imgIdx))
-                .attr("y", 10)
+                .attr("y", hsize-10)
                 .style("fill", "white")
                 .attr("font-size", 10)
                 .attr("font-family", "sans-serif")
@@ -774,7 +820,7 @@ const initialization = (dt) => {
                 plotSVG.append("g")
                         .append("text")
                         .attr("id", "labelTrack")
-                        .attr("x", size-buff)
+                        .attr("x", wsize-buff)
                         .attr("y", yScale(selectedTrack))
                         .style("fill", "white")
                         .attr("font-size", 10)
@@ -842,6 +888,30 @@ const initialization = (dt) => {
                 var shift = 300
                 imgSVG.attr("viewBox", `${coords[0]-shift} ${coords[1]-shift} 500 500`);
 
+                const tempTrk = singleFOVViewData.trkDataSortedByTrkID.find(d => d[0].trkID === selectedTrack).filter(d => d.imgIdx <= imgIdx);
+                const tempPathData = [[], []];
+                // the loop goes through every point of the track to determined if it is before error link happen or after
+                for (const point of tempTrk) {
+                    point.imgIdx <= trkData[selectedTrack]["ErrTime"][selectedId][0] ? tempPathData[0].push([point.x, point.y]) // before
+                        : tempPathData[1].push([point.x, point.y]) // after
+                }
+                tempPathData[1].unshift(tempPathData[0][tempPathData[0].length - 1]);
+
+                var tempPath = imgSVG.selectAll("#thePath")
+                    .data(tempPathData)
+                    .attr("d", d => d3.line()(d))
+                    
+                tempPath.exit()
+                    .attr("d", undefined)
+                tempPath.enter()
+                    .append("path")
+                    .attr("id", "thePath")
+                    .attr("d", d => d3.line()(d))
+                    .attr("fill", "none")
+                    .attr("stroke", "black")
+                    .style("stroke-dasharray", (d, i) => i === 0 ? ("14, 10") : "none")
+                    .attr("stroke-width", trkWidth)
+
                 //draw error link
                 var circles = imgSVG.selectAll("circle")
                     .data(trkData[selectedTrack]["ErrCoords"].filter((d,i)=> i == selectedId))
@@ -878,31 +948,6 @@ const initialization = (dt) => {
                 paths.exit()
                         .remove();
 
-
-                const tempTrk = singleFOVViewData.trkDataSortedByTrkID.find(d => d[0].trkID === selectedTrack).filter(d => d.imgIdx <= imgIdx);
-            
-                const tempPathData = [[], []];
-                // the loop goes through every point of the track to determined if it is before error link happen or after
-                for (const point of tempTrk) {
-                    point.imgIdx <= trkData[selectedTrack]["ErrTime"][selectedId][0] ? tempPathData[0].push([point.x, point.y]) // before
-                        : tempPathData[1].push([point.x, point.y]) // after
-                }
-                tempPathData[1].unshift(tempPathData[0][tempPathData[0].length - 1]);
-
-                var tempPath = imgSVG.selectAll("#thePath")
-                    .data(tempPathData)
-                    .attr("d", d => d3.line()(d))
-                    
-                tempPath.exit()
-                    .attr("d", undefined)
-                tempPath.enter()
-                    .append("path")
-                    .attr("id", "thePath")
-                    .attr("d", d => d3.line()(d))
-                    .attr("fill", "none")
-                    .attr("stroke", "black")
-                    .style("stroke-dasharray", (d, i) => i === 0 ? ("14, 10") : "none")
-                    .attr("stroke-width", trkWidth)
             }
             
         }
@@ -913,7 +958,7 @@ const initialization = (dt) => {
                 .attr("x1", d => xScale(imgIdx))
                 .attr("y1", d => 0)
                 .attr("x2", d => xScale(imgIdx))
-                .attr("y2", d => size)
+                .attr("y2", d => hsize)
                 .attr("stroke", d => colorError)
                 .attr("opacity", 0.3)
                 .attr("stroke-width", 1);
@@ -927,8 +972,8 @@ const initialization = (dt) => {
             .attr("id", d => `Track-${d}`)
             .attr("x", d => 0)
             .attr("y", d => yScale(d))
-            .attr("width", size)
-            .attr("height", xScale.bandwidth()*3.5)
+            .attr("width", wsize-buff)
+            .attr("height", yScale.bandwidth())
             .attr("opacity", 0)
             .attr("fill", colorError)
             .on("mouseover", function (event, d) {d3.select(this).attr('opacity', '0.3')})
@@ -960,7 +1005,7 @@ const initialization = (dt) => {
                                 .attr("x", d => xScale(d[0]))
                                 .attr("y", d => yScale(key))
                                 .attr("width", xScale.bandwidth()*3)
-                                .attr("height", xScale.bandwidth()*3)
+                                .attr("height", yScale.bandwidth())
                                 .attr('stroke', 'red')
                                 .attr('stroke-width', 0)
                                 .attr("fill", colorError)
@@ -1004,7 +1049,7 @@ const initialization = (dt) => {
                 .append("text")
                 .attr("id", "labelTime")
                 .attr("x", xScale(imgIdx))
-                .attr("y", 10)
+                .attr("y", hsize-10)
                 .style("fill", "white")
                 .attr("font-size", 10)
                 .attr("font-family", "sans-serif")
@@ -1021,16 +1066,7 @@ const initialization = (dt) => {
 
 
     const initializeAndBuildSingleFOVView = (alg, datasetIdx) => {
-        // initialize
-        // d3.select("#image_slider").remove();
-        // d3.select("#image_slider_div").append("input")
-        //     .attr("type", "range")
-        //     .attr("min", 0)
-        //     .attr("value", 0)
-        //     .attr("class", "slider")
-        //     .attr("id", "image_slider")
-        //     .attr("oninput", "singleFOV.initTracking.updateTracking(+this.value)");
-        // image_slider_label.innerHTML = "Image Index: 0";
+
         d3.select("#tracking_svg")
             .attr("width", null)
             .attr("height", null)
@@ -1041,11 +1077,7 @@ const initialization = (dt) => {
             .attr("height", null);
         error_link.innerHTML = '';
         true_track.innerHTML = '';
-        // d3.select("#lineage_svg")
-        //     .attr("width", null)
-        //     .attr("height", null);
-        // lineage.innerHTML = '';
-        // // build
+
         singleFOV = buildSingleFOVView(alg, datasetIdx);
     }
     const displaySingleFOVAndHideComparison = () => {

@@ -1,23 +1,43 @@
-# DataVis
-Interactive Visualization - Cell Tracking
+## CellTrackViz
 
-https://lygihub.github.io/DataVis/
+Interactive Visualization of cell tracking algorithm performance
 
-Only dt4 has all 4 algorithms available; therefore, only dt4 has access to the Overall view at the moment. Only lap has data for all dt, and the rest of the algorithms have data only for dt4.
+---
 
 
-User Guide - How to input data
+### Interactive example
 
-    Every field of view data is named as dataset_* from 1 to the total number of fields of view (indexes have to be continuous), and dataset_* is a folder that is consisted two parts: images and CSVs.
+An online example of CellTrack Viz can be found [here](https://iuricichF.github.io/DataVis/)
+To run the example locally you can simply download this repository and run a local server on your machine.
 
-    Images are named as *.jpg from 0 to the total number of images - 1. If you want to use images in a different format, such as pdf, you do so by changing "jpg"s to your preferred format in lines 636 and 709 of index_initialization.js.
 
-    CSV files are cell tracking data. CSV files are named as (name of the algorithm)_(frame rate).csv (e.g. lap_dt4.csv). If you want an algorithm to work on a certain frame rate, you need to ensure every dataset has CSV data for the algorithm and the frame rate.
+### User Guide
 
-    You need to enter and/or change lines 1, 2, and 3 of index_initialization.js to match your input data from the src folder.
+#### Input format
+---
 
-    datasetNum is the total number of datasets. It should equal to the max number of dataset_* in the src folder.
+Inputs consist of two data types, images and CSV files containing the tracking algorithms' results.
 
-    dtArr is avaliable frame rate options. dtArr[0] is the default frame rate.
-    
-    allAlgArr is avaliable algorithm options.
+Images are contained in folder `src/`. Each folder contains the sequence of images, in `*.jpg` format, composing a specific field of view.
+
+CSV fiels are contained in the folder `src/results`. Each folder contains the results collected with a specific algorith. Inside that folder you can find one CSV file per field of view. For each file, lines indicate `...`. For each line we have
+
+- `...`
+- `...`
+- `...`
+- `...`
+
+```
+Unnamed: 0,FRAME,ID,track_id_unique,track_id_parent,pos_x,pos_y,dt10_n0_dx,dt10_n0_dy,tid_lap_pred,ID_next,dist_link,u_flag,track_id_unique_pred,track_id_parent_pred,predicted
+0,0,3085231,46,0,1652.1372624229334,1369.5648534039744,2.1463759769437734,-8.19148508678586,1,3085575,8.468019707194737,0,1,0,0
+```
+
+
+#### Updating the input
+---
+
+Regardless of the files ontained in the `src\` the standalone version of CellTrackViz in this repository allows to edit the field of view and algorithms considered at loading time.
+
+The list of algorithms to consider can be modified by updating line [put line once final]().
+
+The list of field of views can be modified by updating [put line once final]().
