@@ -725,6 +725,8 @@ const initialization = (dt) => {
         var nErrors = 0
         for(const key of trkIDToErrPathMap.keys()){
             trkData[key] = {}
+            console.log(trkIDToErrPathMap.get(key))
+            console.log(d3.map(trkIDToErrPathMap.get(key), d => d.flat()))
             trkData[key]["ErrCoords"] = d3.map(trkIDToErrPathMap.get(key), d => d.flat())
             trkData[key]["ErrTime"] = trkIDToErrImgIdxMap.get(key)
             nErrors += trkData[key]["ErrCoords"].length
@@ -868,15 +870,15 @@ const initialization = (dt) => {
                         .data(trkData[selectedTrack]["ErrCoords"])
                         .attr("x1", d => d[0])
                         .attr("y1", d => d[1])
-                        .attr("x2", d => d[2])
-                        .attr("y2", d => d[3])
+                        .attr("x2", d => {if(d.length == 4) return d[2]; return d[0]})
+                        .attr("y2", d => {if(d.length == 4) return d[3]; return d[1]})
 
                     paths.enter()
                             .append("line")
                             .attr("x1", d => d[0])
                             .attr("y1", d => d[1])
-                            .attr("x2", d => d[2])
-                            .attr("y2", d => d[3])
+                            .attr("x2", d => {if(d.length == 4) return d[2]; return d[0]})
+                            .attr("y2", d => {if(d.length == 4) return d[3]; return d[1]})
                             .attr("stroke", colorError)
                             .attr("stroke-width", trkWidth)
                     
@@ -933,15 +935,15 @@ const initialization = (dt) => {
                     .data(trkData[selectedTrack]["ErrCoords"].filter((d,i)=> i == selectedId))
                     .attr("x1", d => d[0])
                     .attr("y1", d => d[1])
-                    .attr("x2", d => d[2])
-                    .attr("y2", d => d[3])
+                    .attr("x2", d => {if(d.length == 4) return d[2]; return d[0]})
+                    .attr("y2", d => {if(d.length == 4) return d[3]; return d[1]})
 
-                paths.enter()
+                    paths.enter()
                         .append("line")
                         .attr("x1", d => d[0])
                         .attr("y1", d => d[1])
-                        .attr("x2", d => d[2])
-                        .attr("y2", d => d[3])
+                        .attr("x2", d => {if(d.length == 4) return d[2]; return d[0]})
+                        .attr("y2", d => {if(d.length == 4) return d[3]; return d[1]})
                         .attr("stroke", colorError)
                         .attr("stroke-width", trkWidth)
                 
