@@ -1,4 +1,4 @@
-const allAlgArr = ["cnn", "lap", "trackmate", "trackpy_base", "trackpy_vel"];
+const allAlgArr = ["cnn", "lap", "trackmate", "trackpy_base"] //, "trackpy_vel"];
 const fovNames = ["A_01fld01", "A_01fld07", "A_02fld01","A_02fld03","A_02fld05","A_02fld07","A_02fld08","A_02fld09","A_04fld01","A_04fld10","A_07fld04","A_07fld06"]
 const datasetNum = fovNames.length
 
@@ -208,9 +208,18 @@ const initialization = (dt) => {
         }
     }
     const buildOverallView = () => {
-        data.sort((a, b) => (b.reduce((aa, bb) => aa + (bb.numErrLink || 0), 0)) 
-            - ((a.reduce((aa, bb) => aa + (bb.numErrLink || 0), 0))));
+        // data.sort((a, b) => (b.reduce((aa, bb) => aa + (bb.numErrLink || 0), 0)) 
+        //     - ((a.reduce((aa, bb) => aa + (bb.numErrLink || 0), 0))));
         
+        data.sort((a, b) => {
+            var linksa = a[0].trkData.length - a[0].idxToTrkIDArr.length;
+            var linksb = b[0].trkData.length - b[0].idxToTrkIDArr.length;
+            return linksb-linksa
+        });
+
+        
+        // d[0].trkData.length - d[0].idxToTrkIDArr.length
+            
         d3.select("#legend").select("div").remove()
 
         const div = d3.select("#legend")
@@ -236,6 +245,7 @@ const initialization = (dt) => {
         
         
         data.forEach(d => { 
+            console.log(d)
             const div = d3.selectAll("#overall_div").append("div")
             .attr("class", "box-content rounded-lg p-4 text-base relative bg-gray-900");
             const fovid = div.append("div")
@@ -271,10 +281,10 @@ const initialization = (dt) => {
             })()
             div.append("div").attr("class", "pt-10")
 
-            const barchartDiv = div.append("div").attr("class", "border-t pb-6");
+            const barchartDiv = div.append("div").attr("class", "border-t pb-2");
             const barchartGroup = barchartDiv.append('g');
             barchartGroup.append("tspan").attr("class", "text-gray-400")
-                .append("text").text("Total linking errors per algorithm");
+                .append("text").text(`Linking errors over ${d[0].trkData.length - d[0].idxToTrkIDArr.length} total links`);
             const graphWidth = 250;
             const graphHeight = 150;
             const tooltipHeight = graphHeight * 0.2
@@ -313,7 +323,7 @@ const initialization = (dt) => {
                     myBars.push(
                         barChart.append("rect")
                             .attr('x', xScale(allAlgArr[ii]))
-                            .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight)
+                            .attr('y', graphHeight - yScaleBars(dd.numErrLink))
                             .attr("width", xScale.bandwidth())
                             .attr("height", yScaleBars(dd.numErrLink))
                             .attr("class","bars-"+dd.datasetIdx)
@@ -322,7 +332,7 @@ const initialization = (dt) => {
                     let text = barChart.append("text")
                         .text(`${dd.numErrLink}`);
                     text.attr('x', xScale(allAlgArr[ii]) + (xScale.bandwidth() - text.node().getBBox().width) / 2)
-                        .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight - tooltipHeight / 6)
+                        .attr('y', graphHeight - yScaleBars(dd.numErrLink) - tooltipHeight / 6)
                         .attr("fill", colorScale(allAlgArr[ii]));
                     myText.push(text)
                     
@@ -423,12 +433,12 @@ const initialization = (dt) => {
                                 .attr("opacity", 0)
 
                             myBars[ii]
-                                .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight)
+                                .attr('y', graphHeight - yScaleBars(dd.numErrLink) )
                                 .attr("height", yScaleBars(dd.numErrLink))
 
                             myText[ii]
                                 .text(`${dd.numErrLink}`)
-                                .attr('y', graphHeight - yScaleBars(dd.numErrLink) - graphFooterHeight - tooltipHeight / 6)
+                                .attr('y', graphHeight - yScaleBars(dd.numErrLink) - tooltipHeight / 6)
                         })
                     }
 
@@ -446,12 +456,12 @@ const initialization = (dt) => {
                                 .attr("cy", yScale(y));
 
                             myBars[ii]
-                                .attr('y', graphHeight - yScaleBars(y) - graphFooterHeight)
+                                .attr('y', graphHeight - yScaleBars(y) )
                                 .attr("height", yScaleBars(y))
 
                             myText[ii]
                                 .text(`${y}`)
-                                .attr('y', graphHeight - yScaleBars(y) - graphFooterHeight - tooltipHeight / 6)
+                                .attr('y', graphHeight - yScaleBars(y) - tooltipHeight / 6)
                         })
                     }
             }
@@ -910,7 +920,7 @@ const initialization = (dt) => {
                     .attr("id", "thePath")
                     .attr("d", d => d3.line()(d))
                     .attr("fill", "none")
-                    .attr("stroke", "black")
+                    .attr("stroke", "white")
                     .style("stroke-dasharray", (d, i) => i === 0 ? ("14, 10") : "none")
                     .attr("stroke-width", trkWidth)
 
