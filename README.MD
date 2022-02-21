@@ -10,6 +10,8 @@ Interactive Visualization of cell tracking algorithms performance
 An example of CellTrackVis can be found [here](https://iuricichF.github.io/DataVis/)
 To run the example locally you can simply download this repository and run a local server on your machine.
 
+![overview](figure/banner.jpg)
+
 
 ### User Guide
 
