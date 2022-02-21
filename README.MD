@@ -7,7 +7,7 @@ Interactive Visualization of cell tracking algorithms performance
 
 ### Interactive example
 
-An example of CellTrackVis can be found [here](https://iuricichF.github.io/DataVis/)
+An example of CellTrackVis can be found [here](https://iuricichf.github.io/CellTrackVis/)
 To run the example locally you can simply download this repository and run a local server on your machine.
 
 ![overview](figure/banner.jpg)
@@ -42,6 +42,6 @@ CSV fiels are contained in the folder `src/results`. Each folder contains the re
 
 Regardless of the files ontained in the `src\` the standalone version of CellTrackViz in this repository allows to edit the field of view and algorithms considered at loading time.
 
-The list of algorithms to consider can be modified by updating line [put line once final]().
+The list of algorithms to consider can be modified by updating [this list](https://github.com/IuricichF/CellTrackVis/blob/d28582f8253923f88ea8958931283c711f4e9f8e/index_initialization.js#L1).
 
-The list of field of views can be modified by updating [put line once final]().
+The list of field of views can be modified by updating [this list](https://github.com/IuricichF/CellTrackVis/blob/d28582f8253923f88ea8958931283c711f4e9f8e/index_initialization.js#L2).
