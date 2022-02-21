@@ -141,9 +141,6 @@ const initialization = (dt) => {
             let tempData = [];
             for (let algIdx = 0; algIdx < allAlgArr.length; algIdx++) {
                 d3.csv(`./src/results/${allAlgArr[algIdx]}_dt${dt}/${fovNames[datasetIdx-1]}.csv`).then(rawData => {
-                    // if (algArr.findIndex(d => {console.log(d, allAlgArr[algIdx], -1); return d === allAlgArr[algIdx]}) === -1){
-                    //     algArr.push(allAlgArr[algIdx]);
-                    // } 
                         
                     tempData[algIdx] = processRawData(datasetIdx, dt, allAlgArr[algIdx], rawData);
                     dataReadCount++;
@@ -245,7 +242,6 @@ const initialization = (dt) => {
         
         
         data.forEach(d => { 
-            console.log(d)
             const div = d3.selectAll("#overall_div").append("div")
             .attr("class", "box-content rounded-lg p-4 text-base relative bg-gray-900");
             const fovid = div.append("div")
@@ -735,8 +731,6 @@ const initialization = (dt) => {
         var nErrors = 0
         for(const key of trkIDToErrPathMap.keys()){
             trkData[key] = {}
-            console.log(trkIDToErrPathMap.get(key))
-            console.log(d3.map(trkIDToErrPathMap.get(key), d => d.flat()))
             trkData[key]["ErrCoords"] = d3.map(trkIDToErrPathMap.get(key), d => d.flat())
             trkData[key]["ErrTime"] = trkIDToErrImgIdxMap.get(key)
             nErrors += trkData[key]["ErrCoords"].length
@@ -791,8 +785,6 @@ const initialization = (dt) => {
 
 
         const hsize = nTracksWithError*parseInt(xScale.bandwidth()*3)+10
-        console.log(nTracksWithError)
-        console.log(xScale.bandwidth())
         const plotSVG = d3.select("#errors_svg")
                         .attr("width", wsize)
                         .attr("height", hsize)
