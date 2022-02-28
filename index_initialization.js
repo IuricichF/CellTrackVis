@@ -739,7 +739,7 @@ const initialization = (dt) => {
         var nTracksWithError = Object.keys(trkData).length
 
 
-        d3.select("#infoFOV").text(`Field of View name - ${fovNames[datasetIdx]}`)
+        d3.select("#infoFOV").text(`Field of View name - ${fovNames[datasetIdx-1]}`)
         d3.select("#infoTrack").text(`Tracks with errors - ${nTracksWithError}`)
         d3.select("#infoErr").text(`Total number of errors - ${nErrors}`)
 
